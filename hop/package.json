@@ -1,0 +1,47 @@
+{
+  "name": "hop-ecs",
+  "description": "health oracle protocol",
+  "version": "0.1.7",
+  "main": "src/index.js",
+  "bin": "src/index.js",
+  "type": "module",
+  "directories": {},
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "mocha test/*.*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/healthscience/hop.git"
+  },
+  "keywords": [
+    "hop",
+    "ptop",
+    "data",
+    "science",
+    "protocol"
+  ],
+  "author": "aboynejames@gmail.com",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/healthscience/hop/issues"
+  },
+  "homepage": "https://github.com/healthscience/hop#readme",
+  "dependencies": {
+    "beebee-ai": "^0.2.4",
+    "bs58": "^5.0.0",
+    "corestore": "^6.2.0",
+    "holepunch-hop": "^0.1.7",
+    "hop-dml": "^0.0.1",
+    "hop-message": "^0.0.8",
+    "hop-query-builder": "^0.0.8",
+    "librarycomposer": "^0.3.1",
+    "node-safeflow": "0.9.53",
+    "uuid": "^9.0.0",
+    "ws": "^8.11.0"
+  },
+  "devDependencies": {
+    "assert": "^2.0.0",
+    "mocha": "^10.0.0"
+  }
+}
