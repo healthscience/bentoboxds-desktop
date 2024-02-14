@@ -25,7 +25,7 @@
         <div id="bentospace-holder" v-dragscroll.noleft.noright="true" >
           <div id="bento-space">
             <!-- location for bentobox - es -->
-            <div id="bento-layout" v-for="bbox in storeAI.bentoboxList[storeAI.liveBspace]">
+            <div id="bento-layout" v-for="bbox in storeAI.bentoboxList[storeAI.liveBspace.spaceid]">
              <bento-box :bboxid="bbox"></bento-box>
             </div>
           </div>

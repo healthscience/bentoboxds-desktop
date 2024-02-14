@@ -2,12 +2,35 @@
   <div class="drag-container-1">
     <div id="bb-toolbar">
       <div class="bb-bar-main">a bentobox</div>
+      <div class="bb-bar-main"><button @click="clickSummaryLib(props.bboxid)">Lib</button></div>
       <div class="bb-bar-main"><button @click="clickExpandBentobox(props.bboxid)">expand</button></div>
       <div class="bb-bar-main"><button @click="clickAddbentoSpace(props.bboxid)">+ space</button></div>
+      <div class="bb-bar-main"><button @click="clickShareSpace(props.bboxid)">share</button></div>
       <!--<div class="bb-bar-main"><button id="network-vis">social</button></div>
       <div class="bb-bar-main"><button id="network-map">map</button></div>
       <div class="bb-bar-main"><button id="bb-copy">copy</button></div>-->
-    </div> 
+    </div>
+  </div>
+  <div id="share-form" v-if="shareForm">
+    <form id="ask-ai-form" @submit.prevent="storeAccount.shareProtocol(props.bboxid)">
+      <label for="sharepeer"></label>
+      <input type="input" id="sharekey" placeholder="publickey" v-model="storeAccount.sharePubkey" autofocus>
+      <button id="share-send" type="submit">
+      Send invite
+    </button>
+    </form>
+  </div>
+  <div id="library-summary" v-if="libSum">
+    <div id="lib-summary">
+      Library summary: {{ boxLibrarySummary.key[0] }}
+      <button @click="openLibrary">open library</button>
+    </div>
+    <div id="lib-modules">
+      Modules:
+      <div class="mod-key" v-for="mod in boxLibrarySummary.modules" :key="mod.id">
+       {{ mod }}
+      </div>
+    </div>
   </div>
   <div id="bentobox-cell">
     <div id="bb-network-graph">Network</div>
@@ -45,10 +68,14 @@ import lineChart from '@/components/visualisation/charts/lineChart.vue'
 import { ref, computed, onMounted } from 'vue'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
+import { accountStore } from '@/stores/accountStore.js'
 
+  const storeAccount = accountStore()
   const storeAI = aiInterfaceStore()
   const bbliveStore = bentoboxStore()
   const futureStatus = ref(true)
+  const shareForm = ref(false)
+  const libSum = ref(false)
 
   const props = defineProps({
     bboxid: String
@@ -86,14 +113,30 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     }
    }
 
+  const openLibrary = () => {
+    storeAI.dataBoxStatus = true
+    storeAI.uploadStatus = false
+    storeLibrary.libraryStatus = true
+  }
+
+   const clickSummaryLib = (boxid) => {
+    libSum.value = !libSum.value
+    storeAI.prepareLibrarySummary(boxid)
+   }
+
    const clickExpandBentobox = (boxid) => {
     storeAI.expandBentobox[boxid] = true
    }
 
-   const clickAddbentoSpace = (boxid) => {
-    storeAI.bentoboxList['space1'].push(boxid)
-   }
+  const clickAddbentoSpace = (boxid) => {
+    // which space is active
+    storeAI.bentoboxList[storeAI.liveBspace.spaceid].push(boxid)
+  }
 
+  const clickShareSpace = (boxid) => {
+    shareForm.value = !shareForm.value
+  }
+  
   const checkEmpty = computed((value) => {
     return typeof value !== "number" ? 0 : value;
   })
@@ -109,10 +152,11 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   })
 
   const chartData = computed(() => {
-    return {
-      labels: dataLabel.value, // [ 'January', 'February', 'March' ],
-      datasets: [ { data: dataValues.value } ]
-    }
+    return storeAI.visData[props.bboxid]
+    /* {
+      // labels: dataLabel.value, // [ 'January', 'February', 'March' ],
+      // datasets: [ { data: dataValues.value } ]
+    } */
    })
 
   /*
@@ -121,6 +165,21 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   const predictFuture = () => {
     storeAI.prepareFuture(props.bboxid)
   }
+
+  /*
+  * library summary
+  */
+  const boxLibrarySummary = computed(() => {
+    let NXPcontract = {}
+    NXPcontract.key = Object.keys(storeAI.boxLibSummary[props.bboxid].data)
+    let modKeys = []
+    for (let mod of storeAI.boxLibSummary[props.bboxid].data[NXPcontract.key].modules) {
+      modKeys.push(mod.key)
+    }
+    NXPcontract.modules = modKeys
+    return NXPcontract
+    // return Object.keys(storeAI.boxLibSummary.data)
+  })
 
   const futureBox = computed(() => {
     return storeAI.activeFuture[props.bboxid]
@@ -163,7 +222,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
 #bb-toolbar {
   display: grid;
-  grid-template-columns: 5fr 1fr 1fr 1fr;
+  grid-template-columns: 4fr 1fr 1fr 1fr 1fr;
 }
 
 #bb-network-graph {
@@ -226,6 +285,18 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   background-color:  rgb(141, 145, 226);
 }
 
+.bb-bar-main {
+  border: 0px solid rgb(182, 182, 236);
+}
+
+#library-summary {
+  border: 1px solid rgb(236, 201, 134);
+}
+
+.mod-key {
+  padding-left: 1em;
+}
+
 @media (min-width: 1024px) {
 
   .drag-container-1 {
@@ -247,7 +318,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   #bb-toolbar {
     display: grid;
-    grid-template-columns: 5fr 1fr 1fr 1fr;
+    grid-template-columns: 4fr 1fr 1fr 1fr 1fr;
     width: 100%;
     background-color:rgb(141, 145, 226);
   }

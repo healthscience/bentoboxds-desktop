@@ -2,12 +2,12 @@
   <div id="ai-interaction">
     <form id="ask-ai-form" @submit.prevent="storeAI.submitAsk()">
       <label for="askname"></label><!--  v-on:keyup="storeAI.actionNatlangIn($event)" -->
-      <input type="text-area" id="askinput" name="ainame" placeholder="What would you like to chart?" v-model="storeAI.askQuestion.text">
+      <input type="text-area" id="askinput" name="ainame" placeholder="What would you like to chart?" v-model="storeAI.askQuestion.text" autofocus>
     </form>
     <button id="natlang-ask" type="submit" v-if="beebeeAIStatus.active === true" @click="storeAI.submitAsk">
       Ask BeeBee
     </button>
-    <data-box v-if="uploadLive === true"></data-box>
+    <data-box v-if="dataBoxStatus === true"></data-box>
   </div>
 </template>
 
@@ -24,8 +24,8 @@ import { computed } from 'vue'
   })
 
   // a computed ref
-  const uploadLive = computed(() => {
-    return storeAI.uploadStatus
+  const dataBoxStatus = computed(() => {
+    return storeAI.dataBoxStatus
   })
 
 </script>

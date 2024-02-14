@@ -1,35 +1,36 @@
-<template>csv fiewer {{ storeAI.linesLimit?.length }}
+<template>csv fiewer {{ storeLibrary.linesLimit?.length }}
   <div id="data-viewer">
     <div class="csv-section" id="summary-content">
-      <ul v-for="(value, index) in storeAI.linesLimit" :key="value.id">
+      <ul v-for="(value, index) in storeLibrary.linesLimit" :key="value.id">
         <li><b>{{index }}</b> {{ value }}</li>
       </ul>
     </div>
-    <div class="convert-section" id="convert-data" v-if="storeAI.linesLimit?.length > 0">
+    <div class="convert-section" id="convert-data" v-if="storeLibrary.linesLimit?.length > 0">
       <form class="file-info">
         Please enter:
         <div class="file-info-label">
           <label for="linenumber">Column names:</label>
-          <input type="text" placeholder="line number" v-model="lineBundle.cnumber">
+          <input type="text" placeholder="line number" v-model="storeLibrary.lineBundle.cnumber">
         </div>
         <div class="file-info-label">
           <label for="dataline">Data start:</label>
-          <input type="text" placeholder="line number" v-model="lineBundle.dataline">
+          <input type="text" placeholder="line number" v-model="storeLibrary.lineBundle.dataline">
         </div>
         <div class="file-info-label">
           <label for="seperator">Seperator type:</label>
-          <input type="text" placeholder="comma tab other" v-model="lineBundle.delimiter">
+          <input type="text" placeholder="comma tab other" v-model="storeLibrary.lineBundle.delimiter">
         </div>
         <div class="file-info-label">
           <label for="datename">Date column:</label>
-          <input type="text" v-model="lineBundle.datename">
+          <input type="text" v-model="storeLibrary.lineBundle.datename">
         </div>
         <div class="file-info-label">
           <label for="datetype">Type of date:</label>
-          <input type="text" v-model="lineBundle.datetype">
+          <input type="text" v-model="storeLibrary.lineBundle.datetype">
         </div>
       </form>
-      <button class="convert-button" @click='convertJSON'>SAVE</button>
+      <button class="convert-button" @click="saveDatafromFile">Save describe</button>
+      <button class="beebee-ask-button" @click="askBeeBeeConvert">Ask AI to describe data</button>
       <div id="feedback-save">
         <div id="file-save-feedback" v-if="fileStatus === true">
           <div class="file-feedback-info">
@@ -63,43 +64,30 @@
 <script setup>
 import { ref } from 'vue'
 // import { computed } from 'vue'
-import { aiInterfaceStore } from '@/stores/aiInterface.js'
-import { bentoboxStore } from '@/stores/bentoboxStore.js'
- 
-const storeAI = aiInterfaceStore()
-const bbliveStore = bentoboxStore()
+import { libraryStore } from '@/stores/libraryStore.js'
 
-  /* const props = defineProps({
-    linesList: Array
-  }) */
+  const storeLibrary = libraryStore() 
 
-  // let linesLimit = ref([])
   const fileStatus = ref(false)
-
-  let lineBundle = ref(
-    {
-      cnumber: '',
-      dataline: '',
-      delimiter: '',
-      datetype: ''
-    })
-
   let fileFeedback = ref('file feedback')
 
-  const convertJSON = () => {
-    let localFile = bbliveStore.fileBund
-    localFile.info = lineBundle.value
-    console.log(localFile)
+  const saveDatafromFile = () => {
+    let localFile = {}
+    localFile.name = storeLibrary.fileBund.name
+    localFile.info = storeLibrary.lineBundle
+    localFile.content = storeLibrary.fileBund.content
+    localFile.type = storeLibrary.newPackagingForm.type
     // prepare message structure
     let messageHOP = {}
     messageHOP.type = 'library'
+    messageHOP.action = 'contracts'
     messageHOP.reftype = 'save-file'
-    messageHOP.action = 'save-file'
+    messageHOP.privacy = 'private'
+    messageHOP.task = 'PUT'
     messageHOP.data = localFile
     // send to HOP
-    console.log('before message send')
-    storeAI.sendMessageHOP(messageHOP)
-    storeAI.csvpreviewLive = false
+    storeLibrary.sendMessage(messageHOP)
+    storeLibrary.csvpreviewLive = false
   }
 
 </script>

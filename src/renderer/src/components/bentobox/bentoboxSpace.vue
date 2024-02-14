@@ -103,7 +103,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     if (timeDiff < 2000) {
       setTimeout(longHoldCheck, 1)
     } else {
-      console.log('yes long press')
       storeAI.longPress = true
     }
   }
@@ -121,7 +120,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     // set timer start
     timerPress = new Date()
     if (startTime > 20000) {
-      console.log('long press')
       timeLong = true
     }
    }
@@ -141,10 +139,11 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   })
 
   const chartData = computed(() => {
-    return {
-      labels: dataLabel.value, // [ 'January', 'February', 'March' ],
-      datasets: [ { data: dataValues.value } ]
-    }
+    return storeAI.visData[props.bboxid]
+    /* {
+      // labels: dataLabel.value, // [ 'January', 'February', 'March' ],
+      // datasets: [ { data: dataValues.value } ]
+    } */
    })
 
      /*

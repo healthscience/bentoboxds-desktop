@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { useSocketStore } from '@/src/stores/socket.js'
+import { useSocketStore } from '@/stores/socket.js'
 
 
 export const store = defineStore('baseStore', {

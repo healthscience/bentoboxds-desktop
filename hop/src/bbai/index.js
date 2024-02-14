@@ -21,6 +21,7 @@ class BBRoute extends EventEmitter {
     this.liveBBAI = new BbAi(Holepunch)
     this.wsocket = {}
     this.wlist = []
+    this.peerNetworklisten()
   }
 
   /**
@@ -99,8 +100,21 @@ class BBRoute extends EventEmitter {
         bbReply.data = processFdata
         bbReply.bbid = message.bbid
         this.bothSockets(JSON.stringify(bbReply))
-      }
+      } 
     }
+  }
+
+  /**
+  * listen for messages / data from peer network
+  * @method peerNetworklisten
+  *
+  */
+  peerNetworklisten = function (messagedata) {
+    this.liveBBAI.on('peer-bb-direct', (data) => {
+      if (data.action === 'chart') {
+        this.bothSockets(JSON.stringify(data))
+      }      
+    })
   }
 
 }

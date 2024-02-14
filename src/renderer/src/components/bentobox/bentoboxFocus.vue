@@ -61,7 +61,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
   @media (min-width: 1024px) {
 
-    #pace-modal-header {
+    #space-modal-header {
       display: grid;
       grid-template-columns: 1fr 1fr;
     }

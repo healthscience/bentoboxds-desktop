@@ -1,20 +1,34 @@
 <template>
-  <div id="live-network-experiment">show {{ spaceStateShow }}
+  <div id="live-network-experiment">Peer experiments
     <div id="show-nxplists" v-if="spaceType === 'Boards'">
-      <list-contracts v-if="spaceState === 'private' && peerExperimentListlive.data?.length > 0"
+      <list-contracts v-if="spaceState === 'private' && peerNXPlib.data?.length > 0"
         class="experiment-info"
-        :experiments="peerExperimentListlive.data"
-        :columns="peerExperimentListlive.columns"
+        :experiments="peerNXPlib.data"
+        :columns="peerNXPlib.columns"
         :filter-key="searchQuery">
       </list-contracts>
-      <start-experience id="start-demo-nxp" v-else></start-experience>
+      <!--<start-experience id="start-demo-nxp" v-else></start-experience>-->
     </div>
+
   </div>
 </template>
 
 <script setup>
-import StartExperience from '@/components/beebeeView/library/StartExperience.vue'
-import ListContracts from '@/components//beebeeView/library/ListContracts.vue'
+import { ref, computed } from 'vue'
+// import StartExperience from '@/components/beebeeView/library/StartExperience.vue'
+import ListContracts from '@/components/library/contracts/list/ListContracts.vue'
+import { libraryStore } from '@/stores/libraryStore.js'
+
+  const storeLibrary = libraryStore()
+
+  const spaceType = ref('Boards')
+  const spaceState = ref('private')
+  const searchQuery = ref('')
+
+  // a computed ref
+  const peerNXPlib = computed(() => {
+    return storeLibrary.peerExperimentList
+  })
 
 /*
 export default {

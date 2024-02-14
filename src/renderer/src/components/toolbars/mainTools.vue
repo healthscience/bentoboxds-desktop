@@ -27,24 +27,37 @@
           <div class="bb-align alpha-round">Alpha</div>
         </div>
         <div class="bentobox-top">
+          <network-notify></network-notify>
+        </div>
+        <div class="bentobox-top">
           <nav>
             <RouterLink to="/help">{{ $t("message.help") }}</RouterLink>
           </nav>
         </div>
         <div class="bentobox-top">
-          <div class="bb-align">Sign-in</div>
+          <div class="bb-align" @click="selfAuth">{{ storeAccount.accountMenu }}</div>
         </div>
       </header>
     </div>
+    <account-box v-if="storeAccount.accountStatus === true"></account-box>
   </div>
 </template>
 
 <script setup>
-import mobileMenu from './mobileNav.vue'
-import DropDown from './dropDown.vue'
+import NetworkNotify from '@/components/toolbars/notification/networkNotify.vue'
+import mobileMenu from '@/components/toolbars/mobileNav.vue'
+import DropDown from '@/components/toolbars/dropDown.vue'
+import AccountBox from '@/components/toolbars/account/selfAuth.vue'
+
+import { accountStore } from '@/stores/accountStore.js'
+
 import { ref, onMounted } from 'vue'
 
+  const storeAccount = accountStore()
+
   let mobileSize = ref(true)
+  let accountState = ref('Sign-in')
+
   onMounted(() => {
     let mql = window.matchMedia("(min-width: 1024px)")
     mobileSize.value = mql.matches
@@ -56,6 +69,10 @@ import { ref, onMounted } from 'vue'
     { flag: 'zh', language: 'zh', title: '普通话' },
     { flag: 'jp', language: 'jp', title: '日本語' }
   ])
+
+  const selfAuth = () => {
+    storeAccount.accountStatus = !storeAccount.accountStatus
+  }
 
 </script>
 
@@ -142,11 +159,12 @@ nav a:first-of-type {
     grid-template-columns: 1fr;
     border: 0px solid rgb(189, 30, 210);
     background-color: rgb(250, 246, 246);
-    z-index: 4  }
+    z-index: 4
+  }
 
   header {
     display: grid;
-    grid-template-columns: 4fr 1fr 2fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 4fr 1fr 2fr 1fr 1fr 1fr 1fr 1fr;
     border: 0px solid blue;
     width: 98vw;
     /*max-height: 10vh;*/

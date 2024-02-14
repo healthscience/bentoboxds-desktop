@@ -15,10 +15,7 @@ import BeebeeWelcome from '@/components/welcome/welcomeMessage.vue'
 import BeebeeChat from '@/components/beebeehelp/inputBox.vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 // import { ref } from 'vue'
-
 const storeAI = aiInterfaceStore()
-
-// const startChat = ref(true)
 
 </script>
 

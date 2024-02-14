@@ -8,7 +8,7 @@
           <div v-if="chati.question.data.active === true" class="left-chat"> {{ chati.question.data.text }} </div>
           <span class="left-chat">{{ chati.question.data.time }}</span>
         </div>
-        <div class="beebee-reply">
+        <div class="beebee-reply" v-bind:class="{ active: chati.reply.network === true }">
           <span class="right-time">{{ chati.reply.time }}</span>
           <div class="reply-text-chart">
             <div class="right-chat">{{ chati.reply.type }}
@@ -16,25 +16,26 @@
                 <span>Datatype: {{ chati.data.library.text }} for month {{ chati.data.time.words.day }} day {{ chati.data.time.words.month }}</span>--- <button id="new-query" @click.prevent="beebeeChartSpace(chati.data)">yes, produce chart</button>
               </div>
               <div v-else-if="chati.reply.type === 'bbai-reply'">
-                {{ chati.reply.data }}
+                <div v-if="chati.reply.data?.type !== 'library-peerlibrary'">
+                  {{ chati.reply.data }}
+                </div>
               </div>
               <div v-else-if="chati.reply.type === 'upload'">
                 {{ chati.reply.data.text }}
-                <button @click="uploadButton">Click to upload file</button>
+                <button id="upload-button" @click="uploadButton">Click to upload file</button>
               </div>
               <div v-else-if="chati.reply.type === 'library-peerlibrary'">
-                <button>library</button>
-                <library-view></library-view>
+                <button @click="openLibrary">open library</button>
               </div>
               <div v-else>
                 {{ chati.reply.data.text }}
                 <div v-if="chati.reply.action === 'upload'">
-                  <button @click="uploadButton">Click to upload file</button>
+                  <button id="upload-button" @click="uploadButton">Click to upload file</button>
                 </div>
               </div>
             </div>
             <div id="beebee-chartspace" v-if="storeAI.beebeeChatLog[chati.question.bbid] === true">
-              <!--the slimed down bentobox to the chart and bring in tools as needed-->
+              <!--the slimed down bentobox to chart and bring in tools as needed-->
               <bento-box :bboxid="chati.question.bbid"></bento-box>
             </div>
           </div>
@@ -56,15 +57,16 @@
 <script setup>
 import inputBox from '@/components/beebeehelp/inputBox.vue'
 import BentoBox from '@/components/bentobox/baseBox.vue'
-import LibraryView from '@/components/beebeeView/libraryView.vue'
 import { ref, computed, onMounted } from 'vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
+import { libraryStore } from '@/stores/libraryStore.js'
 
   // const askStart = ref('What would you like to chart?')
   let chartStyle = ref('')
 
   const storeAI = aiInterfaceStore()
-  storeAI.beebeeChatLog // ref(false)
+
+  const storeLibrary = libraryStore()
 
   const chartBuild = style => {
     storeAI.beebeeChatLog = true
@@ -73,7 +75,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   // a computed ref
   const chatPairs = computed(() => {
-   return storeAI.historyPair
+   return storeAI.historyPair[storeAI.chatAttention]
   })
 
   const chatHistory = computed(() => {
@@ -89,7 +91,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   })
 
   const beginChat = computed(() => {
-   return storeAI.beginChat
+    return storeAI.beginChat
   })
 
   const bottom = ref(null)
@@ -112,7 +114,15 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   }
 
   const uploadButton = () =>  {
-    storeAI.uploadStatus = true
+    storeAI.dataBoxStatus = true
+    storeLibrary.uploadStatus = true
+    storeLibrary.libraryStatus = false
+  }
+
+  const openLibrary = () => {
+    storeAI.dataBoxStatus = true
+    storeAI.uploadStatus = false
+    storeLibrary.libraryStatus = true
   }
 
 </script>
@@ -205,10 +215,10 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     #natlang-ai {
       display: block;
       width: 100%;
-      border: 3px solid grey;
+      border: 0px solid grey;
       padding: 1em;
       border-radius: 1em;
-      height: 64vh;
+      height: 80vh;
       overflow-y: scroll;
     }
 
@@ -226,9 +236,10 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
     .chat-input {
       position: fixed;
-      bottom: 4%;
+      bottom: 20px;
       width: 76%;
       border: 0px solid red;
+      z-index: 9;
     }
 
     .beebee-reply {
@@ -239,6 +250,11 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
       border-radius: 25px;
       margin-top: .5em;
       margin-left: 40px;
+    }
+
+    .active {
+      border: 2px solid orange;
+      background-color: antiquewhite;
     }
 
   }

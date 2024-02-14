@@ -13,8 +13,8 @@ import { fork } from 'child_process';
 fork(path.join(tempLocation, '/hop/src/index.js'))
 log.info('HOP after fork')
 
-const { execSync } = require('child_process')
-execSync('sleep 2') // block process for 1 second.
+// const { execSync } = require('child_process')
+// execSync('sleep 2') // block process for 1 second.
 
 import { app, shell, protocol, BrowserWindow } from 'electron'
 import { join } from 'path'
@@ -24,6 +24,15 @@ import icon from '../../resources/icon.png?asset'
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }])
 
+function sleep (ms) {
+    log.info('sleeeeeeeping')
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+    
+async function pause () {
+
+ await sleep(2000)
+ console.log('aferer 444 4 4 4 44  ')
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -99,3 +108,7 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
+
+}
+
+pause()

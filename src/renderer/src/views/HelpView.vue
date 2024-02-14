@@ -1,6 +1,7 @@
 <template>
   <div id="help-shaper">
     <div class="helpspace">
+      <header>Help</header>
       <div class="beebee-help">
         <p>
           Ask beebee or look at some of the guides or watch videos.

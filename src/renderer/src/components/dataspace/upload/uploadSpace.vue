@@ -21,7 +21,7 @@
 		<button @click.prevent="saveFiles(file)" class="upload-button">Upload</button>
 		<div id="library-message">
 			<header>Library feedback</header>
-			File {{ storeLib.libraryMessage.path }} saved: {{ storeLib.libraryMessage.success }}
+			File {{ storeLibrary.libraryMessage.data?.headerinfo.splitwords }} saved: {{ storeLibrary.libraryMessage.success }}
 		</div>
 	</div>
 </template>
@@ -30,8 +30,6 @@
 // Components
 import DropZone from '@/components/dataspace/upload/dropZone.vue'
 import FilePreview from '@/components/dataspace/upload/filePreview.vue'
-import { aiInterfaceStore } from '@/stores/aiInterface.js'
-import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { libraryStore } from '@/stores/libraryStore.js'
 // import { useObjectUrl } from '@vueuse/core'
 // import { shallowRef } from 'vue'
@@ -39,22 +37,18 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
 import { ref, shallowRef, computed } from "vue"
 
-const file = shallowRef(null)
+	const file = shallowRef(null)
 
-
-const storeAI = aiInterfaceStore()
-const bbliveStore = bentoboxStore()
-const storeLib = libraryStore()
+	const storeLibrary = libraryStore()
 
 // File Management
 import useFileList from '@/components/dataspace/upload/compositions/fileList.js'
 const { files, addFiles, removeFile } = useFileList()
 
 function onInputChange(e) {
-  console.log('onchange')
   file.value = e.target.files[0]
-	console.log('file change')
-  console.log(file)
+	let fileName = file.value.name
+	storeLibrary.fileBund.name = fileName
 	// addFiles(e.target.files)
 	// e.target.value = null // reset so that selecting the same file again will still cause it to fire this change
 }
@@ -63,31 +57,53 @@ function onInputChange(e) {
 // import createUploader from '@/components/dataspace/upload/compositions/fileUploader.js'
 // const { uploadFiles } = createUploader('url')
 
+const checkElectron = () => {
+    // Renderer process
+	if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
+			return true
+	}
+	// Main process
+	if (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) {
+			return true
+	}
+	// Detect the user agent when the `nodeIntegration` option is set to true
+	if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
+			return true
+	}
+	return false
+}
+
 const saveFiles = (file) => {
   /* upload file data flow */
   // let fileData = uploadFiles(files)
   // send data to HOP to save in Holepunch
-	console.log('savefile')
-	console.log(file)
   // file.value = file
-  let sourceLocation = 'local'
+  let sourceLocation = ''
+	if (checkElectron() === false) {
+		sourceLocation = 'web'
+	} else {
+		sourceLocation = 'local'
+	}
+	storeLibrary.lineBundle.location = sourceLocation
 	// prepare message data
-	bbliveStore.fileBund.name = file.name
-	bbliveStore.fileBund.source = sourceLocation
-	bbliveStore.fileBund.websource = '' // readRemotefile
-	bbliveStore.fileBund.web = 'none'
-	bbliveStore.fileBund.path = file.url
-	bbliveStore.fileBund.type = file.type
+	let fileBundle = {}
+	fileBundle.name = file.name
+	fileBundle.source = sourceLocation
+	fileBundle.websource = '' // readRemotefile
+	fileBundle.web = 'none'
+	fileBundle.path = file.url
+	fileBundle.type = file.type
+	storeLibrary.fileBundleList.push(fileBundle)
   // give summary back to peer
   if (file.type === 'text/csv') {
-    storeAI.csvpreviewLive = true
+    storeLibrary.csvpreviewLive = true
     const reader = new FileReader()
     reader.onloadend = function () {  // = (event) => { // = function () {
-      const lines = reader.result // .split(/\r\n|\n/)
+      const lines = reader.result 
 			let splitLines = lines.split(/\r\n|\n/)
-      storeAI.linesLimit = splitLines.slice(0, 40)
+      storeLibrary.linesLimit = splitLines.slice(0, 40)
 			let fileContent = reader.result
-			bbliveStore.fileBund.content = fileContent
+			storeLibrary.fileBund.content = fileContent
     }
 		reader.onerror = function() {
    	 console.log(reader.error)
@@ -95,11 +111,10 @@ const saveFiles = (file) => {
     reader.readAsText(file)
   } else {
 		// prepare file data for storage via HOP
-		let fileContent = {}
 		const reader2 = new FileReader()
-		reader2.readAsText(fileData)
-		reader2.onload = function (e) {
-			fileContent = e.target.result
+		// reader2.readAsText(fileData)
+		reader2.onloadend = function () {
+			let fileContent = reader2.result
 			let lineBundle =
 			{
 				cnumber: '',
@@ -107,19 +122,27 @@ const saveFiles = (file) => {
 				delimiter: '',
 				datetype: ''
 			}
-			bbliveStore.fileBund.content = fileContent
-			bbliveStore.fileBund.info = lineBundle
+			let fileOut = {}
+			fileOut.name = storeLibrary.fileBund.name
+			let type = storeLibrary.newPackagingForm.type
+			let fileSave = {}
+			fileSave.file = fileOut
+			fileSave.content = fileContent
+			fileSave.info = lineBundle
+			fileSave.type = type
 			// prepare message structure
 			let messageHOP = {}
 			messageHOP.type = 'library'
+			messageHOP.action = 'contracts'
 			messageHOP.reftype = 'save-file'
-			messageHOP.action = 'save-file'
-			messageHOP.data = bbliveStore.fileBund
+			messageHOP.privacy = 'private'
+			messageHOP.task = 'PUT'
+			messageHOP.data = fileSave // storeLibrary.fileBund
 			// send to HOP
-			console.log('before message send')
-			storeAI.sendMessageHOP(messageHOP)
-			storeAI.uploadStatus = false
+			storeLibrary.sendMessage(messageHOP)
+			storeLibrary.uploadStatus = false
 		}
+		reader2.readAsDataURL(file)
   }
 }
 </script>

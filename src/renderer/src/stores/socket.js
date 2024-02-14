@@ -2,16 +2,21 @@ import { defineStore } from "pinia";
 // import { store } from "@/stores/store.js"
 import { aiInterfaceStore } from "@/stores/aiInterface.js"
 import { libraryStore } from "@/stores/libraryStore.js"
+import { accountStore } from "@/stores/accountStore.js"
+import { bentoboxStore } from "@/stores/bentoboxStore.js"
 
 export const useSocketStore = defineStore({
   id: "socket",
   state: () => ({
+    bentoboxStore: bentoboxStore(),
     aiStore: aiInterfaceStore(),
     libStore: libraryStore(),
+    accStore: accountStore(),
     count: 0,
     websocket: {},
     connection_ready: false,
     connection_error: false,
+    connection_loss: false,
     messages: []
   }),
   actions: {
@@ -28,33 +33,51 @@ export const useSocketStore = defineStore({
       this.websocket = new WebSocket(sockets_bay_url)
       this.websocket.onopen = this.onSocketOpen
       this.websocket.onmessage = this.onSocketMessage
-      this.websocket.onerror = this.onSocketError
-      this.websocket.onclose = this.onSockerClose
-      window.addEventListener("unload", function () {
+      this.websocket.onerror = this.onSockerError
+      this.websocket.onclose = this.onSocketClose
+      /* window.addEventListener("unload", function () {
+        console.log('refreshpage')
         if(this.socket.readyState == WebSocket.OPEN)
           socket.close()
-      })
+      }) */
     },
     onSocketOpen (evt) {
       this.connection_ready = true
+      if (this.connection_read === true) {
+        this.connection_error = false
+        this.connection_loss = false
+      }
     },
     onSocketMessage (evt) {
+      // console.log('ui socket')
+      // console.log(evt)
       //we parse the json that we receive
       var received = JSON.parse(evt.data)
+      // console.log(received)
       // keep in message log for session?
       this.messages.push(received)
       // parse and route to logic processing
-      if (received.type === 'library') {
+      if (received.type === 'bentobox') {
+        this.bentoboxStore.processReply(received)
+      } else if (received.type === 'library') {
+        this.libStore.processReply(received)
+      } else if (received.type == 'publiclibrary') {
         this.libStore.processReply(received)
       } else if (received.type == 'upload') {
         this.aiStore.processReply(received)
       } else if (received.type == 'bbai-reply') {
         this.aiStore.processReply(received)
+      } else if (received.type == 'network-notification') {
+        this.aiStore.processNotification(received)
+      } else if (received.type == 'sf-networkdata') {
+        this.aiStore.processPeerData(received)
       } else if (received.type == 'sf-summary') {
         this.aiStore.processHOPsummary(received)
       } else if (received.type == 'sf-displayEntityRange') {
       } else if (received.type == 'sf-newEntityRange') {
         this.aiStore.processHOPdata(received)
+      } else if (received.type === 'account') {
+        this.accStore.processReply(received)
       } else if (received.type == '') {
         console.log('error')       
       }
@@ -66,10 +89,42 @@ export const useSocketStore = defineStore({
       // this.messages.push( { from: "send", message: to_send.message } )
     },    
     onSockerError (evt) {
+      console.log('socket error')
       this.connection_error = true
+      // this.autoReconnect()
     },
     onSocketClose (evt) {
-      this.websocket.close()
+      console.log('close socket')
+      console.log(evt)
+      this.connection_loss = true
+      // this.websocket.close()
+      // this.autoReconnect()
+    },
+    autoReconnect () {
+       function socketReconnect () {
+        console.log(this.connection_ready)
+        console.log('check if socket existigs now')
+        if (this.connection_ready === undefined || this.connection_ready === false) {
+          const sockets_bay_url = `wss://127.0.0.1:9888` // `wss://165.227.244.213:9888` // `wss://127.0.0.1:9888`
+          this.websocket = new WebSocket(sockets_bay_url)
+          this.websocket.onopen = this.onSocketOpen
+          this.websocket.onmessage = this.onSocketMessage
+          this.websocket.onerror = this.onSockerError
+          this.websocket.onclose = this.onSocketClose
+          console.log('after reattempt')
+          console.log(this.connection_ready)
+          if (this.connection_ready === true) {
+            console.log('pass --true now')
+            this.connection_error = false
+            this.connection_loss = false
+          }
+        } else {
+          console.log('connection restabished')
+          this.connection_error = false
+          this.connection_loss = false
+        }
+      }
+      setInterval(socketReconnect, 4000)
     }
   }
 })
