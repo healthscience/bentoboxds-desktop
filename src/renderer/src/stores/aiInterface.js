@@ -137,6 +137,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         aiMessageout.action = 'question'
         aiMessageout.data = this.inputAskHistory[this.qcount]
         aiMessageout.bbid = hashQuestion
+        console.log('message HOP query')
+        console.log(aiMessageout)
         this.sendSocket.send_message(aiMessageout)
         this.helpchatHistory.push(aiMessageout)
         this.askQuestion.text = ''
@@ -302,13 +304,17 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     prepareLibrarySummary (boxid) {
       for (let hi of this.hopSummary) {
         if (hi.summary.bbid == boxid) {
-          this.boxLibSummary[boxid] = hi.summary
+          // new or saved format
+          if ('data' in hi.summary) {
+            this.boxLibSummary[boxid] = hi.summary
+          } else {
+            this.boxLibSummary[boxid] = hi.summary.summary.summary
+          }
         }
       }
     },
     prepareBentoBoxSave (message) {
       let settingsData = this.historyPair[message.data.chatid]
-      console.log(settingsData)
       let bbidPerChat = []
       // loop over data to match to visualisation alread prepared.  (note. or HOPQuery to re-create via HOP)
       let visDataperChat = [] // this.visData[]
@@ -332,7 +338,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       saveData.visData = visDataperChat
       saveData.hop = hopQuery
       message.data = saveData
-      console.log(message)
       this.sendSocket.send_message(message)
     },
     prepareSpaceSave (message) {

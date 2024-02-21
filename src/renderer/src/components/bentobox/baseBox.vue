@@ -4,8 +4,16 @@
       <div class="bb-bar-main">a bentobox</div>
       <div class="bb-bar-main"><button @click="clickSummaryLib(props.bboxid)">Lib</button></div>
       <div class="bb-bar-main"><button @click="clickExpandBentobox(props.bboxid)">expand</button></div>
-      <div class="bb-bar-main"><button @click="clickAddbentoSpace(props.bboxid)">+ space</button></div>
-      <div class="bb-bar-main"><button @click="clickShareSpace(props.bboxid)">share</button></div>
+      <div class="bb-bar-main"><button class="space-button" @click="clickAddbentoSpace(props.bboxid)">+ space</button></div>
+      <div class="bb-bar-main"><button @click="clickShareSpace(props.bboxid)">share</button>
+        <div id="spaces-list" v-if="shareSelect">
+          <select class="select-space-save" id="space-options-save" v-model="spaceSave" @change="selectBentoSpace()">
+            <option selected="" v-for="sp in spaceList" :value="sp.spaceid">
+              {{ sp.name }}
+            </option>
+          </select>
+        </div>
+      </div>
       <!--<div class="bb-bar-main"><button id="network-vis">social</button></div>
       <div class="bb-bar-main"><button id="network-map">map</button></div>
       <div class="bb-bar-main"><button id="bb-copy">copy</button></div>-->
@@ -46,14 +54,14 @@
             <button id="full-future-toolbar" @click="predictFuture()">future</button>
           </div>
           <div id="past-vis">
-            <bar-chart v-if="bbliveStore.chartStyle[props.bboxid] === 'bar'" :chartData="chartData"></bar-chart>
-             <line-chart v-if="bbliveStore.chartStyle[props.bboxid] === 'line'" :chartData="chartData"></line-chart>
+            <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartData"></bar-chart>
+             <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartData"></line-chart>
            </div>
         </div>
         <div id="bento-future" class="future-show" :class="{ active: futureBox }">
           <div id="future-box"><button id="full-future-toolbar">full</button></div>
-          <bar-chart v-if="bbliveStore.chartStyle[props.bboxid] === 'bar'" :chartData="chartfutureData" ></bar-chart>
-          <line-chart v-if="bbliveStore.chartStyle[props.bboxid] === 'line'" :chartData="chartfutureData"></line-chart>
+          <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartfutureData" ></bar-chart>
+          <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartfutureData"></line-chart>
         </div>
       </div>
     </div>
@@ -72,10 +80,13 @@ import { accountStore } from '@/stores/accountStore.js'
 
   const storeAccount = accountStore()
   const storeAI = aiInterfaceStore()
-  const bbliveStore = bentoboxStore()
+  const storeBentobox = bentoboxStore()
   const futureStatus = ref(true)
   const shareForm = ref(false)
   const libSum = ref(false)
+
+  let shareSelect = ref(false)
+  let spaceSave = ref('')
 
   const props = defineProps({
     bboxid: String
@@ -129,8 +140,15 @@ import { accountStore } from '@/stores/accountStore.js'
    }
 
   const clickAddbentoSpace = (boxid) => {
-    // which space is active
-    storeAI.bentoboxList[storeAI.liveBspace.spaceid].push(boxid)
+    // show the space list
+    shareSelect.value = !shareSelect.value
+  }
+
+  const selectBentoSpace = () => {
+    storeAI.bentoboxList[spaceSave.value].push(props.bboxid)
+    clickAddbentoSpace(props.bboxid)
+    // add location default if not already set?
+    storeBentobox.setLocationBbox(spaceSave.value, props.bboxid)
   }
 
   const clickShareSpace = (boxid) => {
@@ -141,15 +159,19 @@ import { accountStore } from '@/stores/accountStore.js'
     return typeof value !== "number" ? 0 : value;
   })
 
+  const spaceList = computed(() => {
+    return storeBentobox.spaceList
+  })
+
   /* data flow work */
     // const dataValues = ref([2, 4, 7])
-  const dataValues = computed(() => {
+  /* const dataValues = computed(() => {
     return storeAI.tempNumberData[props.bboxid]
   })
 
   const dataLabel = computed(() => {
     return storeAI.tempLabelData[props.bboxid]
-  })
+  }) */
 
   const chartData = computed(() => {
     return storeAI.visData[props.bboxid]
@@ -307,6 +329,16 @@ import { accountStore } from '@/stores/accountStore.js'
     text-align: center;
     cursor: pointer;
     z-index: 9;
+  }
+
+  .space-button {
+    width: 100px;
+  }
+  #spaces-list {
+    display: grid;
+    position: absolute;
+    left: -99px;
+    border: 2px solid red;
   }
 
   #bentobox-cell {

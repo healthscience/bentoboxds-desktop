@@ -1,6 +1,6 @@
 {
   "name": "bentoboxds",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "author": "aboynejames",
   "private": true,
   "main": "./out/main/index.js",

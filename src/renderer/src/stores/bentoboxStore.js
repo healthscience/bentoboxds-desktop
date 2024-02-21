@@ -8,7 +8,7 @@ export const bentoboxStore = defineStore('bentostore', {
     historyActive: false,
     chatList: [
       {
-        name:'latest', chatid:'12345', active: true
+        name:'latest', chatid:'0123456543210', active: true
       }
     ],
     spaceList: [
@@ -17,6 +17,11 @@ export const bentoboxStore = defineStore('bentostore', {
       }
     ],
     chartStyle: {},
+    locationStart: 90,
+    scaleZoom: 1,
+    locationBbox: {
+      91919191: {}
+    },
     boxLocation:
     {
       x: 200,
@@ -39,6 +44,8 @@ export const bentoboxStore = defineStore('bentostore', {
       this.locY = loc.y
     },
     processReply (message) {
+      // console.log('message bentobox')
+      // console.log(message)
       // prepare chat menu and pairs
       if (message.reftype.trim() === 'chat-history') {
         if (message.action.trim() === 'start') {
@@ -72,28 +79,128 @@ export const bentoboxStore = defineStore('bentostore', {
                   pairCount++
                 }
               } else {
-                // add to menu list
-                this.spaceList.push(cm.value.space)
+                // add to menu list  no duplicate and TODO set one as active
+                if (this.spaceList[0].spaceid !== cm.value.space.spaceid) {
+                  this.spaceList.push(cm.value.space)
+                }
                 this.storeAI.liveBspace = cm.value.space
                 if (cm.value.bboxlist.length > 0) {
+  
                   this.storeAI.bentoboxList[cm.value.space.spaceid] = cm.value.bboxlist
+                  // set the default or save location of box in space
+                  for (let bbox of cm.value.bboxlist) {
+                    const tW = 440
+                    const tH = 440
+                    let updateBox = {}
+                    updateBox.tW = 480
+                    updateBox.tH = 480
+                    updateBox.handlers = ref(["r", "rb", "b", "lb", "l", "lt", "t", "rt"])
+                    updateBox.left = 90 // ref(`calc(2% - ${tW / 2}px)`)
+                    updateBox.top = 90 // ref(`calc(8% - ${tH / 2}px)`)
+                    updateBox.height = ref('fit-content')
+                    updateBox.width = ref('fit-content')
+                    updateBox.maxW = ref('100%')
+                    updateBox.maxH = ref('100%')
+                    updateBox.minW = ref('20vw')
+                    updateBox.minH = ref('20vh')
+                    updateBox.fit = ref(false)
+                    updateBox.event = ref('')
+                    updateBox.dragSelector = ref('.drag-container-1, .drag-container-2')
+                    this.locationBbox[cm.value.space.spaceid] = {}
+                    this.locationBbox[cm.value.space.spaceid][bbox] = updateBox
+                  }
                 } else {
-                  this.storeAI.bentoboxList[cm.value.space.spaceid] = []
+                  this.storeAI.bentoboxList[cm.value.space.spaceid] = {}
                 }
               }
             }
+            // check for location spaces info. already saved
+            if (cm?.value?.location) {
+              // add to menu list
+              // console.log(cm?.value)
+              // this.spaceList.push(cm.value.space)
+              // set bbox settings
+              this.storeAI.bentoboxList[cm.value.spaceshort] = cm?.value?.boxlist
+              // if location space not set set it
+              if (cm.value.spaceshort in this.locationBbox) {
+              } else {
+                this.locationBbox[cm.value.spaceshort] = {}
+              }
+              for (let boxsp of cm?.value?.boxlist) {
+                for (let cord of cm?.value?.location) {
+                  if (cord.bbox === boxsp) {
+                    if (cord.coord !== undefined) {
+                      this.locationBbox[cm.value.spaceshort][boxsp] = cord.coord
+                    }
+                  }
+                } 
+              }
+            } else {
+              // console.log('no locat d oroords')
+            }
           }
           this.chatList = chatMenu
+          if (this.chatList.length === 0) {
+            this.chatList.push({ name:'latest', chatid:'0123456543210', active: true })
+          }
           // set the chat list live
           this.storeAI.historyList = 'history'
           this.storeAI.chatAttention = this.chatList[0].chatid
+          // if no chats offer up default chat
+
           this.storeAI.setupChatHistory(this.chatList[0])
           this.historyActive = true
         } else if (message.action.trim() === 'save') {
           console.log('saved feedback')
         }
-
       }
+    },
+    setLocationBbox (space, bbox) {
+      // check not already set
+      let spaceLive = this.locationBbox[space]
+      if (bbox in spaceLive) {
+      } else {
+        const tW = 440
+        const tH = 440
+        let updateBox = {}
+        updateBox.tW = 480
+        updateBox.tH = 480
+        updateBox.handlers = ref(["r", "rb", "b", "lb", "l", "lt", "t", "rt"])
+        updateBox.left = '90px' // ref(`calc(2% - ${tW / 2}px)`)
+        updateBox.top = this.locationStart + 'px' // ref(`calc(8% - ${tH / 2}px)`)
+        // updateBox.height = ref('fit-content')
+        // updateBox.width = ref('fit-content')
+        // updateBox.maxW = ref('100%')
+        // updateBox.maxH = ref('100%')
+        // updateBox.minW = ref('20vw')
+        // updateBox.minH = ref('20vh')
+        updateBox.fit = ref(false)
+        updateBox.event = ref('')
+        updateBox.dragSelector = ref('.drag-container-1, .drag-container-2')
+        this.locationBbox[space][bbox] = updateBox
+        this.locationStart+= 40
+      }
+    },
+    saveLayoutSpace (spaceID) {
+      // save layout per space
+      // gather info per box
+      let boxLocList = []
+      for (let bbox of this.storeAI.bentoboxList[spaceID]) {
+        let locInfo = this.locationBbox[spaceID][bbox]
+        boxLocList.push({ bbox: bbox, coord: locInfo })
+      }
+      let spaceInfo = {}
+      spaceInfo.spaceid = 's-' + spaceID
+      spaceInfo.spaceshort = spaceID
+      spaceInfo.boxlist = this.storeAI.bentoboxList[spaceID]
+      spaceInfo.location = boxLocList
+      let spaceSave = {}
+      spaceSave.type = 'bentobox'
+      spaceSave.reftype = 'space-history'
+      spaceSave.action = 'save-position'
+      spaceSave.data = spaceInfo
+      spaceSave.bbid = ''
+      this.storeAI.sendMessageHOP(spaceSave)
     }
   }
 })

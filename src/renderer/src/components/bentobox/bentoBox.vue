@@ -29,19 +29,22 @@
       </div>
     </div>
   </div>
-  <div id="bb-expand-size">modules ^</div>
+  <div id="bb-expand-size" @click="expandModules">modules v</div>
+    <modules-list v-if="modulesShow"></modules-list>
 </template>
 
 <script setup>
 import barChart from '@/components/visualisation/charts/barChart.vue'
 import lineChart from '@/components/visualisation/charts/lineChart.vue'
+import ModulesList from '@/components/bentobox/modules/modulesList.vue'
 import { ref, computed, onMounted } from 'vue'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   const storeAI = aiInterfaceStore()
   const bbliveStore = bentoboxStore()
-  const futureStatus = ref(true)
+  
+  let modulesShow = ref(false)
 
   const props = defineProps({
     bboxid: String
@@ -142,6 +145,10 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
       datasets: [ { data: futuredataValues.value } ]
     }
   })
+
+  const expandModules = () => {
+    modulesShow.value = !modulesShow.value
+  }
 
 </script>
 
