@@ -17,6 +17,18 @@ export const bentoboxStore = defineStore('bentostore', {
       }
     ],
     chartStyle: {},
+    boxToolStatus: {},
+    /* {
+      opendatatools: { active: false },
+      boxtoolshow: { active: false },
+      vistoolsstatus: { active: false },
+      scalezoom: 1,
+      location: {}
+    } */
+    devicesettings: {},
+    openDatatools: {},
+    boxtoolsShow: {},
+    vistoolsStatus : {},
     locationStart: 90,
     scaleZoom: 1,
     locationBbox: {
@@ -33,7 +45,11 @@ export const bentoboxStore = defineStore('bentostore', {
   actions: {
     // since we rely on `this`, we cannot use an arrow function
     setChartstyle (id, style) {
+      if (style !== undefined) {
       this.chartStyle[id] = style
+      } else {
+        this.chartStyle[id] = 'line'
+      }
     },
     setBoxlocation (loc) {
       // const tempLoc = {}
@@ -60,6 +76,8 @@ export const bentoboxStore = defineStore('bentostore', {
               // is setting for chat or space?
               if ('space' in cm.value !== true ) {
                 this.storeAI.historyPair[cm.key] = cm.value.pair
+                // toolbars
+                this.boxtoolsShow[cm.key] = false
                 // loop over boxids for this chat
                 let pairCount = 0
                 for (let pair of cm?.value?.pair) {
@@ -75,6 +93,19 @@ export const bentoboxStore = defineStore('bentostore', {
                       this.storeAI.hopSummary.push({ HOPid: pair.reply.bbid, summary: summaryHOP })
                     }
                   }
+                  // set box detail setings
+                  this.boxToolStatus[pair.reply.bbid] = {}
+                  let boxSettings = 
+                  {
+                    opendatatools: { active: false },
+                    boxtoolshow: { active: false },
+                    vistoolsstatus: { active: false },
+                    scalezoom: 1,
+                    location: {},
+                    chartstyle: 'line'
+                  }
+                  this.boxToolStatus[pair.reply.bbid] = boxSettings
+                  this.devicesettings[pair.reply.bbid] = {}
                   this.chartStyle[pair.reply.bbid] = 'line'
                   pairCount++
                 }

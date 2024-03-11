@@ -1,7 +1,8 @@
 <template>
   <div id="aiagents-lists">
     <div class="list-space" id="agent-list">
-      Coming soon: install locall LLM, time series and other AI agents. Privacy preserving machine learning.
+      <div class="ai-agent-introduction">Coming soon: install locall LLM, time series and other AI agents. Privacy preserving machine learning.
+      </div>
     </div>
   </div>
 </template>
@@ -24,6 +25,11 @@ import { accountStore } from '@/stores/accountStore.js'
 
 @media (min-width: 1024px) {
 
+  .ai-agent-introduction {
+    width: 80%;
+    text-wrap: wrap;
+    padding: 2em;
+  }
 }
 
 </style>

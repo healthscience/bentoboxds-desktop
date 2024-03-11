@@ -8,7 +8,7 @@ export const libraryStore = defineStore('librarystore', {
   state: () => ({
     libraryStatus: false,
     libPeerview: false,
-    liveBentoBox: aiInterfaceStore(),
+    storeAI: aiInterfaceStore(),
     utilLibrary: new LibraryUtility(),
     sendSocket: useSocketStore(),
     startLibrary: false,
@@ -79,7 +79,7 @@ export const libraryStore = defineStore('librarystore', {
     },
     fileBund: {},
     fileBundleList: [],
-    linesLimit: [],
+    linesLimit: {},
     csvpreviewLive: false,
     lineBundle:
     {
@@ -119,8 +119,8 @@ export const libraryStore = defineStore('librarystore', {
   actions: {
     // since we rely on `this`, we cannot use an arrow function
     processReply (message, questionStart) {
-      console.log('library back')
-      console.log(message)
+      // console.log('library back')
+      // console.log(message)
       if (message.action === 'save-file') {
         // set message
         this.libraryMessage = message.data
@@ -146,7 +146,7 @@ export const libraryStore = defineStore('librarystore', {
         let newPair = {}
         newPair.question = questionStart
         newPair.reply = message.data
-        this.liveBentoBox.historyPair[this.liveBentoBox.chatAttention].push(newPair)
+        this.storeAI.historyPair[this.storeAI.chatAttention].push(newPair)
         // peer library data
         this.peerLibrary = message.data.data.referenceContracts
         // prepare the list of peer experiments for library display

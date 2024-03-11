@@ -14,7 +14,6 @@
 <script setup>
 import DataBox from '@/components/dataspace/dataBox.vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
-import { ref } from 'vue'
 import { computed } from 'vue'
 
   const storeAI = aiInterfaceStore()

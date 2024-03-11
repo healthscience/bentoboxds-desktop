@@ -1,51 +1,11 @@
 <template>
-  <div class="drag-container-1">
-    <div id="bb-toolbar">
-      <div class="bb-bar-main">a bentobox</div>
-      <div class="bb-bar-main"><button @click="clickSummaryLib(props.bboxid)">Lib</button></div>
-      <div class="bb-bar-main"><button @click="clickExpandBentobox(props.bboxid)">expand</button></div>
-      <div class="bb-bar-main"><button class="space-button" @click="clickAddbentoSpace(props.bboxid)">+ space</button></div>
-      <div class="bb-bar-main"><button @click="clickShareSpace(props.bboxid)">share</button>
-        <div id="spaces-list" v-if="shareSelect">
-          <select class="select-space-save" id="space-options-save" v-model="spaceSave" @change="selectBentoSpace()">
-            <option selected="" v-for="sp in spaceList" :value="sp.spaceid">
-              {{ sp.name }}
-            </option>
-          </select>
-        </div>
-      </div>
-      <!--<div class="bb-bar-main"><button id="network-vis">social</button></div>
-      <div class="bb-bar-main"><button id="network-map">map</button></div>
-      <div class="bb-bar-main"><button id="bb-copy">copy</button></div>-->
-    </div>
-  </div>
-  <div id="share-form" v-if="shareForm">
-    <form id="ask-ai-form" @submit.prevent="storeAccount.shareProtocol(props.bboxid)">
-      <label for="sharepeer"></label>
-      <input type="input" id="sharekey" placeholder="publickey" v-model="storeAccount.sharePubkey" autofocus>
-      <button id="share-send" type="submit">
-      Send invite
-    </button>
-    </form>
-  </div>
-  <div id="library-summary" v-if="libSum">
-    <div id="lib-summary">
-      Library summary: {{ boxLibrarySummary.key[0] }}
-      <button @click="openLibrary">open library</button>
-    </div>
-    <div id="lib-modules">
-      Modules:
-      <div class="mod-key" v-for="mod in boxLibrarySummary.modules" :key="mod.id">
-       {{ mod }}
-      </div>
-    </div>
-  </div>
+  <box-tools :bboxid="props.bboxid"></box-tools>
   <div id="bentobox-cell">
     <div id="bb-network-graph">Network</div>
     <div id="bb-world-map">map</div>
     <div id="bentobox-holder">
       <div id="network-bentobox">
-        network bentobox
+        network bentobox 
       </div>
       <div id="peer-bentobox">
         <div id="bento-past">
@@ -70,23 +30,17 @@
 </template>
 
 <script setup>
+import BoxTools from '@/components/bentobox/tools/boxTools.vue'
 import BentoboxFocus from '@/components/bentobox/bentoboxFocus.vue'
 import barChart from '@/components/visualisation/charts/barChart.vue'
 import lineChart from '@/components/visualisation/charts/lineChart.vue'
 import { ref, computed, onMounted } from 'vue'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
-import { accountStore } from '@/stores/accountStore.js'
 
-  const storeAccount = accountStore()
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
   const futureStatus = ref(true)
-  const shareForm = ref(false)
-  const libSum = ref(false)
-
-  let shareSelect = ref(false)
-  let spaceSave = ref('')
 
   const props = defineProps({
     bboxid: String
@@ -124,43 +78,8 @@ import { accountStore } from '@/stores/accountStore.js'
     }
    }
 
-  const openLibrary = () => {
-    storeAI.dataBoxStatus = true
-    storeAI.uploadStatus = false
-    storeLibrary.libraryStatus = true
-  }
-
-   const clickSummaryLib = (boxid) => {
-    libSum.value = !libSum.value
-    storeAI.prepareLibrarySummary(boxid)
-   }
-
-   const clickExpandBentobox = (boxid) => {
-    storeAI.expandBentobox[boxid] = true
-   }
-
-  const clickAddbentoSpace = (boxid) => {
-    // show the space list
-    shareSelect.value = !shareSelect.value
-  }
-
-  const selectBentoSpace = () => {
-    storeAI.bentoboxList[spaceSave.value].push(props.bboxid)
-    clickAddbentoSpace(props.bboxid)
-    // add location default if not already set?
-    storeBentobox.setLocationBbox(spaceSave.value, props.bboxid)
-  }
-
-  const clickShareSpace = (boxid) => {
-    shareForm.value = !shareForm.value
-  }
-  
   const checkEmpty = computed((value) => {
     return typeof value !== "number" ? 0 : value;
-  })
-
-  const spaceList = computed(() => {
-    return storeBentobox.spaceList
   })
 
   /* data flow work */
@@ -188,21 +107,6 @@ import { accountStore } from '@/stores/accountStore.js'
     storeAI.prepareFuture(props.bboxid)
   }
 
-  /*
-  * library summary
-  */
-  const boxLibrarySummary = computed(() => {
-    let NXPcontract = {}
-    NXPcontract.key = Object.keys(storeAI.boxLibSummary[props.bboxid].data)
-    let modKeys = []
-    for (let mod of storeAI.boxLibSummary[props.bboxid].data[NXPcontract.key].modules) {
-      modKeys.push(mod.key)
-    }
-    NXPcontract.modules = modKeys
-    return NXPcontract
-    // return Object.keys(storeAI.boxLibSummary.data)
-  })
-
   const futureBox = computed(() => {
     return storeAI.activeFuture[props.bboxid]
   })
@@ -226,25 +130,10 @@ import { accountStore } from '@/stores/accountStore.js'
 
 <style scoped>
 
-.drag-container-1 {
-  width: 100%;
-  height: 40px;
-  background: rgb(141, 145, 226);
-  color: white;
-  text-align: center;
-  cursor: pointer;
-  z-index: 9;
-}
-
 #bentobox-cell {
   display: block;
   border: 0px solid grey;
   z-index: 9;
-}
-
-#bb-toolbar {
-  display: grid;
-  grid-template-columns: 4fr 1fr 1fr 1fr 1fr;
 }
 
 #bb-network-graph {
@@ -321,38 +210,12 @@ import { accountStore } from '@/stores/accountStore.js'
 
 @media (min-width: 1024px) {
 
-  .drag-container-1 {
-    width: 100%;
-    height: 40px;
-    background: rgb(141, 145, 226);
-    color: white;
-    text-align: center;
-    cursor: pointer;
-    z-index: 9;
-  }
-
-  .space-button {
-    width: 100px;
-  }
-  #spaces-list {
-    display: grid;
-    position: absolute;
-    left: -99px;
-    border: 2px solid red;
-  }
 
   #bentobox-cell {
     display: block;
     min-height: inherit;
     min-width: inherit;
     z-index: 9;
-  }
-
-  #bb-toolbar {
-    display: grid;
-    grid-template-columns: 4fr 1fr 1fr 1fr 1fr;
-    width: 100%;
-    background-color:rgb(141, 145, 226);
   }
 
   #bb-network-graph {

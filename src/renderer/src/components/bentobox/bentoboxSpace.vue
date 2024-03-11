@@ -20,7 +20,7 @@
     @drag:start="eHandlerTimerStart"
     @drag:end="eHandlerTimerStop"
   >
-    <div class="drag-container-1" >
+    <!--<div class="drag-container-1" >
       <div id="bb-toolbar" v-bind:class="{ active: bboxActive }">
         <div class="bb-bar-main">a bentobox active</div>
         <div class="bb-bar-main"><button id="network-vis">social</button></div>
@@ -28,7 +28,10 @@
         <div class="bb-bar-main"><button id="bb-copy">copy</button></div>
         <div class="bb-bar-main"><button id="bb-remove" @click="removeBboxSpace">remove</button></div>
       </div> 
-    </div>
+    </div> -->
+    <div id="bb-toolbar" v-bind:class="{ active: bboxActive }">Active bar</div>
+    <box-tools :bboxid="props.bboxid"></box-tools>
+    <button id="bb-remove" @click="removeBboxSpace">remove</button>
     <div id="bentobox-cell">
       <div id="bb-network-graph">Network</div>
       <div id="bb-world-map">map</div>
@@ -57,6 +60,7 @@
 
 <script setup>
 import VueResizable from 'vue-resizable'
+import BoxTools from '@/components/bentobox/tools/boxTools.vue'
 import barChart from '@/components/visualisation/charts/barChart.vue'
 import lineChart from '@/components/visualisation/charts/lineChart.vue'
 import ModulesList from '@/components/bentobox/modules/modulesList.vue'
@@ -88,7 +92,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   let minH = ref('20vh')
   let fit = ref(false)
   let event = ref('')
-  const dragSelector = ref('.drag-container-1, .drag-container-2')
+  const dragSelector = ref('#bb-toolbar, .drag-container-2')
   let timerPress = ref(0)
 
 
@@ -109,7 +113,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     updateBox.minH = ref('20vh')
     updateBox.fit = ref(false)
     updateBox.event = ref('')
-    updateBox.dragSelector = ref('.drag-container-1, .drag-container-2')
+    updateBox.dragSelector = ref('#bb-toolbar, .drag-container-2')
     storeBentobox.locationBbox[storeAI.liveBspace.spaceid][props.bboxid] = updateBox
   }
 

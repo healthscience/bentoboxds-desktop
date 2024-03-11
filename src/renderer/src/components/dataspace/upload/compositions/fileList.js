@@ -13,6 +13,8 @@ export default function () {
 	}
 
 	function removeFile(file) {
+		console.log('remove file')
+		console.log(file)
 		const index = files.value.indexOf(file)
 
 		if (index > -1) files.value.splice(index, 1)

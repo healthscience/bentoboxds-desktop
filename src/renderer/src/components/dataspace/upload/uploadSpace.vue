@@ -9,7 +9,7 @@
 				<span v-else>
 					<span>Drag Your Files Here</span>
 					<span class="smaller">
-						or <strong><button>click here</button></strong> to select files
+						or <strong>click</strong> to select files
 					</span>
 				</span>
 				<input type="file" id="file-input" multiple @change="onInputChange" />
@@ -18,28 +18,29 @@
 				<file-preview v-for="file of files" :key="file.id" :file="file" tag="li" @remove="removeFile" />
 			</ul>
 		</drop-zone>
-		<button @click.prevent="saveFiles(file)" class="upload-button">Upload</button>
+		<button @click.prevent="saveFiles(files)" class="upload-button">Upload</button>
 		<div id="library-message">
 			<header>Library feedback</header>
 			File {{ storeLibrary.libraryMessage.data?.headerinfo.splitwords }} saved: {{ storeLibrary.libraryMessage.success }}
 		</div>
+		<!--<div id="files-list">files {{ files }}</div>-->
 	</div>
 </template>
 
 <script setup>
 // Components
+import hashObject from 'object-hash'
 import DropZone from '@/components/dataspace/upload/dropZone.vue'
 import FilePreview from '@/components/dataspace/upload/filePreview.vue'
 import { libraryStore } from '@/stores/libraryStore.js'
-// import { useObjectUrl } from '@vueuse/core'
-// import { shallowRef } from 'vue'
-
-
+import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { ref, shallowRef, computed } from "vue"
 
 	const file = shallowRef(null)
+	let headerLocal = ref({})
 
 	const storeLibrary = libraryStore()
+	const storeAI = aiInterfaceStore()
 
 // File Management
 import useFileList from '@/components/dataspace/upload/compositions/fileList.js'
@@ -49,8 +50,8 @@ function onInputChange(e) {
   file.value = e.target.files[0]
 	let fileName = file.value.name
 	storeLibrary.fileBund.name = fileName
-	// addFiles(e.target.files)
-	// e.target.value = null // reset so that selecting the same file again will still cause it to fire this change
+	addFiles(e.target.files)
+	//e.target.value = null // reset so that selecting the same file again will still cause it to fire this change
 }
 
 // Uploader
@@ -73,81 +74,117 @@ const checkElectron = () => {
 	return false
 }
 
-const saveFiles = (file) => {
-  /* upload file data flow */
-  // let fileData = uploadFiles(files)
-  // send data to HOP to save in Holepunch
-  // file.value = file
-  let sourceLocation = ''
-	if (checkElectron() === false) {
-		sourceLocation = 'web'
-	} else {
-		sourceLocation = 'local'
-	}
-	storeLibrary.lineBundle.location = sourceLocation
-	// prepare message data
-	let fileBundle = {}
-	fileBundle.name = file.name
-	fileBundle.source = sourceLocation
-	fileBundle.websource = '' // readRemotefile
-	fileBundle.web = 'none'
-	fileBundle.path = file.url
-	fileBundle.type = file.type
-	storeLibrary.fileBundleList.push(fileBundle)
-  // give summary back to peer
-  if (file.type === 'text/csv') {
-    storeLibrary.csvpreviewLive = true
-    const reader = new FileReader()
-    reader.onloadend = function () {  // = (event) => { // = function () {
-      const lines = reader.result 
-			let splitLines = lines.split(/\r\n|\n/)
-      storeLibrary.linesLimit = splitLines.slice(0, 40)
-			let fileContent = reader.result
-			storeLibrary.fileBund.content = fileContent
-    }
-		reader.onerror = function() {
-   	 console.log(reader.error)
- 		}
-    reader.readAsText(file)
-  } else {
-		// prepare file data for storage via HOP
-		const reader2 = new FileReader()
-		// reader2.readAsText(fileData)
-		reader2.onloadend = function () {
-			let fileContent = reader2.result
-			let lineBundle =
-			{
-				cnumber: '',
-				dataline: '',
-				delimiter: '',
-				datetype: ''
-			}
-			let fileOut = {}
-			fileOut.name = storeLibrary.fileBund.name
-			let type = storeLibrary.newPackagingForm.type
-			let fileSave = {}
-			fileSave.file = fileOut
-			fileSave.content = fileContent
-			fileSave.info = lineBundle
-			fileSave.type = type
-			// prepare message structure
-			let messageHOP = {}
-			messageHOP.type = 'library'
-			messageHOP.action = 'contracts'
-			messageHOP.reftype = 'save-file'
-			messageHOP.privacy = 'private'
-			messageHOP.task = 'PUT'
-			messageHOP.data = fileSave // storeLibrary.fileBund
-			// send to HOP
-			storeLibrary.sendMessage(messageHOP)
-			storeLibrary.uploadStatus = false
+const saveFiles = (files) => {
+	for (let file of files) {
+		/* upload file data flow */
+		// let fileData = uploadFiles(files)
+		// send data to HOP to save in Holepunch
+		// file.value = file
+		let sourceLocation = ''
+		if (checkElectron() === false) {
+			sourceLocation = 'web'
+		} else {
+			sourceLocation = 'local'
 		}
-		reader2.readAsDataURL(file)
+		storeLibrary.lineBundle.location = sourceLocation
+		// prepare message data
+		let fileBundle = {}
+		fileBundle.name = file.file.name
+		fileBundle.source = sourceLocation
+		fileBundle.websource = '' // readRemotefile
+		fileBundle.web = 'none'
+		fileBundle.path = file.file.url
+		fileBundle.type = file.file.type
+		storeLibrary.fileBundleList.push(fileBundle)
+		// give summary back to peer
+		if (file.file.type === 'text/csv') {
+			storeLibrary.csvpreviewLive = true
+			const reader = new FileReader()
+			reader.onloadend = function () {  // = (event) => { // = function () {
+				const lines = reader.result 
+				let splitLines = lines.split(/\r\n|\n/)
+				storeLibrary.linesLimit = splitLines.slice(0, 40)
+				// if direct from beebee inform chat
+				if (storeAI.dataBoxStatus !== true) {
+					// TODO send to beebee via socket but for now create reply here
+					storeAI.qcount++
+					let question = {}
+					question.type ='bbai'
+					question.reftype = 'ignore'
+					question.action = 'question'
+					question.data = { "count": storeAI.qcount, "text": "Upload of file", "active": true, "time": new Date() }
+					let hashQuestion = hashObject(question.data + file.file.name)
+					// extract headers assume first line
+					headerLocal[hashQuestion] = localHeaderExtract(splitLines[0])
+					let fileContent = reader.result
+					storeLibrary.fileBund.content = fileContent
+
+					question.bbid = hashQuestion
+					let bbReply = {}
+					bbReply.type = 'bbai-reply'
+					bbReply.data = { text: 'summary of file data file is csv, heading are:', filedata: { type: 'csv', file: fileBundle, columns: 'one', grid: storeLibrary.linesLimit }, prompt: 'Select data to chart:', options: headerLocal[hashQuestion], }
+					bbReply.bbid = hashQuestion
+					let newPair = {}
+					newPair.question = question
+					newPair.reply = bbReply
+					storeAI.historyPair[storeAI.chatAttention].push(newPair)
+					// if csv  active viewer
+					storeLibrary.csvpreviewLive = true
+				}
+
+			}
+			reader.onerror = function() {
+				console.log(reader.error)
+			}
+			reader.readAsText(file.file)
+		} else {
+			// prepare file data for storage via HOP
+			const reader2 = new FileReader()
+			// reader2.readAsText(fileData)
+			reader2.onloadend = function () {
+				let fileContent = reader2.result
+				let lineBundle =
+				{
+					cnumber: '',
+					dataline: '',
+					delimiter: '',
+					datetype: ''
+				}
+				let fileOut = {}
+				fileOut.name = storeLibrary.fileBund.name
+				let type = storeLibrary.newPackagingForm.type
+				let fileSave = {}
+				fileSave.file = fileOut
+				fileSave.content = fileContent
+				fileSave.info = lineBundle
+				fileSave.type = type
+				// prepare message structure
+				let messageHOP = {}
+				messageHOP.type = 'library'
+				messageHOP.action = 'contracts'
+				messageHOP.reftype = 'save-file'
+				messageHOP.privacy = 'private'
+				messageHOP.task = 'PUT'
+				messageHOP.data = fileSave // storeLibrary.fileBund
+				// send to HOP
+				storeLibrary.sendMessage(messageHOP)
+				storeLibrary.uploadStatus = false
+			}
+			reader2.readAsDataURL(file)
+		}
   }
+
+	const localHeaderExtract = (lineOne) => {
+		let headerInfo = lineOne.split(',')
+		return headerInfo
+	}
 }
 </script>
 
 <style scoped>
+#files-list {
+	color: white;
+}
 
 #upload-space {
 	font-family: Helvetica, Arial, sans-serif;

@@ -9,9 +9,8 @@
         </div>
         Datastores
         <div class="peer-ledgers" v-for='pk in storeAccount.publicKeysList' :key='pk.id'>
-          <div>{{ pk.store }} pubkey- {{ pk.pubkey }}
-          <!-- <button type="button" class="btn" @click="openReplication(pk)">sync</button> -->
-          </div>
+          <div class="type-store"> {{ pk.store }}</div>
+          <div class="type-store-key">pubkey- {{ pk.pubkey }}</div>
         </div>
       </div>
     </div>
@@ -47,6 +46,20 @@ import { accountStore } from '@/stores/accountStore.js'
 
 @media (min-width: 1024px) {
 
+  .peer-ledgers {
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+  }
+  .type-store {
+    font-weight: bold;
+    padding-left: 2em;
+    line-height: 4em;
+  }
+
+  .type-store-key {
+    padding-right: 0em;
+    line-height: 4em;
+  }
 }
 
 </style>

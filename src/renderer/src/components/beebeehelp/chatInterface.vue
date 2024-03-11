@@ -11,18 +11,32 @@
         <div class="beebee-reply" v-bind:class="{ active: chati.reply.network === true }">
           <span class="right-time">{{ chati.reply.time }}</span>
           <div class="reply-text-chart">
-            <div class="right-chat">{{ chati.reply.type }}
+            <div class="right-chat">
+              {{ chati.reply.type }}
               <div v-if="chati.reply.type === 'hopquery'">
                 <span>Datatype: {{ chati.data.library.text }} for month {{ chati.data.time.words.day }} day {{ chati.data.time.words.month }}</span>--- <button id="new-query" @click.prevent="beebeeChartSpace(chati.data)">yes, produce chart</button>
               </div>
               <div v-else-if="chati.reply.type === 'bbai-reply'">
                 <div v-if="chati.reply.data?.type !== 'library-peerlibrary'">
-                  {{ chati.reply.data }}
+                  <div class="beeebee-text">
+                    {{ chati.reply.data.text}}
+                    </div>
+                    <div v-if="chati.reply?.data?.filedata" class="bee-file-data">
+                      {{ chati.reply.data.filedata.type }} - {{ chati.reply.data.filedata.file.name }} -- {{ chati.reply.data.filedata.columns}}
+                      <csv-preview v-if="storeLibrary.csvpreviewLive === true" :summarydata="chati.reply.data.filedata.grid"></csv-preview>
+                    </div>
+                    <div v-if="chati.reply?.data?.prompt?.length > 0" class="bee-prompt-question">
+                      {{ chati.reply.data.prompt }}
+                      <div class="data-options"  v-for="(dopt, index) in chati.reply?.data?.options">
+                        <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid)">{{ dopt }}</button>
+                      </div>
+                    </div>
                 </div>
               </div>
               <div v-else-if="chati.reply.type === 'upload'">
                 {{ chati.reply.data.text }}
                 <button id="upload-button" @click="uploadButton">Click to upload file</button>
+                <space-upload></space-upload>
               </div>
               <div v-else-if="chati.reply.type === 'library-peerlibrary'">
                 <button @click="openLibrary">open library</button>
@@ -56,6 +70,8 @@
 
 <script setup>
 import inputBox from '@/components/beebeehelp/inputBox.vue'
+import SpaceUpload from '@/components/dataspace/upload/uploadSpace.vue'
+import CsvPreview from '@/components/dataspace/upload/csvPreview.vue'
 import BentoBox from '@/components/bentobox/baseBox.vue'
 import { ref, computed, onMounted } from 'vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
@@ -123,6 +139,14 @@ import { libraryStore } from '@/stores/libraryStore.js'
     storeAI.dataBoxStatus = true
     storeAI.uploadStatus = false
     storeLibrary.libraryStatus = true
+  }
+
+  const dataOptionVis = (did, colName, bbid) => {
+    let dataCode = {}
+    dataCode.id = did
+    dataCode.name = colName
+    dataCode.bbid = bbid
+    storeAI.submitAsk(dataCode)
   }
 
 </script>
@@ -255,6 +279,17 @@ import { libraryStore } from '@/stores/libraryStore.js'
     .active {
       border: 2px solid orange;
       background-color: antiquewhite;
+    }
+
+    .data-options {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .data-option-select {
+      display: inline-block;
+      padding: 0.25em;
+      margin-bottom: 0.6em;
     }
 
   }

@@ -1,12 +1,14 @@
 <template>
-  <div class="drag-container-1">
+  <box-tools :bboxid="props.bboxid"></box-tools>
+  <!--<div class="drag-container-1">
     <div id="bb-toolbar">
       <div class="bb-bar-main">a bentobox active</div>
+      <bb-tools v-if="boxToolsShow" :bboxid="props.bboxid"></bb-tools>
       <div class="bb-bar-main"><button id="network-vis">social</button></div>
       <div class="bb-bar-main"><button id="network-map">map</button></div>
       <div class="bb-bar-main"><button id="bb-copy">copy</button></div>
-    </div> 
-  </div>
+    </div>
+  </div> -->
   <div id="bentobox-cell">
     <div id="bb-network-graph">Network</div>
     <div id="bb-world-map">map</div>
@@ -17,14 +19,14 @@
       <div id="peer-bentobox">
         <div id="bento-past">
           <div id="past-box">past toolbar <button id="full-past-toolbar">Tools</button></div>
-          <bar-chart v-if="bbliveStore.chartStyle[props.bboxid] === 'bar'" :chartData="chartData"></bar-chart>
-          <line-chart v-if="bbliveStore.chartStyle[props.bboxid] === 'line'" :chartData="chartData"></line-chart>
+          <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartData"></bar-chart>
+          <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartData"></line-chart>
         </div>
         <div id="bento-future">future
           <button id="full-future-toolbar" @click="predictFuture()">Predict</button>
           <div id="future-box">future toolbar <button id="full-future-toolbar">full</button></div>
-          <bar-chart v-if="bbliveStore.chartStyle[props.bboxid] === 'bar'" :chartData="chartfutureData" ></bar-chart>
-          <line-chart v-if="bbliveStore.chartStyle[props.bboxid] === 'line'" :chartData="chartfutureData"></line-chart>
+          <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartfutureData" ></bar-chart>
+          <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartfutureData"></line-chart>
         </div>
       </div>
     </div>
@@ -34,6 +36,7 @@
 </template>
 
 <script setup>
+import BoxTools from '@/components/bentobox/tools/boxTools.vue'
 import barChart from '@/components/visualisation/charts/barChart.vue'
 import lineChart from '@/components/visualisation/charts/lineChart.vue'
 import ModulesList from '@/components/bentobox/modules/modulesList.vue'
@@ -42,7 +45,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   const storeAI = aiInterfaceStore()
-  const bbliveStore = bentoboxStore()
+  const storeBentobox = bentoboxStore()
   
   let modulesShow = ref(false)
 
@@ -120,6 +123,10 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     } */
    })
 
+   const boxToolsShow = computed(() => {
+    return storeBentobox.boxtoolsShow[props.bboxid]
+  })
+
   /*
   * predict future
   */
@@ -183,7 +190,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
 #bb-toolbar {
   display: grid;
-  grid-template-columns: 5fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr;
 }
 
 #bb-network-graph {
@@ -261,7 +268,8 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   #bb-toolbar {
     display: grid;
-    grid-template-columns: 5fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr;
+    height: 400px;
     width: 100%;
     background-color:rgb(141, 145, 226);
   }
