@@ -18,6 +18,7 @@
         <h3>Data Box</h3>
         <button @click="networkLibraryShow">Library</button>
         <button @click="nxpLibraryPeer">Experiments</button>
+        <button @click="nxpAdd">+ new NXP</button>
       </template>
       <template #body>
         <space-upload v-if="uploadStatus === true"></space-upload>
@@ -27,6 +28,7 @@
           <network-library></network-library>
         </div>
         <library-view v-if="storeLibrary.libPeerview === true"></library-view>
+        <newnxp-view v-if="storeLibrary.newNXP === true"></newnxp-view>
       </template>
       <template #footer>
       </template>
@@ -41,7 +43,8 @@ import SpaceUpload from '@/components/dataspace/upload/uploadSpace.vue'
 import RestUpload from '@/components/dataspace/upload/restUpload.vue'
 import CsvPreview from '@/components/dataspace/upload/csvPreview.vue'
 import NetworkLibrary from '@/components/library/index.vue'
-import LibraryView from '@/components/beebeeView/libraryView.vue'
+import LibraryView from '@/components/dataspace/libraryNXPView.vue'
+import NewnxpView from '@/components/dataspace/newnxpView.vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { libraryStore } from '@/stores/libraryStore.js'
@@ -84,6 +87,14 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
   const nxpLibraryPeer = () => {
     storeLibrary.libPeerview = !storeLibrary.libPeerview
+  }
+
+  const nxpAdd = () => {
+    storeLibrary.newNXP = !storeLibrary.newNXP
+    // send message to HOP to create genesis NXP contract structure
+    if (storeLibrary.newNXP === true) {
+      storeAI.prepareGenesisContracts()
+    }
   }
 </script>
 

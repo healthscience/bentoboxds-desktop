@@ -28,8 +28,7 @@
             v-on:dragover.prevent
             v-on:drop="handleDrop($event, col.count)"
           >
-            <div
-              class="list-match-item">
+            <div class="list-match-item">
               {{ storeLibrary.newLists[col.count]?.value.concept.name }}
             </div>
           </div>

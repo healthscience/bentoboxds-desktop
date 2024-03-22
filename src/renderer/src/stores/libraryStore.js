@@ -3,11 +3,13 @@ import { defineStore } from 'pinia'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import LibraryUtility from '@/stores/hopUtility/libraryUtility.js'
 import { useSocketStore } from '@/stores/socket.js'
+import hashObject from 'object-hash'
 
 export const libraryStore = defineStore('librarystore', {
   state: () => ({
     libraryStatus: false,
     libPeerview: false,
+    newNXP: false,
     storeAI: aiInterfaceStore(),
     utilLibrary: new LibraryUtility(),
     sendSocket: useSocketStore(),
@@ -25,6 +27,7 @@ export const libraryStore = defineStore('librarystore', {
     peerLedger: [],
     peerLibraryNXP: [],
     newRefcontractForm: {},
+    genesisModules: [],
     datatypeForm: {
       primary: Boolean,
       name: '',
@@ -112,6 +115,9 @@ export const libraryStore = defineStore('librarystore', {
     },
     sourceDataSelected: false,
     newLists: {},
+    newModuleList: [],
+    buildNewExperiment: [],
+    refcontractOption: [ { ref: true, id: 'ref1', name: 'compute' }],
     dtcolumns: [],
     fileSaveStatus: false,
     fileFeedback: ''
@@ -123,8 +129,36 @@ export const libraryStore = defineStore('librarystore', {
       // console.log(message)
       if (message.action === 'save-file') {
         // set message
-        this.libraryMessage = message.data
-        this.newPackagingForm.apicolumns = message.data.data.headerinfo.splitwords
+        if (message.task === 'sqlite') {
+          // need to extract out to chat prepare utility TODO
+          console.log('prepare chat')
+          console.log(message)
+					this.storeAI.qcount++
+					let question = {}
+					question.type ='bbai'
+					question.reftype = 'ignore'
+					question.action = 'question'
+					question.data = { "count": this.storeAI.qcount, "text": "Upload of file", "active": true, "time": new Date() }
+					let hashQuestion = hashObject(question.data + message.data.path)
+					// extract headers assume first line
+					let headerLocal = {}
+          headerLocal[hashQuestion] = message.data.columns // localHeaderExtract(splitLines[0])
+
+					question.bbid = hashQuestion
+					let bbReply = {}
+					bbReply.type = 'bbai-reply'
+					bbReply.data = { text: 'Summary of tables in SQLite file, heading are:', filedata: { type: 'sqlite', file: message.data.path, columns: 'one', grid: [] }, prompt: 'Select data to chart:', options: headerLocal[hashQuestion], }
+					bbReply.bbid = hashQuestion
+					let newPair = {}
+					newPair.question = question
+					newPair.reply = bbReply
+					this.storeAI.historyPair[this.storeAI.chatAttention].push(newPair)
+
+
+        } else {
+          this.libraryMessage = message.data
+          this.newPackagingForm.apicolumns = message.data.data.headerinfo.splitwords
+        }
       } else if (message.type === 'publiclibrary') {
         let typeRefcontracts = Object.keys(message.referenceContracts)
         // look over and see if the library has been setup?
@@ -155,6 +189,10 @@ export const libraryStore = defineStore('librarystore', {
           // keep track NXP contract bundle
           this.peerLibraryNXP = message.data.data.networkPeerExpModules
         }
+      } else if (message.action === 'new-experiment') {
+        console.log('new NXP')
+        console.log(message)
+        this.genesisModules = message.data.modules
       } else if (message.action === 'replicate-publiclibrary') {
         this.sendMessage('get-library')
         this.sendMessage('get-results')

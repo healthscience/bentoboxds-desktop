@@ -74,9 +74,6 @@ const selectedTimeFormat = ref('timeseries')
 
 /* methods */
 const openDataToolbar = () => {
-  console.log('open data')
-  console.log(storeBentobox.boxToolStatus)
-  console.log(props.bboxid)
   storeBentobox.boxToolStatus[props.bboxid].opendatatools.active = !storeBentobox.boxToolStatus[props.bboxid].opendatatools.active
 }
 

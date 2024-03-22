@@ -21,14 +21,17 @@
                   <div class="beeebee-text">
                     {{ chati.reply.data.text}}
                     </div>
-                    <div v-if="chati.reply?.data?.filedata" class="bee-file-data">
-                      {{ chati.reply.data.filedata.type }} - {{ chati.reply.data.filedata.file.name }} -- {{ chati.reply.data.filedata.columns}}
+                    <div v-if="chati.reply?.data?.filedata" class="bee-file-data">{{ chati.reply.data.filedata }}
+                      {{ chati.reply.data.filedata.type }} - {{ chati.reply.data.filedata.file?.name }} -- {{ chati.reply.data.filedata.columns}}
                       <csv-preview v-if="storeLibrary.csvpreviewLive === true" :summarydata="chati.reply.data.filedata.grid"></csv-preview>
                     </div>
                     <div v-if="chati.reply?.data?.prompt?.length > 0" class="bee-prompt-question">
                       {{ chati.reply.data.prompt }}
                       <div class="data-options"  v-for="(dopt, index) in chati.reply?.data?.options">
-                        <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid)">{{ dopt }}</button>
+                        <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid)">
+                          {{ dopt }}
+                        </button>
+                        <button class="data-option-select" :class="{ active: index === isDateColumn }" @click.prevent="dateOptionSelect(index, dopt, chati.reply.bbid)">date</button>
                       </div>
                     </div>
                 </div>
@@ -79,9 +82,9 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
   // const askStart = ref('What would you like to chart?')
   let chartStyle = ref('')
+  let isDateColumn = ref(0)
 
   const storeAI = aiInterfaceStore()
-
   const storeLibrary = libraryStore()
 
   const chartBuild = style => {
@@ -145,8 +148,14 @@ import { libraryStore } from '@/stores/libraryStore.js'
     let dataCode = {}
     dataCode.id = did
     dataCode.name = colName
+    dataCode.timestamp = isDateColumn.value
     dataCode.bbid = bbid
+    console.log(dataCode)
     storeAI.submitAsk(dataCode)
+  }
+
+  const dateOptionSelect = (did, colName, bbid) => {
+    isDateColumn.value = did
   }
 
 </script>
@@ -283,13 +292,23 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
     .data-options {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 8fr 1fr;
     }
 
     .data-option-select {
       display: inline-block;
       padding: 0.25em;
       margin-bottom: 0.6em;
+    }
+
+    .date-option-select {
+      display: inline-block;
+      padding: 0.25em;
+      margin-bottom: 0.6em;
+    }
+
+    .active {
+      background-color: green;
     }
 
   }

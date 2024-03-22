@@ -1,7 +1,7 @@
 <template>
   <div id="reference-tools">
     <div id="task-select">
-      <div class="contract-task">oo {{ storeLibrary.startLibrary }}
+      <div class="contract-task">
         <button id="get-referencecontract" @click.prevent="getRefContracts()">Get Ref. Contract</button>
       </div>
       <div id="notify-library-start-replication" v-if="storeLibrary.startLibrary === true">

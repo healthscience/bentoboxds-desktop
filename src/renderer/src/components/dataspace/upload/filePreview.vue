@@ -1,28 +1,41 @@
 <template>
 	<component :is="tag" class="file-preview">
-		<button @click="$emit('remove', file)" class="close-icon">&times;</button>
-		<img :src="file.url" :alt="file.file.name" :title="file.file.name" />
+		<div id="filesummary">
+			{{ file.id }}
+		</div>
+		<button class="remove-file" @click="handleFile(file.id)">remove</button>  <!--// testRemove()">remove</button>-->
+		<!--<button class="close-icon">{{ file }}</button>-->
+		<!--<img :src="file.url" :alt="file.file.name" :title="file.file.name"/>-->
 
-		<span class="status-indicator loading-indicator" v-show="file.status == 'loading'">In Progress</span>
+		<!--<span class="status-indicator loading-indicator" v-show="file.status == 'loading'">In Progress</span>
 		<span class="status-indicator success-indicator" v-show="file.status == true">Uploaded</span>
-		<span class="status-indicator failure-indicator" v-show="file.status == false">Error</span>
+		<span class="status-indicator failure-indicator" v-show="file.status == false">Error</span>-->
 	</component>
 </template>
 
 <script setup>
+
 defineProps({
 	file: { type: Object, required: true },
 	tag: { type: String, default: 'li' },
 })
 
-defineEmits(['remove'])
+const emit = defineEmits(['removeFile'])
+
+const handleFile = (file) => {
+	emit('removeFile', file)
+}
+
 </script>
 
 <style scoped>
 .file-preview {
-	width: 20%;
+	display: grid;
+	grid-template-columns: 1fr;
+	width: 30%;
 	margin: 1rem 2.5%;
 	position: relative;
+	border: 1px solid blue;
 	aspect-ratio: 1/1;
 	overflow: hidden;
 

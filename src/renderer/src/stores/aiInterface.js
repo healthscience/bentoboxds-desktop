@@ -52,6 +52,15 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       data: {},
       active: false
     },
+    boxSettings: 
+    {
+      opendatatools: { active: false },
+      boxtoolshow: { active: false },
+      vistoolsstatus: { active: false },
+      scalezoom: 1,
+      location: {},
+      chartstyle: 'line'
+    },
     liveFutureCollection: { active: false },
     visData: {},
     tempNumberData: {},
@@ -67,7 +76,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     bentoboxList: { '91919191': [] },
     countNotifications: 0,
     notifList: [],
-    boxLibSummary: {}
+    boxLibSummary: {},
+    boxModelUpdate: {}
   }),
   actions: {
     sendMessageHOP (message) {
@@ -169,6 +179,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
     },
     actionFileAskInput (fileData) {
+      console.log('file ask')
+      console.log(fileData)
       let aiMessageout = {}
       aiMessageout.type = 'bbai'
       aiMessageout.reftype = 'ignore'
@@ -225,52 +237,57 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.qcount++
     },
     processReply (received) {
-      // match to question via bbid
-      let questionStart = {}
-      let questionCount = []
-      for (let histMatch of this.helpchatHistory) {
-        if (histMatch.bbid === received.bbid) {
-          questionCount.push(histMatch)
-          questionStart = histMatch
-        }
-      }
-      if (questionCount.length === 1) {
-        // does the question exist from file upload?
-        if (questionCount[0].data?.filedata) {
-          console.log('file data one')
-          console.log(received)
-          // set box detail setings
-          console.log('file toolbar settins')
-          this.storeBentoBox.boxToolStatus[received.bbid] = {}
-          let boxSettings = 
-          {
-            opendatatools: { active: false },
-            boxtoolshow: { active: false },
-            vistoolsstatus: { active: false },
-            scalezoom: 1,
-            location: {},
-            chartstyle: 'line'
+      if (received.action === 'ai-task') {
+        console.log('third party AI')
+        console.log(received)
+        this.boxModelUpdate[received.bbid] = {}
+        this.boxModelUpdate[received.bbid] = received.data.model
+      } else {
+        // match to question via bbid
+        let questionStart = {}
+        let questionCount = []
+        for (let histMatch of this.helpchatHistory) {
+          if (histMatch.bbid === received.bbid) {
+            questionCount.push(histMatch)
+            questionStart = histMatch
           }
-          this.storeBentoBox.boxToolStatus[received.bbid] = boxSettings
-          this.storeBentoBox.devicesettings[received.bbid] = {}
-          this.storeBentoBox.chartStyle[received.bbid] = 'line'
-        } else {
-          console.log('file data two')
-          let pairBB = {}
-          pairBB.question = questionStart
-          pairBB.reply = received
-          this.historyPair[this.chatAttention].push(pairBB)
         }
+        if (questionCount.length === 1) {
+          // does the question exist from file upload?
+          if (questionCount[0].data?.filedata) {
+            // set box detail setings
+            this.storeBentoBox.boxToolStatus[received.bbid] = {}
+            let boxSettings = 
+            {
+              opendatatools: { active: false },
+              boxtoolshow: { active: false },
+              vistoolsstatus: { active: false },
+              scalezoom: 1,
+              location: {},
+              chartstyle: 'line'
+            }
+            this.storeBentoBox.boxToolStatus[received.bbid] = this.boxSettings
+            this.storeBentoBox.devicesettings[received.bbid] = {}
+            this.storeBentoBox.chartStyle[received.bbid] = 'line'
+          } else {
+            let pairBB = {}
+            pairBB.question = questionStart
+            pairBB.reply = received
+            this.historyPair[this.chatAttention].push(pairBB)
+            this.storeBentoBox.boxToolStatus[received.bbid] = this.boxSettings
+            this.storeBentoBox.devicesettings[received.bbid] = {}
+          }
+        }
+        if (received.action === 'library-peerlibrary' || 'publiclibrary') {
+          this.storeLibrary.processReply(received, questionStart)
+        }
+        // check if reply is upload?  If yes, present upload interface
+        if (received.action === 'upload') {
+          // this.uploadStatus = true
+        } 
+        this.beginChat = true 
+        this.chatBottom++
       }
-      if (received.action === 'library-peerlibrary' || 'publiclibrary') {
-        this.storeLibrary.processReply(received, questionStart)
-      }
-      // check if reply is upload?  If yes, present upload interface
-      if (received.action === 'upload') {
-        // this.uploadStatus = true
-      } 
-      this.beginChat = true 
-      this.chatBottom++
     },
     processNotification (received) {
       this.countNotifications++
@@ -314,6 +331,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     },
     processHOPdata (dataHOP) {
       // close databox
+      console.log('HOP data------------------ ')
+      console.log(dataHOP)
       // match input id to bbid
       // is the data for past or future or no data
       if (dataHOP.data.data === 'none') {
@@ -341,7 +360,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         // this.tempNumberData[matchBBID] = dataHOP.data.data.chartPackage.datasets[0].data
         // this.tempLabelData[matchBBID] = dataHOP.data.data.chartPackage.labels
         let hopDataChart = {}
-        hopDataChart.datasets = [ { data: dataHOP.data.data.chartPackage.datasets[0].data } ]
+        hopDataChart.datasets = [ { label: 'datatype', data: dataHOP.data.data.chartPackage.datasets[0].data } ]
         hopDataChart.labels = dataHOP.data.data.chartPackage.labels
         this.visData[matchBBID] = hopDataChart
         this.storeBentoBox.setChartstyle(matchBBID, dataHOP.context.moduleorder.visualise.value.info.settings.visualise)
@@ -392,7 +411,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     },
     prepareLibrarySummary (boxid) {
       for (let hi of this.hopSummary) {
-        console.log(hi)
         if (hi.summary.bbid == boxid) {
           // new or saved format
           if ('data' in hi.summary) {
@@ -402,6 +420,17 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
           }
         }
       }
+    },
+    prepareGenesisContracts (message) {
+      let aiMessageout = {}
+      aiMessageout.type = 'library'
+      aiMessageout.reftype = 'ignore'
+      aiMessageout.action = 'contracts'
+      aiMessageout.task = 'experiment-genesis'
+      aiMessageout.privacy = 'public'
+      aiMessageout.data = {}
+      aiMessageout.bbid = ''
+      this.sendMessageHOP(aiMessageout)
     },
     prepareBentoBoxSave (message) {
       let settingsData = this.historyPair[message.data.chatid]
@@ -444,6 +473,9 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       saveData.bboxlist = boxidPerspace
       message.data = saveData
       this.sendSocket.send_message(message)
+    },
+    prepareAI (message) {
+      this.sendMessageHOP(message)
     }
   }
 })

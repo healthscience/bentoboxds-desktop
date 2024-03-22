@@ -115,18 +115,18 @@
 import { ref, computed } from 'vue'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
-const storeBentobox = bentoboxStore()
+  const storeBentobox = bentoboxStore()
 
-let refContractsComputeLive = ref([])
-let refContractPackage = ref([])
-let feedback = ref([])
-let category = ref([])
-let deviceList = ref([])
-let time = ref([])
-let resolution = ref('')
+  let refContractsComputeLive = ref([])
+  let refContractPackage = ref([])
+  let feedback = ref([])
+  let category = ref([])
+  let deviceList = ref([])
+  let time = ref([])
+  let resolution = ref('')
 
-/* props */
-const props = defineProps({
+  /* props */
+  const props = defineProps({
     bboxid: String
   })
 

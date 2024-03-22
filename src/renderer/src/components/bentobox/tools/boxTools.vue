@@ -141,7 +141,7 @@ const boxToolsShow = computed(() => {
   */
   const boxLibrarySummary = computed(() => {
     let NXPcontract = {}
-    NXPcontract.key = Object.keys(storeAI.boxLibSummary[props.bboxid].data)
+    NXPcontract.key = Object.keys(storeAI?.boxLibSummary[props.bboxid].data)
     let modKeys = []
     for (let mod of storeAI.boxLibSummary[props.bboxid].data[NXPcontract.key].modules) {
       modKeys.push(mod.key)
