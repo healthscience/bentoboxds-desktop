@@ -20,50 +20,16 @@
     @drag:start="eHandlerTimerStart"
     @drag:end="eHandlerTimerStop"
   >
-    <!--<div class="drag-container-1" >
-      <div id="bb-toolbar" v-bind:class="{ active: bboxActive }">
-        <div class="bb-bar-main">a bentobox active</div>
-        <div class="bb-bar-main"><button id="network-vis">social</button></div>
-        <div class="bb-bar-main"><button id="network-map">map</button></div>
-        <div class="bb-bar-main"><button id="bb-copy">copy</button></div>
-        <div class="bb-bar-main"><button id="bb-remove" @click="removeBboxSpace">remove</button></div>
-      </div> 
-    </div> -->
+    <!-- bentobox -->
     <div id="bb-toolbar" v-bind:class="{ active: bboxActive }">Active bar</div>
-    <box-tools :bboxid="props.bboxid"></box-tools>
+    <bento-box :bboxid="props.bboxid" :bbwidth="bentoboxWidth"></bento-box>
     <button id="bb-remove" @click="removeBboxSpace">remove</button>
-    <div id="bentobox-cell">
-      <div id="bb-network-graph">Network</div>
-      <div id="bb-world-map">map</div>
-      <div id="bentobox-holder">
-        <div id="network-bentobox">
-          network bentobox
-        </div>
-        <div id="peer-bentobox">
-          <div id="bento-past">past
-            <div id="past-box">past toolbar <button id="full-past-toolbar">Tools</button></div>
-            <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartData"></bar-chart>
-            <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartData"></line-chart>
-          </div>
-          <div id="bento-future">future
-            <div id="future-box">future toolbar <button id="full-future-toolbar">full</button></div>
-            <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartfutureData" ></bar-chart>
-            <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartfutureData"></line-chart>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="bb-expand-size" @click="expandModules">modules v</div>
-    <modules-list v-if="modulesShow"></modules-list>
   </vue-resizable>
 </template>
 
 <script setup>
 import VueResizable from 'vue-resizable'
-import BoxTools from '@/components/bentobox/tools/boxTools.vue'
-import barChart from '@/components/visualisation/charts/barChart.vue'
-import lineChart from '@/components/visualisation/charts/lineChart.vue'
-import ModulesList from '@/components/bentobox/modules/modulesList.vue'
+import BentoBox from  '@/components/bentobox/bentoBox.vue' 
 import { ref, computed, onMounted } from 'vue'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
@@ -75,11 +41,12 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     bboxid: String
   })
 
+  let bentoboxWidth = '30vw'
   let bboxActive = ref(false)
   let modulesShow = ref(false)
 
   /* drag drop move resize */
-  const tW = 440
+  const tW = 880
   const tH = 440
   const handlers = ref(["r", "rb", "b", "lb", "l", "lt", "t", "rt"])
   let left = ref(`calc(2% - ${tW / 2}px)`)

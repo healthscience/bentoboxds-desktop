@@ -1,5 +1,5 @@
 <template>
-  <div id="experiment-builder-header">Module Builder</div>
+  <div id="experiment-builder-header">Module Builder</div>{{ storeLibrary.moduleNxpActive }}ii
   <div id="experiment-holder">
     <div id="modules-available"
       v-on:dragover.prevent
@@ -24,10 +24,8 @@
         v-on:dragstart="handleDragStart($event, newMod)"
       >
         <div class="mod-option-holder"
-          v-on:dragover.prevent
-          v-on:drop="handleRefDrop($event, 'mod-option-holder')"
         >
-          <component :is="componentsNew[newMod.name]"></component>
+          <component :is="componentsNew[newMod.name]" :refFocus="storeLibrary.moduleNxpActive"></component>
       </div>
       </div>
     </div>
@@ -35,12 +33,16 @@
       v-on:dragover.prevent
       v-on:drop="handleDrop($event, 'refcontract-selected')"
     >
-      <div class="ref-selected"
-        v-for="newRef in storeLibrary.refcontractOption" 
-        draggable="true"
-        v-on:dragstart="handleDragStart($event, newRef)"
-      >
-        ref-- {{ newRef.name }}
+      <div id="check-lib" v-if="libraryAvailable.length > 0">
+        <div class="ref-selected"
+          v-for="newRef in libraryAvailable" 
+          draggable="true"
+          v-on:dragstart="handleDragRefStart($event, newRef)"
+        >
+          ref-- {{ newRef.value.refcontract }}
+          <div v-if="newRef.value.concept">{{ newRef.value.concept.name }}</div>
+          <div v-if="newRef.value.computational" class="contract-name">{{ newRef.value.computational.name }}</div>
+        </div>
       </div>
     </div>
   </div>
@@ -49,27 +51,27 @@
 <script setup>
 import { ref, shallowRef, computed } from 'vue'
 
-// import draggable from 'vuedraggable'
 import NxpQuestion from '@/components/dataspace/modules/nxpQuestion.vue'
-import NxpDevice from '@/components/dataspace/modules/nxpDevice.vue'
+import NxpPackaging from '@/components/dataspace/modules/nxpDevice.vue'
 import NxpDapp from '@/components/dataspace/modules/nxpDapp.vue'
 import NxpCompute from '@/components/dataspace/modules/nxpCompute.vue'
 import NxpControl from '@/components/dataspace/modules/nxpControl.vue'
 import NxpVisualise from '@/components/dataspace/modules/nxpBuildVisualise.vue'
 
-import { aiInterfaceStore } from '@/stores/aiInterface.js'
-import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { libraryStore } from '@/stores/libraryStore.js'
 
-  const storeAI = aiInterfaceStore()
-  const bboxStore = bentoboxStore()
   const storeLibrary = libraryStore()
-  const componentsNew = shallowRef({ question: NxpQuestion, data: NxpDevice, compute: NxpCompute, visualise: NxpVisualise })
+  const componentsNew = shallowRef({ question: NxpQuestion, packaging: NxpPackaging, compute: NxpCompute, visualise: NxpVisualise })
 
   let refDrop = ref(false)
 
   /* computed */
   const libraryAvailable = computed (() => {
+    if (Object.keys(storeLibrary.publicLibrary).length > 0) {
+      return storeLibrary.publicLibrary.referenceContracts[storeLibrary.moduleNxpActive]
+    } else {
+      return []
+    }
   })
 
 
@@ -77,15 +79,18 @@ import { libraryStore } from '@/stores/libraryStore.js'
     event.dataTransfer.setData('application/json', JSON.stringify(itemData))
   }
 
+  const handleDragRefStart = (event, itemData) => {
+    refDrop.value = true
+    event.dataTransfer.setData('application/json', JSON.stringify(itemData))
+  }
+
   const handleDrop = (event, targetContainer) => {
-    console.log('dropH')
     if (refDrop.value === false) {
-      console.log('false through')
       const itemData = JSON.parse(event.dataTransfer.getData('application/json'))
-      console.log('iteme tyoep')
-      console.log(itemData)
       if (itemData.ref !== true) {
         if (targetContainer === 'modules-selected') {
+          // set as active module contract type
+          setModType(itemData)
           storeLibrary.newModuleList = storeLibrary.newModuleList.filter(i => i.id !== itemData.id)
           storeLibrary.newModuleList.push(itemData)
           // remove from available list
@@ -97,19 +102,39 @@ import { libraryStore } from '@/stores/libraryStore.js'
           storeLibrary.newModuleList = storeLibrary.newModuleList.filter(i => i.id !== itemData.id)
         }
       }
+    } else {
+      console.log('dro ref is true')
+      handleRefDrop(event, targetContainer)
     }
   }
 
   const handleRefDrop = (event, targetContainer) => {
-    console.log('drop REF')
-    event.preventDefault()
-    console.log(event)
-    refDrop.value = true
-    // add to module
-    storeLibrary.buildNewExperiment.push('refcontract')
-    // return drop value
+    let dropItem = JSON.parse(event.dataTransfer.getData('application/json'))
+    // match to module and add
+    if (dropItem?.value?.refcontract === 'question') {
+      storeLibrary.newnxp.questionLive.push(dropItem)
+    } else if (dropItem?.value?.refcontract === 'packaging') {
+      storeLibrary.newnxp.packagingLive.push(dropItem)
+    } else if (dropItem?.value?.refcontract === 'compute') {
+     storeLibrary.newnxp.computeLive.push(dropItem)
+    } else if (dropItem?.value?.refcontract === 'visualise') {
+      storeLibrary.newnxp.visualiseLive.push(dropItem)
+    }
     refDrop.value = false
   }
+
+  const setModType = (item) => {
+    if (item?.name) {
+      if (item.name === 'packaging') {
+        storeLibrary.moduleNxpActive = 'packaging'
+      } else {
+        storeLibrary.moduleNxpActive = item.name
+      }
+    } else {
+      storeLibrary.moduleNxpActive = item.refcontract
+    }
+  }
+
 
 </script>
 
@@ -145,6 +170,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
   .mod-active {
     background-color: antiquewhite;
     width: 80%;
+    max-height: 100px;
     margin: 0.5em;
   }
 
@@ -156,14 +182,27 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
   .mod-option-holder {
     min-height: 120px;
+    border: 1px solid orange;
   }
 
   #refcontract-selected {
     display: grid;
     grid-template-columns: 1fr;
+    align-items: center;
     border: 1px solid grey;
     padding: 1em;
+    height: inherit;
+    border: 1px solid blue;
+  }
+
+  .ref-selected {
+    display: grid;
+    border: 1px solid grey;
     height: 60px;
+  }
+
+  .contract-name {
+    font-weight: bold;
   }
 
 }

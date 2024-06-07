@@ -46,6 +46,7 @@ export default {
 #module-referencecontract {
   text-align: center;
   background-color: #e6e6ff;
+  margin-bottom: 2em;
 }
 
 .viewer-header {

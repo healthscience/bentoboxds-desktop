@@ -1,11 +1,11 @@
 <template>
   <div id="vis-tools">
-    <div class="network-tools">
-      <div class="context-network">ng
-        <!--<button @click.prevent="setNetworkgraph('networkview')">{{ network.text }}</button>-->
+    <div id="grap-map" class="network-tools">
+      <div class="context-network">
+        <button id="network-graph" @click="viewNetworkGrpah()" v-bind:class="{ active: storeBentobox.networkGraph }">graph</button>
       </div>
-      <div class="context-network">nm
-        <!--<button @click.prevent="setNetworkmap('mapview')">{{ mapButton.text }}</button>-->
+      <div class="context-network">
+        <button id="network-graph" @click="viewMap()" v-bind:class="{ active: storeBentobox.geoMap }">map</button>
       </div>
     </div>
     <div class="network-tools">
@@ -13,7 +13,7 @@
     </div>
     <div class="network-tools">
       <div id="chart-options">
-        <div class="chart-update">
+        <div class="chart-calendar-update">
           <select v-model="selectedTimeFormat" @change.prevent="setTimeFormat()">
             <option v-for="tfoption in timeformatoptions" v-bind:value="tfoption.value" :key='tfoption.id' :selected="selectedChartnumber">
             {{ tfoption.text }}
@@ -36,11 +36,11 @@
       </div>-->
     </div>
     <div class="network-tools">
-      <button href="#" id="opendata-space" @click.prevent="openDataToolbar()">open data</button>
+      <button href="#" id="opendata-space" @click.prevent="openDataToolbar()"  v-bind:class="{ active: visToolbarStatus }">open data</button>
     </div>
   </div>
-  <div class="network-tools" v-if="boxSettings !== undefined" id="open-knowledge">
-    <opendata-tool v-if="boxSettings?.opendatatools?.active === true" :bboxid="props.bboxid" :toolInfo="boxSettings"></opendata-tool>
+  <div class="network-tools" id="open-knowledge">
+    <opendata-tool v-if="visToolbarStatus === true" :bboxid="props.bboxid"></opendata-tool>
   </div>
   <!--<div id="feedback-time" v-if="feedbackmessage !== 'clear'" v-bind:class="{ active: feedbackActive }">
     {{ feedbackmessage }}
@@ -48,6 +48,7 @@
 </template>
 
 <script setup>
+
 import CalendarTool from '@/components/bentobox/tools/calendarTools.vue'
 import OpendataTool from '@/components/bentobox/tools/opendataTools.vue'
 import { ref, computed } from 'vue'
@@ -58,7 +59,7 @@ import { accountStore } from '@/stores/accountStore.js'
   const storeAccount = accountStore()
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
-
+  
   const selectedChartnumber = ref('singlechart')
 
   const props = defineProps({
@@ -74,7 +75,18 @@ const selectedTimeFormat = ref('timeseries')
 
 /* methods */
 const openDataToolbar = () => {
-  storeBentobox.boxToolStatus[props.bboxid].opendatatools.active = !storeBentobox.boxToolStatus[props.bboxid].opendatatools.active
+  console.log('open toolba r clicke')
+ // storeBentobox.boxToolStatus[props.bboxid].opendatatools.active = !storeBentobox.boxToolStatus[props.bboxid].opendatatools.active
+ storeBentobox.bbToolbarOpendata[props.bboxid] = !storeBentobox.bbToolbarOpendata[props.bboxid]
+ storeAI.prepareLibrarySummary(props.bboxid)
+}
+
+const viewNetworkGrpah = () => {
+  storeBentobox.networkGraph = !storeBentobox.networkGraph
+}
+
+const viewMap = () => {
+  storeBentobox.geoMap = !storeBentobox.geoMap
 }
 
 const setTimeFormat = () => {
@@ -100,12 +112,8 @@ const boxSettings = computed(() => {
   return storeBentobox.boxToolStatus[props.bboxid]
 })
 
-const openDataLive = computed(() => {
-  return storeBentobox.openDatatools[props.bboxid]
-})
-
-const visToolbarStatusLive = computed(() => {
-  return storeBentobox.vistoolsStatus[props.bboxid]
+const visToolbarStatus = computed(() => {
+  return storeBentobox.bbToolbarOpendata[props.bboxid]
 })
 
 </script>
@@ -116,19 +124,35 @@ const visToolbarStatusLive = computed(() => {
 #vis-tools {
   display: grid;
   grid-template-columns: 1fr;
+  background-color:rgb(224, 227, 243);
+  z-index: 12;
 }
 
 @media (min-width: 1024px) {
 
   #vis-tools {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 3fr 1fr 1fr 1fr;
+  }
+
+  #grap-map {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .network-tools {
-    border: 1px solid blue;
+    border: 1px solid rgb(171, 171, 227);
   }
 
+  .context-network {
+    margin-top: 1em;
+    margin-left: 2em;
+  }
+
+  .active {
+    background-color: rgb(113, 172, 114);
+    border: 1px solid green;
+  }
 }
 
 </style>

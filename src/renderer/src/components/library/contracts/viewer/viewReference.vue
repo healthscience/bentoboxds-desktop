@@ -1,11 +1,26 @@
 <template>
   <div id="cnrl-view"> REFERENCE VIEWER
-    <div v-for="cd in referenceData" :key="cd.value.title">
-      <datatype-view v-if="viewType === 'datatype-view'">
+    <div v-for="cd in referenceData" :key="cd.value.refcontract">
+      <question-view v-if="viewType === 'question-view'">
         <template v-slot:header>
           <div id="refcontract-summary">
             <div class="refname">
-              <div class="refinfo-col1">Ref. contract name:</div>
+              <div class="refinfo-col1">Ref. contract name: {{ cd.value.refcontract }}</div>
+              <div class="refinfo-col1">key: {{ cd.key }}</div>
+            </div>
+          </div>
+        </template>
+        <template v-slot:body>
+          <div v-if="cd.value.concept.name" class="refinfo-col2">
+            {{ cd.value.concept.name }}
+          </div>
+        </template>
+      </question-view> 
+      <datatype-view v-if="viewType === 'datatype-view'"> 
+        <template v-slot:header>
+          <div id="refcontract-summary">
+            <div class="refname">
+              <div class="refinfo-col1">Ref. contract name: </div>
               <div v-if="cd.value.concept.name" class="refinfo-col2">
                 {{ cd.value.concept.name }}
               </div>
@@ -60,36 +75,6 @@
           </div>
         </template>
       </datatype-view>
-      <compute-view v-if="viewType === 'compute-view'">
-        <template v-slot:header>
-          <div id="refcontract-summary">
-            <div class="refname">
-              <div class="refinfo-col1">Ref. contract name:</div>
-              <div v-if="cd.value.concept.name" class="refinfo-col2">
-                {{ cd.value.concept.name }}
-              </div>
-              <div v-else class="refinfo-col2">
-                {{ cd.value.computational.name }}
-              </div>
-            </div>
-            <div class="refname">
-              <div class="refinfo-col1">Version & Date:</div>
-              <div class="refinfo-col2">1.0 **/**/****</div>
-            </div>
-          </div>
-          <div class="refcontract-summary">
-            <div> {{ cd.key }} </div>
-          </div>
-        </template>
-        <template v-slot:body>
-          <div id="compute-slot">
-              <header>Details</header>
-              <div v-for="(pi, index) in cd.value.computational" :key="pi.refcontract">
-                  {{ index }} --- {{ pi }}
-            </div>
-          </div>
-        </template>
-      </compute-view>
       <packaging-view v-if="viewType === 'packaging-view'">
         <template v-slot:header>
           <div id="refcontract-summary">
@@ -126,6 +111,9 @@
                   {{ index }} -- {{ pi }}
                 </div>
                 <div class="packaging-basics" v-if="index === 'filename'" >
+                  {{ index }} -- {{ pi }}
+                </div>
+                <div class="packaging-basics" v-if="index === 'path'" >
                   {{ index }} -- {{ pi }}
                 </div>
                 <div class="packaging-basics" v-if="index === 'sqlitetablename'" >
@@ -170,9 +158,9 @@
                     </li>
                     <li>
                       <ul v-if="index === 'tidy'" >
-                        <header>Tidy rules</header>
+                        <header>Tidy rules:</header>
                         <li v-for="ipv in pi" :key="ipv.key" >
-                            {{ ipv.tidy }} -- {{ ipv.tidydatatype }} -- {{ ipv.tidycode }}
+                            {{ ipv.tidy }} -- {{ ipv.datatype }} -- {{ ipv.code }}
                         </li>
                       </ul>
                     </li>
@@ -190,6 +178,36 @@
           </div>
         </template>
       </packaging-view>
+      <compute-view v-if="viewType === 'compute-view'">
+        <template v-slot:header>
+          <div id="refcontract-summary">
+            <div class="refname">
+              <div class="refinfo-col1">Ref. contract name:</div>
+              <div v-if="cd.value.concept.name" class="refinfo-col2">
+                {{ cd.value.concept.name }}
+              </div>
+              <div v-else class="refinfo-col2">
+                {{ cd.value.computational.name }}
+              </div>
+            </div>
+            <div class="refname">
+              <div class="refinfo-col1">Version & Date:</div>
+              <div class="refinfo-col2">1.0 **/**/****</div>
+            </div>
+          </div>
+          <div class="refcontract-summary">
+            <div> {{ cd.key }} </div>
+          </div>
+        </template>
+        <template v-slot:body>
+          <div id="compute-slot">
+              <header>Details</header>
+              <div v-for="(pi, index) in cd.value.computational" :key="pi.refcontract">
+                  {{ index }} --- {{ pi }}
+            </div>
+          </div>
+        </template>
+      </compute-view>
       <visualise-view v-if="viewType === 'visualise-view'">
         <template v-slot:header>
           <div id="refcontract-summary">
@@ -232,10 +250,11 @@
 </template>
 
 <script setup>
-import DatatypeView from '@/components/library/contracts/datatypeViewer.vue'
-import ComputeView from '@/components/library/contracts/computeViewer.vue'
-import PackagingView from '@/components/library/contracts/packagingViewer.vue'
-import VisualiseView from '@/components/library/contracts/visualiseViewer.vue'
+import QuestionView from '@/components/library/contracts/viewer/questionViewer.vue'
+import DatatypeView from '@/components/library/contracts/viewer/datatypeViewer.vue'
+import ComputeView from '@/components/library/contracts/viewer/computeViewer.vue'
+import PackagingView from '@/components/library/contracts/viewer/packagingViewer.vue'
+import VisualiseView from '@/components/library/contracts/viewer/visualiseViewer.vue'
 // import ModuleView from './moduleViewer.vue'
 // import BoardView from './boardViewer.vue'
 import { libraryStore } from '@/stores/libraryStore.js'
@@ -254,16 +273,18 @@ import { ref, computed } from 'vue'
 
   /*  computed  */
   const referenceData = computed(() => {
-    if (props.refTypeLive === 'datatype') {
+    if (props.refTypeLive === 'question') {
+      viewType.value = 'question-view'
+    } else if (props.refTypeLive === 'datatype') {
       viewType.value = 'datatype-view'
-    } else if (props.refTypeLive === 'compute') {
-      viewType.value = 'compute-view'
     } else if (props.refTypeLive === 'packaging') {
       viewType.value = 'packaging-view'
+    } else if (props.refTypeLive === 'compute') {
+      viewType.value = 'compute-view'
     } else if (props.refTypeLive === 'visualise') {
       viewType.value = 'visualise-view'
     }
-    return storeLibrary.publicLibrary[props.refTypeLive]
+    return storeLibrary.publicLibrary.referenceContracts[props.refTypeLive]
   })
 
 </script>

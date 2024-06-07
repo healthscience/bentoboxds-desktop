@@ -6,8 +6,8 @@
         <label for="devices-select"></label>
         <select class="select-device-id" id="device-mapping-build" v-model="deviceSettings.devices">
           <option value="none" >please select</option>
-          <option v-for="dev in deviceList">
-            {{ dev.device_name + ' ' + dev.device_mac }}
+          <option v-for="dev in opendataSettingsLive.devices">
+            {{ dev.NAME }}
           </option>
         </select>
       </div>
@@ -42,7 +42,7 @@
           <select id="yaxis-mapping-build" v-model="deviceSettings.yaxis" multiple>
             <option value="none" selected="">please select</option>
             <option v-for="colpairy in opendataSettingsLive.yaxis">
-            {{ colpairy }}
+            {{ colpairy.column }}
             </option>
           </select>
         </div>
@@ -122,8 +122,17 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     return storeLibrary.publicLibrary.referenceContracts.compute
   })
 
-  const opendataSettingsLive = computed(() => {
-    return storeBentobox.openDataSettings[props.bboxid]
+ 
+  const opendataSettingsLive = computed (() => {
+    let packKey = Object.keys(storeLibrary.newnxp.packagingLive)
+    console.log(storeLibrary.newnxp.packagingLive[packKey].value)
+    let packInfo = {}
+    packInfo.devices = storeLibrary.newnxp.packagingLive[packKey].value.concept.devicesList
+    packInfo.xaxis = ['time'] // storeLibrary.newnxp.packagingLive[packKey].value.concept.
+    packInfo.yaxis = storeLibrary.newnxp.packagingLive[packKey].value.concept.tablestructure
+    packInfo.category = storeLibrary.newnxp.packagingLive[packKey].value.concept.category
+    packInfo.tidy = storeLibrary.newnxp.packagingLive[packKey].value.concept.tidy
+    return packInfo
   })
 
 

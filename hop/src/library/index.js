@@ -5,7 +5,7 @@
 *
 * @class LibraryRoute
 * @package    LibraryRoute
-* @copyright  Copyright (c) 2022 James Littlejohn
+* @copyright  Copyright (c) 2024 James Littlejohn
 * @license    http://www.gnu.org/licenses/old-licenses/gpl-3.0.html
 * @version    $Id$
 */
@@ -57,6 +57,13 @@ class LibraryRoute extends EventEmitter {
     // message for SafeFlow
     this.libManager.on('libsafeflow', (data) => {
       this.emit('safeflow-query', data)
+    })
+    this.libManager.on('libsafeflow-update', (data) => {
+      this.emit('safeflow-update', data)
+    })
+    // systems data for SafeFlow
+    this.libManager.on('systemssafeflow', (data) => {
+      this.emit('safeflow-systems', data)
     })
   }
 

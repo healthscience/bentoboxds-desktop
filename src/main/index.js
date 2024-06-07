@@ -31,7 +31,7 @@ function sleep (ms) {
     
 async function pause () {
 
- await sleep(3000)
+ await sleep(4000)
  console.log('aferer 444 4 4 4 44  ')
 function createWindow() {
   // Create the browser window.

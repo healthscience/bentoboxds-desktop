@@ -1,19 +1,21 @@
-import { shallowRef, markRaw } from 'vue'
+import { shallowRef, markRaw, nextTick } from 'vue'
 import { defineStore } from 'pinia'
 import hashObject from 'object-hash'
 import { useSocketStore } from '@/stores/socket.js'
 import { bentoboxStore } from "@/stores/bentoboxStore.js"
 import { libraryStore } from '@/stores/libraryStore.js'
 import DataPraser from '@/stores/hopUtility/dataParse.js'
+import ChatUtilty from '@/stores/hopUtility/chatUtility.js'
 import { accountStore } from "@/stores/accountStore.js"
 
 export const aiInterfaceStore = defineStore('beebeeAIstore', {
   state: () => ({
-    accStore: accountStore(),
+    storeAcc: accountStore(),
     sendSocket: useSocketStore(),
     storeBentoBox: bentoboxStore(),
     storeLibrary: libraryStore(),
     liveDataParse: new DataPraser(),
+    liveChatUtil: new ChatUtilty(),
     startChat: true,
     chatAttention: '',
     historyList: '',
@@ -179,8 +181,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
     },
     actionFileAskInput (fileData) {
-      console.log('file ask')
-      console.log(fileData)
       let aiMessageout = {}
       aiMessageout.type = 'bbai'
       aiMessageout.reftype = 'ignore'
@@ -203,7 +203,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
       if (matchQuestion.text.length > 0) {
         let hashQuestion = hashObject(matchQuestion)
-        // thisstate.helpchatAsk, 'active', true
         let aiMessageout = {}
         aiMessageout.type = 'bbai'
         aiMessageout.reftype = 'ignore'
@@ -224,69 +223,89 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         this.beebeeReply.active = false
       }
     },
-    actionHelpAskUpdate (HOPq) {
-      // let hashQuestion = hashObject(this.inputAskHistory[this.qcount])
-      let aiMessageout = {}
-      aiMessageout.type = 'safeflow'
-      aiMessageout.reftype = 'ignore'
-      aiMessageout.action = 'updatenetworkexperiment'
-      aiMessageout.data = HOPq
-      aiMessageout.bbid = HOPq.bbid
-      this.sendSocket.send_message(aiMessageout)
-      this.helpchatHistory.push(aiMessageout)
-      this.qcount++
-    },
     processReply (received) {
-      if (received.action === 'ai-task') {
-        console.log('third party AI')
-        console.log(received)
-        this.boxModelUpdate[received.bbid] = {}
-        this.boxModelUpdate[received.bbid] = received.data.model
+      if (received.action === 'agent-task') {
+        if (received.task === 'cale-evolution') {
+          this.boxModelUpdate[received.context.bbid] = {}
+          this.boxModelUpdate[received.context.bbid] = received.model.model
+        }
+      } else if (received.type === 'hop-learn') {
+        if (received.action === 'cale-evolution') {
+          if (received.task === 'begin') {
+            this.storeAcc.processAgentStatus(received.data)
+          } else if (received.task === 'closed') {
+            this.storeAcc.processAgentStatus(received.data)
+          }
+        } else if (received.action === 'cale-gpt4all') {
+          if (received.task === 'begin') {
+            this.storeAcc.processAgentStatus(received.data)
+          } else if (received.task === 'closed') {
+            this.storeAcc.processAgentStatus(received.data)
+          }
+        }
+      } else if (received.action === 'hop-learn-feedback') {
+        if (received.data.agent === 'not-active') {
+          let pairBB = {}
+          pairBB.question = received.data.input
+          pairBB.reply = received
+          this.historyPair[this.chatAttention].push(pairBB)
+        }
       } else {
         // match to question via bbid
-        let questionStart = {}
-        let questionCount = []
-        for (let histMatch of this.helpchatHistory) {
-          if (histMatch.bbid === received.bbid) {
-            questionCount.push(histMatch)
-            questionStart = histMatch
-          }
-        }
-        if (questionCount.length === 1) {
-          // does the question exist from file upload?
-          if (questionCount[0].data?.filedata) {
-            // set box detail setings
-            this.storeBentoBox.boxToolStatus[received.bbid] = {}
-            let boxSettings = 
-            {
-              opendatatools: { active: false },
-              boxtoolshow: { active: false },
-              vistoolsstatus: { active: false },
-              scalezoom: 1,
-              location: {},
-              chartstyle: 'line'
+        if (received.data) {
+          let questionStart = {}
+          let questionCount = []
+          for (let histMatch of this.helpchatHistory) {
+            if (histMatch.bbid === received.bbid) {
+              questionCount.push(histMatch)
+              questionStart = histMatch
             }
-            this.storeBentoBox.boxToolStatus[received.bbid] = this.boxSettings
-            this.storeBentoBox.devicesettings[received.bbid] = {}
-            this.storeBentoBox.chartStyle[received.bbid] = 'line'
-          } else {
-            let pairBB = {}
-            pairBB.question = questionStart
-            pairBB.reply = received
-            this.historyPair[this.chatAttention].push(pairBB)
-            this.storeBentoBox.boxToolStatus[received.bbid] = this.boxSettings
-            this.storeBentoBox.devicesettings[received.bbid] = {}
           }
+        
+          if (questionCount.length === 1) {
+            // does the question exist from file upload?
+            if (questionCount[0].data?.filedata) {
+              // set box detail setings
+              let opendataToolbar = this.liveChatUtil.setOpendataToolbar()
+              this.storeBentoBox.boxToolStatus[received.bbid] = {}
+              this.storeBentoBox.boxToolStatus[received.bbid] = opendataToolbar
+              /* let boxSettings = 
+              {
+                opendatatools: { active: false },
+                boxtoolshow: { active: false },
+                vistoolsstatus: { active: false },
+                scalezoom: 1,
+                location: {},
+                chartstyle: 'line'
+              } */
+              this.storeBentoBox.devicesettings[received.bbid] = {}
+              this.storeBentoBox.devicesettings[received.bbid] = this.storeBentoBox.settings
+              this.storeBentoBox.chartStyle[received.bbid] = 'line'
+            } else {
+              let pairBB = {}
+              pairBB.question = questionStart
+              pairBB.reply = received
+              // is the peer signed in?
+              if (this.storeAcc.peerauth === false) {
+                console.log('not signed in')
+              } else {
+                this.historyPair[this.chatAttention].push(pairBB)
+                this.storeBentoBox.boxToolStatus[received.bbid] = this.boxSettings
+                this.storeBentoBox.devicesettings[received.bbid] = {}
+                this.storeBentoBox.devicesettings[received.bbid] = this.storeBentoBox.settings
+              }
+            }
+          }
+          if (received.action === 'library-peerlibrary' || 'publiclibrary') {
+            this.storeLibrary.processReply(received, questionStart)
+          }
+          // check if reply is upload?  If yes, present upload interface
+          if (received.action === 'upload') {
+            // this.uploadStatus = true
+          } 
+          this.beginChat = true 
+          this.chatBottom++
         }
-        if (received.action === 'library-peerlibrary' || 'publiclibrary') {
-          this.storeLibrary.processReply(received, questionStart)
-        }
-        // check if reply is upload?  If yes, present upload interface
-        if (received.action === 'upload') {
-          // this.uploadStatus = true
-        } 
-        this.beginChat = true 
-        this.chatBottom++
       }
     },
     processNotification (received) {
@@ -309,7 +328,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         this.beginChat = true
         this.chatBottom++
       } else if (received.action === 'warm-peer-new') {
-        this.accStore.warmPeers.push(received.data)
+        this.storeAcc.warmPeers.push(received.data)
       }
     },
     processPeerData (dataNetwork) {
@@ -326,39 +345,41 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     processHOPsummary (dataSummary) {
       // match bbid to HOP ID
       let inputID = Object.keys(dataSummary.data)
-      this.bbidHOPid.push({ bbid: dataSummary.bbid, HOPid: inputID[0] })
-      this.hopSummary.push({ HOPid: inputID[0], summary: dataSummary })
+      let HOPshell = dataSummary.data[inputID[0]].shellID
+      this.bbidHOPid.push({ bbid: dataSummary.bbid, HOPid: HOPshell })
+      this.hopSummary.push({ HOPid: HOPshell, summary: dataSummary })
     },
     processHOPdata (dataHOP) {
-      // close databox
-      console.log('HOP data------------------ ')
-      console.log(dataHOP)
       // match input id to bbid
       // is the data for past or future or no data
       if (dataHOP.data.data === 'none') {
-        this.dataBoxStatus = !this.dataBoxStatus
-        let pairBB = {}
-        let question = {}
-        question.data = { active: false }
-        pairBB.question = question
-        let reply = {}
-        reply.time = new Date()
-        reply.type = 'feedback'
-        reply.data = { text: 'no data for this network experiment'}
-        pairBB.reply = reply
+        // need to match to summary data for context
+        let contKey = dataHOP.context.input.key
+        let matchSummary = this.liveChatUtil.matchSummaryPeerContract(contKey, this.storeLibrary.peerExperimentList)
+        this.dataBoxStatus = false
+        // stil produce a bentobox
+        let boxID = this.liveChatUtil.matchHOPbbid(dataHOP.context.dataprint.shell, this.bbidHOPid)
+        // set open data toolbar
+        let opendataToolbar = this.liveChatUtil.setOpendataToolbar()
+        this.storeBentoBox.boxToolStatus[boxID] = {}
+        this.storeBentoBox.boxToolStatus[boxID] = opendataToolbar
+        let pairBB = this.liveChatUtil.prepareChatQandA(boxID, matchSummary)        
+        let hopDataChart = {}
+        hopDataChart.datasets = [ { label: 'datatype', data: [] } ]
+        hopDataChart.labels = []
+        this.visData[boxID] = hopDataChart
+        this.storeBentoBox.setChartstyle(boxID, 'line')
+        // this.expandBentobox[boxID] = true
+        this.beebeeChatLog[boxID] = true
+        // feed the chat
         this.historyPair[this.chatAttention].push(pairBB)
+        this.chatBottom++
       } else if (dataHOP.context.input.update !== 'predict-future') {
-        let matchBBID = ''
-        for (let bhid of this.bbidHOPid) {
-          if (bhid.HOPid === dataHOP.context.input.key) {
-            matchBBID = bhid.bbid
-          }
-        }
+        this.dataBoxStatus = false
+        let matchBBID = this.liveChatUtil.matchHOPbbid(dataHOP.data.context.shell, this.bbidHOPid)
         this.bentoboxList['space1'] = []
-        this.expandBentobox[matchBBID] = false
+        // this.expandBentobox[matchBBID] = true
         this.beebeeChatLog[matchBBID] = true
-        // this.tempNumberData[matchBBID] = dataHOP.data.data.chartPackage.datasets[0].data
-        // this.tempLabelData[matchBBID] = dataHOP.data.data.chartPackage.labels
         let hopDataChart = {}
         hopDataChart.datasets = [ { label: 'datatype', data: dataHOP.data.data.chartPackage.datasets[0].data } ]
         hopDataChart.labels = dataHOP.data.data.chartPackage.labels
@@ -371,9 +392,11 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     },
     processFuture (dataHOP) {
       // prepare chart for bentobox with ID
+      let HOPid = dataHOP.context.input.entityUUID
       let futureMatch = ''
       for (let fpi of this.futurePids) {
-        if (fpi.hopid === dataHOP.context.input.exp.key) {
+    
+        if (fpi.hopid === HOPid) {
           futureMatch = fpi.bboxid
         }
       }
@@ -418,19 +441,16 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
           } else {
             this.boxLibSummary[boxid] = hi.summary.summary
           }
+        } else {
+          this.boxLibSummary[boxid] = hi.summary.summary
         }
       }
-    },
-    prepareGenesisContracts (message) {
-      let aiMessageout = {}
-      aiMessageout.type = 'library'
-      aiMessageout.reftype = 'ignore'
-      aiMessageout.action = 'contracts'
-      aiMessageout.task = 'experiment-genesis'
-      aiMessageout.privacy = 'public'
-      aiMessageout.data = {}
-      aiMessageout.bbid = ''
-      this.sendMessageHOP(aiMessageout)
+      let NXPcontract = this.boxLibSummary[boxid].data
+      let key = Object.keys(this.boxLibSummary[boxid].data)
+      let modulesContracts = NXPcontract[key].modules
+      let extractedOD = this.storeLibrary.utilLibrary.moduleExtractSettings(modulesContracts)
+      this.storeBentoBox.openDataSettings[boxid] = extractedOD
+      return true
     },
     prepareBentoBoxSave (message) {
       let settingsData = this.historyPair[message.data.chatid]
@@ -475,7 +495,17 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.sendSocket.send_message(message)
     },
     prepareAI (message) {
-      this.sendMessageHOP(message)
+      // need to build DML structure, proof of work hash
+      // ask library for NXP contract
+      this.prepareLibrarySummary(message.bbid)
+      let nxpContract = this.boxLibSummary[message.bbid]
+      if (message.action == 'agent-task') {
+        this.sendMessageHOP(message)
+      } else if (message.action === 'agent-network-task') {
+        message.data = nxpContract.data
+        this.sendMessageHOP(message)
+      }
+
     }
   }
 })

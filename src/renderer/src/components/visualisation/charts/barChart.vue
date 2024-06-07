@@ -41,7 +41,7 @@ const props = defineProps({
   const chartOptions = computed(() => {
     return {
       responsive: true,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false,
       options: {
         scales: {
           x: {

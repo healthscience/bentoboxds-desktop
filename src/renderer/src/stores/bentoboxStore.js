@@ -17,6 +17,7 @@ export const bentoboxStore = defineStore('bentostore', {
       }
     ],
     chartStyle: {},
+    bbToolbarOpendata: {},
     boxToolStatus: {},
     /* {
       opendatatools: { active: false },
@@ -25,10 +26,18 @@ export const bentoboxStore = defineStore('bentostore', {
       scalezoom: 1,
       location: {}
     } */
+    networkGraph: false,
+    geoMap: false,
     devicesettings: {},
+    settings: {
+      xaxis: '',
+      yaxis: [],
+      category: ''
+    },
     openDatatools: {},
     boxtoolsShow: {},
     vistoolsStatus : {},
+    openDataSettings: {},
     locationStart: 90,
     scaleZoom: 1,
     locationBbox: {
@@ -78,6 +87,8 @@ export const bentoboxStore = defineStore('bentostore', {
                 this.storeAI.historyPair[cm.key] = cm.value.pair
                 // toolbars
                 this.boxtoolsShow[cm.key] = false
+                this.bbToolbarOpendata[cm.key] = false
+                this.openDataSettings[cm.key] = {}
                 // loop over boxids for this chat
                 let pairCount = 0
                 for (let pair of cm?.value?.pair) {
@@ -90,6 +101,8 @@ export const bentoboxStore = defineStore('bentostore', {
                     if (cm.value?.hop !== undefined) {
                       let summaryHOP = cm.value?.hop[0]
                       summaryHOP.bbid = pair.reply.bbid
+                      console.log('start HOP summary')
+                      console.log(summaryHOP)
                       this.storeAI.hopSummary.push({ HOPid: pair.reply.bbid, summary: summaryHOP })
                     }
                   }
@@ -106,6 +119,8 @@ export const bentoboxStore = defineStore('bentostore', {
                   }
                   this.boxToolStatus[pair.reply.bbid] = boxSettings
                   this.devicesettings[pair.reply.bbid] = {}
+                  this.devicesettings[pair.reply.bbid] = this.settings
+                  console.log('device settings set')
                   this.chartStyle[pair.reply.bbid] = 'line'
                   pairCount++
                 }
@@ -170,10 +185,12 @@ export const bentoboxStore = defineStore('bentostore', {
               // console.log('no locat d oroords')
             }
           }
-          this.chatList = chatMenu
-          if (this.chatList.length === 0) {
-            this.chatList.push({ name:'latest', chatid:'0123456543210', active: true })
+          if (chatMenu.length > 0) {
+            this.chatList = chatMenu
           }
+          /* if (this.chatList.length !== 0) {
+            this.chatList.push({ name:'latest', chatid:'0123456543210', active: true })
+          } */
           // set the chat list live
           this.storeAI.historyList = 'history'
           this.storeAI.chatAttention = this.chatList[0].chatid
@@ -210,6 +227,7 @@ export const bentoboxStore = defineStore('bentostore', {
         updateBox.dragSelector = ref('.drag-container-1, .drag-container-2')
         this.locationBbox[space][bbox] = updateBox
         this.locationStart+= 40
+        console.log(this.locationStart)
       }
     },
     saveLayoutSpace (spaceID) {

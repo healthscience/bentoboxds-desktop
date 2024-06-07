@@ -44,6 +44,7 @@ export default {
 <style>
 #packaging-referencecontract {
   background-color: #e6e6ff;
+  margin-bottom: 2em;
 }
 
 .viewer-header {

@@ -1,96 +1,74 @@
 <template>
   <div id="device-add-nxp">
-      <li class="device-item">
-        Network Library Reference Contract:
-        <input v-model="packageRefCont" placeholder="Reference Contract">
+      <div  class="device-item">
+        Reference Contract:
+        <input v-model="storeLibrary.newPackaging" placeholder="Reference Contract">
         <button type="button" class="btn" @click="refContractLookup()">Lookup</button>
-      </li>
-      <li>
-        <ul class="data-refspace">
-          <li>
-            <ul v-if="refContractPackage.key">
-              <li class="ref-pair">
-                {{ refContractPackage.key }} ---
-              </li>
-              <li class="ref-pair">
-                {{ refContractPackage.value.concept.name }}
-              </li>
-              <li class="ref-pair">
-                {{ refContractPackage.value.concept.description}}
-              </li>
-              <li class="ref-pair">
-                {{ refContractPackage.value.concept.api }}
-              </li>
-              <li class="ref-pair">
-                {{ refContractPackage.value.concept.apipath}}
-              </li>
-              <li class="ref-pair" v-for="colpair in refContractPackage.value.concept.tablestructure" :key="colpair.refcontract">
+      </div>
+      <div>
+        <div class="data-refspace">
+          <div v-for="pack of refContractPackage">  {{ refContractPackage }}
+            <div v-if="pack.value">
+              <div class="ref-pair">
+                {{ pack.key }}
+              </div>
+              <div class="ref-pair">
+                {{ pack.value.concept.name }}
+              </div>
+              <div class="ref-pair">
+                {{ pack.value.concept.description}}
+              </div>
+              <div class="ref-pair">
+                {{ pack.value.concept.api }}
+              </div>
+              <div class="ref-pair">
+                {{ pack.value.concept.apipath}}
+              </div>
+              <div class="ref-pair" v-for="colpair in pack.value.concept.tablestructure" :key="colpair.refcontract">
                 {{ colpair.refcontract }} - {{ colpair.column }}
-              </li>
-              <li class="ref-pair" v-for="cat in refContractPackage.value.concept.category" :key="cat.id">
+              </div>
+              <div class="ref-pair" v-for="cat in pack.value.concept.category" :key="cat.id">
                 {{ cat.category }} - {{ cat.column }}
-              </li>
-              <li class="ref-pair" v-for="tidy in refContractPackage.value.concept.tidy" :key="tidy.id">
+              </div>
+              <div class="ref-pair" v-for="tidy in pack.value.concept.tidy" :key="tidy.id">
                 {{ tidy.tidy }} - {{ tidy.tidydatatype }} - {{ tidy.tidycode }}
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue'
 
-export default {
-  name: 'nxp-add-device',
-  components: {
-  },
-  computed: {
-    refContractPackage: function () {
-      let livePackage = {}
-      if (this.$store.state.refcontractPackaging[this.datID] !== undefined) {
-        livePackage = this.$store.state.refcontractPackaging[0] // .option
-      } else {
-        livePackage = {}
-      }
-      return livePackage
-    }
-  },
-  props: {
-    datID: null,
-    modData: {
-      type: Object
-    }
-  },
-  data: () => ({
-    packageRefCont: ''
-  }),
-  created () {
-  },
-  mounted () {
-  },
-  methods: {
-    refContractLookup () {
-      let dataModHolder = {}
-      dataModHolder.moduleinfo = this.modData
-      dataModHolder.refcont = this.packageRefCont
-      this.$store.dispatch('actionSetDataRefContract', dataModHolder)
-      this.packageRefCont = ''
-    }
-  }
-}
+import { libraryStore } from '@/stores/libraryStore.js'
+
+
+  const storeLibrary = libraryStore()
+
+  const refContractPackage = computed (() => {
+    console.log('data pack')
+    console.log(storeLibrary.newnxp.packagingLive)
+    return storeLibrary.newnxp.packagingLive
+  })
+  
 </script>
 
-<style>
+<style scoped>
 
-.data-refspace {
-  background-color: white;
-  padding: 10px;
-}
+@media (min-width: 1024px) {
+  .data-refspace {
+    display: grid;
+    grid-template-columns: 1fr;
+    background-color: white;
+    padding: 10px;
+  }
 
-.ref-pair {
-  font-size: 1.2em;
-  padding: 4px;
+  .ref-pair {
+    font-size: 1.2em;
+    padding: 4px;
+  }
 }
 </style>

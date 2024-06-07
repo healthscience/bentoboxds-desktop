@@ -43,19 +43,22 @@ export default {
 </script>
 
 <style>
-#module-referencecontract {
-  text-align: center;
-  background-color: #e6e6ff;
-}
 
-.viewer-header {
-  text-align: center;
-  font-size: 2em;
-  font-weight: bold;
-}
+@media (min-width: 1024px) {
+  #module-referencecontract {
+    text-align: center;
+    background-color: #e6e6ff;
+  }
 
-.board-body {
-  font-size: 1.4em;
+  .viewer-header {
+    text-align: center;
+    font-size: 2em;
+    font-weight: bold;
+  }
+
+  .board-body {
+    font-size: 1.4em;
+  }
 }
 
 </style>

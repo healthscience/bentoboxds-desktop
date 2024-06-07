@@ -2,10 +2,20 @@
   <div class="box-tools">
     <div id="bb-toolbar">
       <div class="bb-bar-main">a bentobox</div>
-      <div class="bb-bar-main"><button @click="clickSummaryLib(props.bboxid)">Lib</button></div>
-      <div class="bb-bar-main"><button @click="clickExpandBentobox(props.bboxid)">expand</button></div>
-      <div class="bb-bar-main"><button class="space-button" @click="clickAddbentoSpace(props.bboxid)">+ space</button></div>
-      <div class="bb-bar-main"><button @click="clickShareSpace(props.bboxid)">share</button>
+      <div class="bb-bar-main">
+        <button @click="clickSummaryLib(props.bboxid)" v-bind:class="{ active: libSum }">
+          Lib
+        </button>
+      </div>
+      <div class="bb-bar-main">
+        <button class="space-button" @click="clickAddbentoSpace(props.bboxid)">
+          + space
+        </button>
+      </div>
+      <div class="bb-bar-main">
+        <button @click="clickShareSpace(props.bboxid)" v-bind:class="{ active: shareForm}">
+          share
+        </button>
         <div id="spaces-list" v-if="shareSelect">
           <select class="select-space-save" id="space-options-save" v-model="spaceSave" @change="selectBentoSpace()">
             <option selected="" v-for="sp in spaceList" :value="sp.spaceid">
@@ -14,10 +24,16 @@
           </select>
         </div>
       </div>
-      <div class="bb-bar-main"><button @click="clickVisTools(props.bboxid)">Tools</button></div>
-      <!--<div class="bb-bar-main"><button id="network-vis">social</button></div>
-      <div class="bb-bar-main"><button id="network-map">map</button></div>
-      <div class="bb-bar-main"><button id="bb-copy">copy</button></div>-->
+      <div class="bb-bar-main">
+        <button @click="clickVisTools(props.bboxid)" v-bind:class="{ active: boxToolsShow}">
+          Tools
+        </button>
+      </div>
+      <div class="bb-bar-main">
+        <button @click="clickExpandBentobox(props.bboxid)">
+         expand
+        </button>
+      </div>
     </div>
   </div>
   <div id="share-form" v-if="shareForm">
@@ -32,12 +48,12 @@
   <bb-tools v-if="boxToolsShow" :bboxid="props.bboxid"></bb-tools>
   <div id="library-summary" v-if="libSum">
     <div id="lib-summary">
-      Library summary: {{ boxLibrarySummary.key[0] }}
+      Library summary: {{ expLibrarySummary.key[0] }}
       <button @click="openLibrary">open library</button>
     </div>
     <div id="lib-modules">
       Modules:
-      <div class="mod-key" v-for="mod in boxLibrarySummary.modules" :key="mod.id">
+      <div class="mod-key" v-for="mod in expLibrarySummary.modules" :key="mod.id">
        {{ mod }}
       </div>
     </div>
@@ -74,11 +90,12 @@ const timeformatoptions = ref([
 
 const selectedTimeFormat = ref('timeseries')
 
-/* computed */
+
 const clickVisTools = (boxid) => {
   storeBentobox.boxtoolsShow[boxid] = !storeBentobox.boxtoolsShow[boxid]
 }
 
+/* computed */
 const boxToolsShow = computed(() => {
   return storeBentobox.boxtoolsShow[props.bboxid]
 })
@@ -120,18 +137,6 @@ const boxToolsShow = computed(() => {
   }
 
   /*  computed */
-  const boxSettings = computed(() => {
-    return storeBentobox.boxToolStatus[props.bboxid]
-  })
-
-  const openDataLive = computed(() => {
-    return storeBentobox.openDatatools[props.bboxid]
-  })
-
-  const visToolbarStatusLive = computed(() => {
-    return storeBentobox.vistoolsStatus[props.bboxid]
-  })
-
   const spaceList = computed(() => {
     return storeBentobox.spaceList
   })
@@ -139,7 +144,7 @@ const boxToolsShow = computed(() => {
   /*
   * library summary
   */
-  const boxLibrarySummary = computed(() => {
+  const expLibrarySummary = computed(() => {
     let NXPcontract = {}
     NXPcontract.key = Object.keys(storeAI?.boxLibSummary[props.bboxid].data)
     let modKeys = []
@@ -259,7 +264,7 @@ const boxToolsShow = computed(() => {
     color: white;
     text-align: center;
     cursor: pointer;
-    z-index: 9;
+    z-index: 3;
   }
 
   .space-button {
@@ -268,9 +273,15 @@ const boxToolsShow = computed(() => {
   
   #spaces-list {
     display: grid;
-    position: absolute;
-    left: -99px;
-    border: 2px solid red;
+    position: relative;
+    top: 0;
+    left: -109px;
+    border: 0px solid red;
+    z-index: 22;
+  }
+
+  .elect-space-save {
+    z-index: 44;
   }
 
   #bentobox-cell {
@@ -359,6 +370,25 @@ const boxToolsShow = computed(() => {
     width: 100%;
     height: 40px;
     background-color: rgb(141, 145, 226);
+  }
+
+  .active {
+    background-color: rgb(113, 172, 114);
+    border: 1px solid green;
+  }
+
+  .bb-bar-main {
+    border: 0px solid rgb(182, 182, 236);
+    margin-left: 0.3em;
+    padding-top: 0.4em;
+  }
+
+  #share-form {
+    background-color: rgb(224, 227, 243);
+    border-bottom: 2px solid rgb(167, 199, 209);
+    padding: 1em;
+    padding-left: 4em;
+    z-index: 4;
   }
 
 }

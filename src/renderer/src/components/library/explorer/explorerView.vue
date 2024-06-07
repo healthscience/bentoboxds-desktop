@@ -4,7 +4,7 @@
 </template>
 
 <script setup>
-import ContractViewer from '@/components/library/contracts/referenceModule.vue'
+import ContractViewer from '@/components/library/contracts/viewer/referenceModule.vue'
 import { ref, computed } from 'vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 

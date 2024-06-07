@@ -23,9 +23,6 @@ import { ref, computed } from 'vue'
   const storeLibrary = libraryStore()
 
   // a computed ref
-  const uploadStatus = computed(() => {
-    return storeLibrary.uploadStatus
-  })
 
   /* data */
 
@@ -50,24 +47,27 @@ import { ref, computed } from 'vue'
       // storeLibrary.sourceDataSelected = !storeLibrary.sourceDataSelected
       storeLibrary.newPackagingForm.type = 'rest'
     }
+    console.log(storeLibrary.newPackagingForm.type)
   }
 
 </script>
 
 <style scoped>
-#source-tools {
-  display: grid;
-  grid-template-columns: 1fr;
-}
+@media (min-width: 1024px) {
+  #source-tools {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
 
-.source-form-item {
-  width: 100%;
-}
+  .source-form-item {
+    width: 100%;
+  }
 
-.select-source-id {
-  display: grid;
-  justify-content: start;
-  width: 300px;
+  .select-source-id {
+    display: grid;
+    justify-content: start;
+    width: 300px;
+  }
 }
 
 </style>

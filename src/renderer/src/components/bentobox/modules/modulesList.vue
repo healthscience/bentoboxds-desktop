@@ -25,7 +25,9 @@
         <div class="compute-ref-contracts">
           Auto regression
           <div class="compute-stages">
-            <div class="stage-compute-task"><button @click="trainStart()">Begin-Evolution</button></div>
+            <div class="stage-compute-task">
+              <button class="button-evolution" @click="trainStart()">Begin-Evolution</button>
+              <button class="button-evolution" @click="trainNetworkStart()">Begin-Network-Evolution</button></div>
             <div class="stage-compute-task">predict</div>
             <div class="stage-compute-task">evaluate</div>
           </div>
@@ -86,7 +88,18 @@ import { libraryStore } from '@/stores/libraryStore.js'
     let aiMessage = {}
     aiMessage.type = 'bbai'
     aiMessage.reftype = 'ai'
-    aiMessage.action = 'ai-task'
+    aiMessage.action = 'agent-task'
+    aiMessage.task = 'cale-evolution'
+    aiMessage.data = {}
+    aiMessage.bbid = props.bboxid
+    storeAI.prepareAI(aiMessage)
+  }
+
+  const trainNetworkStart = () => {
+    let aiMessage = {}
+    aiMessage.type = 'bbai'
+    aiMessage.reftype = 'ai'
+    aiMessage.action = 'agent-network-task'
     aiMessage.task = 'cale-evolution'
     aiMessage.data = {}
     aiMessage.bbid = props.bboxid
@@ -97,12 +110,18 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
 <style scoped>
 #modules-list-box {
-  background-color: antiquewhite; 
+  display: grid;
+  grid-template-columns: 1fr;
+  background-color: antiquewhite;
+  border: 1px solid rgb(141, 145, 226);
 }
 
 @media (min-width: 1024px) {
   #modules-list-box {
-    background-color: antiquewhite; 
+    display: grid;
+    grid-template-columns: 1fr;
+    background-color: antiquewhite;
+    border: 1px solid rgb(141, 145, 226);
   }
 
   .module-box {
@@ -125,6 +144,16 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
   .compute-header {
     font-weight: bold;
+  }
+
+  .stage-compute-task {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .button-evolution {
+    margin: 0.2em;
+    width: 80%;
   }
 }
 </style>

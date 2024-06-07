@@ -54,67 +54,36 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
 const storeLibrary = libraryStore()
 
-  /* methods */
-  /*
-  primarySelect = () => {
-    console.log(this.formData.value)
-    // this.$store.dispatch('buildRefcontractPrimary', this.formData.primary)
-  }
-
-  nameSave = (k) => {
-    // this.$store.dispatch('buildRefContractName', this.formData.name)
-    // return true
-  }
-
-  descriptionSave = (k) => {
-    // this.$store.dispatch('buildRefContractDescription', this.formData.description)
-    // return true
-  }
-  wikiSave = (k) => {
-    // this.$store.dispatch('buildRefContractWiki', this.formData.wiki)
-    // return true
-  }
-
-  rdfSave = (k) => {
-    // this.$store.dispatch('buildRefContractRDF', this.formData.rdf)
-    // return true
-  }
-
-  typeSelect = (k) => {
-    // this.$store.dispatch('buildRefcontractType', this.formData.datatypeType)
-    console.log(formData.value)
-  }
-
-  measurementSave = (k) => {
-    // this.$store.dispatch('buildRefcontractMeasurement', this.formData.measurement)
-  }
-  */
 </script>
 
 <style scoped>
-#wikipedia-datatype-name {
-  width: 300px;
-}
 
-#newapi-view {
-  display: grid;
-  grid-template-columns: 1fr;
-}
+@media (min-width: 1024px) {
 
-.api-form-item {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  padding-top: .5em;
-}
+  #wikipedia-datatype-name {
+    width: 300px;
+  }
 
-.api-form-item label {
-  border: 0px solid red;
-  margin-right: 1em;
-  justify-self: end;
-}
+  #newapi-view {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
 
-#new-primary-datatype {
-  display: grid;
-  grid-template-columns: 1fr;
+  .api-form-item {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    padding-top: .5em;
+  }
+
+  .api-form-item label {
+    border: 0px solid red;
+    margin-right: 1em;
+    justify-self: end;
+  }
+
+  #new-primary-datatype {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
 }
 </style>

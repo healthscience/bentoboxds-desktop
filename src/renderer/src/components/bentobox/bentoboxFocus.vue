@@ -15,10 +15,10 @@
           </button>
           <div id="return-modal-close" @click="closedataBox">return</div>
         </div>
-        <h3>Data Box</h3>
+        <h3>Expanded</h3>
       </template>
       <template #body>
-        <bento-box :bboxid="props.bboxid"></bento-box>
+        <bento-box :bboxid="props.bboxid" :bbwidth="'90vw'"></bento-box>
       </template>
       <template #footer>
       </template>
@@ -34,13 +34,13 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
   const storeAI = aiInterfaceStore()
-  const bboxStore = bentoboxStore()
-  const showModal = ref(true)
+  const storeBentobox = bentoboxStore()
 
   const props = defineProps({
     bboxid: String
   })
 
+  let date = ref('')
 
   // a computed ref
   const bentoboxLive = computed(() => {
@@ -49,6 +49,8 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
   const closedataBox = () => {
     storeAI.expandBentobox[props.bboxid] = !storeAI.expandBentobox[props.bboxid]
+    // also close any toolbars open
+    storeBentobox.boxtoolsShow[props.bboxid] = false
   }
 </script>
 

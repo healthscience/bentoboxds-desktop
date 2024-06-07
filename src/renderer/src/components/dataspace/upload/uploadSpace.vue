@@ -80,6 +80,11 @@ const checkElectron = () => {
 const saveFiles = (files) => {
 	for (let file of files) {
 		/* upload file data flow */
+		// check if file type given? if not extract file extention (different browser different info NOTE)
+		if (file.file.type.length === 0) {
+			// take file name and get extension and add 
+			// file.file.type = 'sqlite'
+		}
 		// let fileData = uploadFiles(files)
 		// send data to HOP to save in Holepunch
 		let sourceLocation = ''
@@ -102,7 +107,7 @@ const saveFiles = (files) => {
 		if (file.file.type === 'text/csv') {
 			storeLibrary.csvpreviewLive = true
 			const reader = new FileReader()
-			reader.onloadend = function () {  // = (event) => { // = function () {
+			reader.onload = function () {
 				const lines = reader.result 
 				let splitLines = lines.split(/\r\n|\n/)
 				storeLibrary.linesLimit = splitLines.slice(0, 40)
@@ -117,6 +122,10 @@ const saveFiles = (files) => {
 					question.data = { "count": storeAI.qcount, "text": "Upload of file", "active": true, "time": new Date() }
 					let hashQuestion = hashObject(question.data + file.file.name)
 					// extract headers assume first line
+					const localHeaderExtract = (lineOne) => {
+						let headerInfo = lineOne.split(',')
+						return headerInfo
+					}
 					headerLocal[hashQuestion] = localHeaderExtract(splitLines[0])
 					let fileContent = reader.result
 					storeLibrary.fileBund.content = fileContent
@@ -136,47 +145,60 @@ const saveFiles = (files) => {
 
 			}
 			reader.onerror = function() {
+				console.log('erroro with file')
 				console.log(reader.error)
 			}
 			reader.readAsText(file.file)
-		}	else if (file.file.type !== 'text/csv') {
-			console.log('simple save SQLite file')
-			let fileSave = {}
-      fileSave.name = file.file.name
-      fileSave.path = file.url
-			fileSave.source = sourceLocation
-			if (file.file.type.length === 0) {
-				let splitExtension = file.file.name.split('.')
-				let matchExtension = ''
-				if (splitExtension[1] === 'db') {
-					matchExtension = 'sqlite'
-				} else {
-					matchExtension = splitExtension[1]
-				}
-				fileSave.type = matchExtension
-			} else {
-				fileSave.type = file.file.type
-			}
-      const reader2 = new FileReader()
-      reader2.readAsDataURL(file.file)
-      reader2.onload = function (e) {
-				fileSave.content = e.target.result
-        // localthis.filepath = e.target.result
-				// prepare message structure
-				let messageHOP = {}
-				messageHOP.type = 'library'
-				messageHOP.action = 'contracts'
-				messageHOP.reftype = 'save-file'
-				messageHOP.privacy = 'private'
-				messageHOP.task = 'PUT'
-				messageHOP.data = fileSave
-				console.log(messageHOP)
-				storeLibrary.sendMessage(messageHOP)
-      }
 
+			
+			const reader2 = new FileReader();
+  		reader2.readAsArrayBuffer(file.file);
+		}  else if (file.file.type !== 'text/csv') {
+			// check for pdf file 
+			if (file.file.type !== 'application/pdf') {
+				let fileSave = {}
+				fileSave.name = file.file.name
+				fileSave.path = file.url
+				fileSave.source = sourceLocation
+				if (file.file.type.length === 0) {
+					let splitExtension = file.file.name.split('.')
+					let matchExtension = ''
+					if (splitExtension[1] === 'db') {
+						matchExtension = 'sqlite'
+					} else {
+						matchExtension = splitExtension[1]
+					}
+					fileSave.type = matchExtension
+				} else {
+					fileSave.type = file.file.type
+				}
+				const reader2 = new FileReader()
+				reader2.readAsDataURL(file.file)
+				reader2.onload = function (e) {
+					fileSave.content = e.target.result
+					// localthis.filepath = e.target.result
+					// prepare message structure
+					let messageHOP = {}
+					messageHOP.type = 'library'
+					messageHOP.action = 'contracts'
+					messageHOP.reftype = 'save-file'
+					messageHOP.privacy = 'private'
+					messageHOP.task = 'PUT'
+					messageHOP.data = fileSave
+					storeLibrary.sendMessage(messageHOP)
+				}
+			} else {
+				let aiMessage = {}
+				aiMessage.type = 'bbai'
+				aiMessage.reftype = 'ai'
+				aiMessage.action = 'agent-task'
+				aiMessage.task = 'cale-gpt4all-rag'
+				aiMessage.data = { text: 'please add this data to medical learning rag'}
+				aiMessage.bbid = '' // props.bboxid
+				storeAI.sendMessageHOP(aiMessage)
+			}
 		} else {
 			// prepare file data for storage via HOP
-			console.log('smiople dave nothing??')
 			const reader2 = new FileReader()
 			// reader2.readAsText(fileData)
 			reader2.onloadend = function () {

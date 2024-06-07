@@ -50,7 +50,6 @@ class HOP extends EventEmitter {
   *
   */
   startPtoPnetwork = function () {
-    console.log('setup routes')
     this.LibRoute = new LibraryRoute(this.DataNetwork)
     this.SafeRoute = new SfRoute(this.DataNetwork)
     this.DmlRoute = new DmlRoute(this.DataNetwork)
@@ -93,7 +92,7 @@ class HOP extends EventEmitter {
 
     // WebSocket server
     wsServer.on('connection', async (ws) => {
-      console.log(this.sockcount)
+  
       this.sockcount++ 
       this.wsocket = ws
       this.DataNetwork.setWebsocket(ws)
@@ -119,15 +118,12 @@ class HOP extends EventEmitter {
       })
 
       this.wsocket.on('close', ws => {
-        console.log(ws)
         console.log('close ws direct')
-        // console.log(wsServer)
         process.exit(0)
       })
 
       this.wsocket.on('error', ws => {
         console.log('socket eeeerrrorrrr')
-        // process.exit(1)
       })
       
     })
@@ -145,7 +141,7 @@ class HOP extends EventEmitter {
   */
   listenBeebee = async function () {
     this.BBRoute.on('safeflow-query', async (data) => {
-      this.SafeRoute.newSafeflow(data)
+      await this.SafeRoute.newSafeflow(data)
     })
   }  
   
@@ -156,7 +152,13 @@ class HOP extends EventEmitter {
   */
   listenLibrarySF = async function () {
     this.LibRoute.on('safeflow-query', async (data) => {
-      this.SafeRoute.newSafeflow(data)
+      await this.SafeRoute.newSafeflow(data)
+    })
+    this.LibRoute.on('safeflow-update', async (data) => {
+      await this.SafeRoute.updateSafeflow(data)
+    })
+    this.LibRoute.on('safeflow-systems', async (data) => {
+      await this.SafeRoute.setSafeflowSystems(data)
     })
   } 
 
@@ -173,7 +175,7 @@ class HOP extends EventEmitter {
       bbMessage.reftype = 'ignore'
       bbMessage.action = 'library'
       bbMessage.data = data
-      this.BBRoute.bbAIpath(bbMessage)
+      await this.BBRoute.bbAIpath(bbMessage)
     })
   }  
 
@@ -184,14 +186,18 @@ class HOP extends EventEmitter {
   */
   listenSF = async function () {
     this.SafeRoute.on('sfauth', async (data) => {
+      console.log('sf aut complete listener')
       await this.setupHolepunch()
       data.type = 'auth-hop'
       this.wsocket.send(JSON.stringify(data))
     })
+    this.SafeRoute.on('library-systems', async (data) => {
+      console.log('start systems HOP')
+      await this.LibRoute.libManager.systemsContracts()
+    })
 
     this.DataNetwork.on('hcores-active', () => {
       // allow other components have access to data
-      console.log('peer storage alive')
       this.processListen()
     })
 
@@ -202,7 +208,7 @@ class HOP extends EventEmitter {
   * @method processListen
   *
   */
-  processListen = function () {
+  processListen = async function () {
     this.BBRoute.liveBBAI.listenHolepunchLive()
     this.LibRoute.libManager.startLibrary()
   }

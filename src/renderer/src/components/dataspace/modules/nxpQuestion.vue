@@ -3,21 +3,30 @@
     <header>QUESTION:</header>
     <div id="prime-question">
       <form id="question_form" name="question_form" method="post" action="#">
-        <ul>
-          <li class="question-item">
+        <div>
+          <div class="question-item">
             Ask question:
-            <textarea @paste="questionSave" @keyup="questionSave" required="" v-model="questionLive" placeholder="prime"></textarea>
-          </li>
-          <li class="question-live" v-if="questionLive !== undefined">
+            <textarea @paste="questionSave" @keyup="questionSave" required="" v-model="localQuestion" placeholder="prime"></textarea>
+          </div>
+          <div class="question-live" v-if="storeLibrary.newnxp.questionLive !== undefined">
             Question:
-            {{ questionLive }}
-          </li>
-          <!--<li class="question-item">
-            Forum discussion:<input v-model="question.forum" placeholder="forum link">
-          </li> -->
-        </ul>
+            {{ storeLibrary.newnxp.questionLive[0]?.value.concept.name }}
+          </div>
+        </div>
       </form>
     </div>
+      <div class="data-refspace">
+        <div v-for="qack of refContractQuestion"> 
+          <div class="question-summary" v-if="qack.value">
+            <div class="ref-pair">
+              {{ qack.key }}
+            </div>
+            <div class="ref-pair">
+              {{ qack.value.concept.name }}
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </template>
 
@@ -26,15 +35,12 @@ import { ref, computed } from 'vue'
 
 import { libraryStore } from '@/stores/libraryStore.js'
 
-
+  let localQuestion = ref['']
   const storeLibrary = libraryStore()
   
-  let questionLive= ref('')
-
-  /* method */
-  const questionSave = (contract) => {
-    console.log('look up contract')
-  }
+  const refContractQuestion = computed (() => {
+    return storeLibrary.newnxp.questionLive
+  })
 
 </script>
 

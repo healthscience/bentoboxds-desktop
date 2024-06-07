@@ -20,27 +20,11 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 const props = defineProps({
     chartData: Object
   })
-  /*
-  // const dataValues = ref([2, 4, 7])
-  const dataValues = computed(() => {
-    return storeAI.tempNumberData
-  })
 
-  const dataLabel = computed(() => {
-    return storeAI.tempLabelData
-  })
-
-  const chartData = computed(() => {
-    return {
-      labels: dataLabel.value, // [ 'January', 'February', 'March' ],
-      datasets: [ { data: dataValues.value } ]
-    }
-   })
-  */
   const chartOptions = computed(() => {
     return {
       responsive: true,
-      maintainAspectRatio: true
+      maintainAspectRatio: false
     }
   })
 </script>

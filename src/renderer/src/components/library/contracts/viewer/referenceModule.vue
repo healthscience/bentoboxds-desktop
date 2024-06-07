@@ -2,28 +2,33 @@
   <div id="reference-tools">
     <div id="task-select">
       <div class="contract-task">
-        <button id="get-referencecontract" @click.prevent="getRefContracts()">Get Ref. Contract</button>
-      </div>
-      <div id="notify-library-start-replication" v-if="storeLibrary.startLibrary === true">
-        <form id="library-replication-form">
-          <label for="replicteplibrary"></label>
-          <input type="input" id="publibkey" placeholder="librarykey" v-model="pubLibrarykey" autofocus>
-          <button @click.prevent="startLibraryRepication">Start</button>
-        </form>
-        
+        <button id="get-referencecontract" @click.prevent="getRefContracts()">Get Library Contracts</button>
+        <div id="notify-library-start-replication" v-if="storeLibrary.startLibrary === true">
+          <form id="library-replication-form">
+            <label for="replicteplibrary"></label>
+            <input type="input" id="publibkey" placeholder="librarykey" v-model="pubLibrarykey" autofocus>
+            <button @click.prevent="startLibraryRepication">Start</button>
+          </form>
+        </div>
       </div>
       <!-- <div class="view-refconts">
         <button id="build-modulecontracts" @click.prevent="makeModulecontracts()">Make modules</button>
       </div> -->
-      <div class="contract-task">
-        <button id="build-new-referencecontract" @click.prevent="newSetRefContract(startRefContract)">{{ startRefContract.text }}</button>
+      <div id="new-ref-contract1" class="contract-task-right">
+        <button id="build-new-referencecontract" v-bind:class="{ active: newLibnxp === true }" @click.prevent="newSetRefContract(startRefContract)">{{ startRefContract.text }}</button>
       </div>
     </div>
-    <div id="reference-contract-groups">
+    <div id="reference-contract-groups" v-if="libraryCheck">
       <div id="ref-contracts-view" class="ref-group">
         <header>Reference Contracts</header>
         <div class="view-contract">
+          <button class="buttonexplore" id="questionCNRL" @click.prevent="viewRefContracts('question')">Question</button>
+        </div>
+        <div class="view-contract">
           <button class="buttonexplore" id="datatypesCNRL" @click.prevent="viewRefContracts('datatype')">datatypes</button>
+        </div>
+        <div class="view-contract">
+          <button class="buttonexplore"  id="packaingCNRL" @click.prevent="viewRefContracts('packaging')">Data Packaging</button>
         </div>
         <div class="view-contract">
           <button class="buttonexplore"  id="computeCNRL" @click.prevent="viewRefContracts('compute')">compute</button>
@@ -31,9 +36,6 @@
         <!-- <div class="view-contract">
           <button id="unitsCNRL" @click.prevent="viewRefContracts(CNRLunitseen.text)"> {{ CNRLunitseen.text }}</button>
         </div> -->
-        <div class="view-contract">
-          <button class="buttonexplore"  id="packaingCNRL" @click.prevent="viewRefContracts('packaging')">Data Packaging</button>
-        </div>
         <div class="view-contract">
           <button class="buttonexplore"  id="visualiseRefs" @click.prevent="viewRefContracts('visualise')">Visualise</button>
         </div>
@@ -74,12 +76,12 @@
 </template>
 
 <script setup>
-import ViewReference from '@/components/library/contracts/viewReference.vue'
-import ViewModules from '@/components/library/contracts/viewModules.vue'
+import ViewReference from '@/components/library/contracts/viewer/viewReference.vue'
+import ViewModules from '@/components/library/contracts/viewer/viewModules.vue'
 import ViewResults from '@/components/library/hop/viewResults.vue'
 import ViewLedger from '@/components/library/hop/viewLedger.vue'
 import NewRefcontract from '@/components/library/contracts/contribute/newRefcontract.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { accountStore } from '@/stores/accountStore.js'
 
@@ -92,6 +94,7 @@ import { accountStore } from '@/stores/accountStore.js'
   let moduleState = ref(false)
   let resultsState = ref(false)
   let ledgerState = ref(false)
+  let newLibnxp = ref(false)
   let pubLibrarykey = ref('')
 
   let statusContract = ref(
@@ -111,9 +114,11 @@ import { accountStore } from '@/stores/accountStore.js'
   /* methods */
   const newSetRefContract = (ap) => {
       if (startRefContract.value.active === false) {
+        newLibnxp.value = true
         startRefContract.value.active = true
         startRefContract.value.text = 'close'
       } else {
+        newLibnxp.value = false
         startRefContract.value.active = false
         startRefContract.value.text = 'New ref. contract'
       }
@@ -129,7 +134,7 @@ import { accountStore } from '@/stores/accountStore.js'
 
     const viewRefContracts = (type) => {
       // ask network library for contracts for this peer
-      if (type === 'datatype' || type === 'compute' || type === 'packaging' || type === 'visualise') {
+      if (type === 'question' || type === 'datatype' || type === 'compute' || type === 'packaging' || type === 'visualise') {
         referenceLive.value = type
         referenceState.value = true
         moduleState.value = false
@@ -146,7 +151,6 @@ import { accountStore } from '@/stores/accountStore.js'
         referenceState.value = false
         resultsState.value = true
         ledgerState.value = false
-
       } else if (type === 'ledger') {
         moduleState.value = false
         referenceState.value = false
@@ -163,30 +167,19 @@ import { accountStore } from '@/stores/accountStore.js'
       shareInfo.reftype = 'publiclibrary'
       shareInfo.privacy = 'public'
       shareInfo.data = { discoverykey: pubLibrarykey.value }
-      console.log(shareInfo)
+      // console.log(shareInfo)
       storeAccount.sendMessageHOP(shareInfo)
     }
 
-    /*
-    const makeModulecontracts = () => {
-      const refModContract = {}
-      refModContract.type = 'library'
-      refModContract.reftype = 'module'
-      refModContract.action = 'contracts'
-      refModContract.task = 'PUT'
-      const refModJSON = JSON.stringify(refModContract)
-      // ask network library for contracts for this peer
-      this.$store.dispatch('actionMakeModuleRefContract', refModJSON)
-    }
-
-    const makeVisuailsecontracts = () => {
-      const refVisContract = {}
-      refVisContract.reftype = 'visualise'
-      refVisContract.action = 'PUT'
-      const refVisJSON = JSON.stringify(refVisContract)
-      // ask network library for contracts for this peer
-      this.$store.dispatch('actionMakeVisualiseRefContract', refVisJSON)
-    } */
+    // a computed ref
+    const libraryCheck = computed(() => {
+      // any entries in the library?
+      if (Object.keys(storeLibrary.publicLibrary).length > 0) {
+       return true
+      } else {
+        return false
+      }
+    })
 
 </script>
 
@@ -234,12 +227,43 @@ import { accountStore } from '@/stores/accountStore.js'
 }
 
 @media (min-width: 1024px) {
+ 
+  #task-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 
-#notify-library-start-replication {
-  position: absolute;
-  top: 1px;
-  left: 180px;
-}
+  .contract-task {
+    display: grid;
+  }
+
+  .contract-task-right {
+    display: grid;
+    justify-content: end;
+  }
+
+  .active {
+    background-color: green;
+  }
+
+  #get-referencecontract {
+    width: 30%;
+  }
+
+  #new-ref-contract {
+    display: grid;
+  }
+
+  #build-new-referencecontract {
+    display: grid;
+    width: 200px;
+  }
+
+  #notify-library-start-replication {
+    position: absolute;
+    top: 1px;
+    left: 180px;
+  }
 
 }
 

@@ -18,19 +18,21 @@
       </div>
       <component :is="contractformType.form" ></component>
       <div class="api-form-item">
-        <button class="submit-save" type="submit"  id="save-new-refcontract" @click.prevent="saveRefContract()">Save</button>
+        <button class="submit-save" type="submit"  id="save-new-refcontract" @click.prevent="saveRefContract()">Save contract</button>
         <!-- <button class="submit" type="submit" id="check-new-refcontract" @click.prevent="checkRefContract()">Check Contract</button>
         <button class="submit" type="submit" id="network-library-submit" @click.prevent="networkLibraryRefContract()" >Submit to network library</button> -->
       </div>
-      <div class="api-form-item">
-        <section id="api-feedback">
-        </section>
+      <div v-if="savenxpSuccess" class="newnxp-form-feeback">
+        <div id="hop-feedback">
+          New network experiment saved.
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import NewQuestiontype from '@/components/library/contracts/contribute/forms/newQuestiontype.vue'
 import NewDatatype from '@/components/library/contracts/contribute/forms/newDatatype.vue'
 import NewCompute from '@/components/library/contracts/contribute/forms/newCompute.vue'
 import NewUnits from '@/components/library/contracts/contribute/forms/newUnits.vue'
@@ -43,6 +45,7 @@ import { ref, computed, markRaw} from 'vue'
 const storeLibrary = libraryStore()
 
 const formContribute = [
+  { type: 'question', form: markRaw(NewQuestiontype) },
   { type: 'datatype', form: markRaw(NewDatatype) },
   { type: 'compute', form: markRaw(NewCompute) },
   /* { type: 'units', form: shallowRef(NewUnits }, */
@@ -50,24 +53,16 @@ const formContribute = [
   { type: 'visualise', form: markRaw(NewVisualise) }
 ]
 
-  let contractformType = ref(markRaw({ type: 'datatype', form: NewDatatype }))
+  let contractformType = ref(markRaw({ type: 'question', form: NewDatatype }))
 
   /* computed */
-  const newRefContractLive = computed(() => {
-    // return this.$store.state.newRefcontractForm
+  
+  const savenxpSuccess = computed(() => {
+    return storeLibrary.saveSuccessnxp
   })
 
-  const catCountLive = computed(() => {
-    // return this.$store.state.newPackingForm.catCount
-  })
-
-  const tidyCountLive = computed(() => {
-    // return this.$store.state.newPackingForm.tidyCount
-  })
-
-
-/* methods */
-const saveRefContract = () => {
+  /* methods */
+  const saveRefContract = () => {
     // pull together other parts of refcontract
     const refContract = {}
     refContract.type = 'library'
@@ -75,7 +70,9 @@ const saveRefContract = () => {
     refContract.reftype = contractformType.value.type
     refContract.task = 'PUT'
     refContract.privacy = 'public'
-    if (contractformType.value.type === 'datatype') {
+    if (contractformType.value.type === 'question') {
+      refContract.data = storeLibrary.questionForm
+    } else if (contractformType.value.type === 'datatype') {
       refContract.data = storeLibrary.datatypeForm
     } else if (contractformType.value.type === 'compute') {
       refContract.data = storeLibrary.newComputeForm
@@ -84,51 +81,124 @@ const saveRefContract = () => {
     } else if (contractformType.value.type === 'visualise') {
       refContract.data = storeLibrary.newVisualiseForm
     }
+    console.log('save ref contract new')
+    console.log(refContract)
     storeLibrary.sendMessage(refContract)
     // reset the form data
+    if (contractformType.value.type === 'question') {
+    storeLibrary.questionForm = { primary: null, name: '' }
+    } else if (contractformType.value.type === 'datatype') {
+      storeLibrary.datatypeForm =
+      {
+        primary: Boolean,
+        name: '',
+        description: '',
+        wiki: '',
+        rdf: '',
+        measurement: '',
+        datatypeType: ''
+      }
+    } else if (contractformType.value.type === 'compute') {
+      storeLibrary.newComputeForm = 
+      {
+        primary: Boolean,
+        name: '',
+        description: '',
+        dtprefix: '',
+        code: '',
+        hash: ''
+      }
+    } else if (contractformType.value.type === 'packaging') {
+      storeLibrary.newPackagingForm =
+      {
+        authrequired: false,
+        type: '',
+        filename: '',
+        path: '',
+        sqlitetablename: '',
+        baseapi: '',
+        jsonpath: '',
+        authtoken: '',
+        apicolumns: [],
+        apicolHolder: [[]],
+        catHolder: {},
+        tidyHolder: {},
+        catCount: 0,
+        tidyCount: 0,
+        category: {},
+        tidy: {},
+        device:
+        {
+          id: '',
+          device_name: '',
+          device_manufacturer: '',
+          device_mac: '',
+          device_type: '',
+          device_model: '',
+          query: '',
+          location_lat: '',
+          location_long: '',
+          firmware: '',
+          mobileapp: ''
+        }
+      }
+      storeLibrary.newLists = {}
+    } else if (contractformType.value.type === 'visualise') {
+      storeLibrary.newVisualiseForm = 
+      {
+        primary: Boolean,
+        name: '',
+        description: '',
+        structureName: '',
+        visHolder: []
+      }
+    }
   }
 </script>
 
 <style scoped>
-#newapi-view {
-  display: grid;
-  justify-content: center;
-  background-color: #EBE7E0;
-  border: 4px solid lightgrey;
-  padding: 10px;
-}
 
-#newapi_form {
-  display: grid;
-  grid-template-columns: 1fr;
-  width: 90%;
-  justify-content: center;
-  align-content: center;
-  min-width: 360px;
-}
+@media (min-width: 1024px) {
+  #newapi-view {
+    display: grid;
+    justify-content: center;
+    background-color: #EBE7E0;
+    border: 4px solid lightgrey;
+    padding: 10px;
+  }
 
-.api-form-item {
-  display: grid;
-  grid-template-columns: 1fr;
-  padding-bottom: 2em;
-}
+  #newapi_form {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 90%;
+    justify-content: center;
+    align-content: center;
+    min-width: 360px;
+  }
 
-#form-api-section {
-  font-size: 1.2em;
-}
+  .api-form-item {
+    display: grid;
+    grid-template-columns: 1fr;
+    padding-bottom: 2em;
+  }
 
-.select-api-id {
-  width: 50%;
-  font-size: 1.2em;
-}
+  #form-api-section {
+    font-size: 1.2em;
+  }
 
-label {
-  margin-bottom: .5em;
-}
+  .select-api-id {
+    width: 50%;
+    font-size: 1.2em;
+  }
 
-#save-new-refcontract {
-  display: grid;
-  text-align: center;
-  font-size: 2em;
+  label {
+    margin-bottom: .5em;
+  }
+
+  #save-new-refcontract {
+    display: grid;
+    text-align: center;
+    font-size: 2em;
+  }
 }
 </style>

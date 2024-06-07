@@ -4,15 +4,15 @@
     <label for="package-add-category">Select datatype:</label>
     <select class="select-categor-id" id="category-mapping-build" @change="categoryDTSelect" v-model="storeLibrary.newPackagingForm.category[props.catid].category">
       <option value="none" selected="">Please select</option>
-      <option v-for="dtl in libraryStore.datatypesLive" :key="dtl.key" v-bind:value="dtl.key">
+      <option v-for="dtl in storeLibrary?.publicLibrary?.referenceContracts?.datatype" :key="dtl.key" v-bind:value="dtl.key">
         <option value=dtl.key>{{ dtl.value.concept.name }}</option>
       </option>
     </select>
     <label for="package-add-category">Select column:</label>
     <select class="select-categor-id" id="category-mapping-build" @change="categorycolumnSelect" v-model="storeLibrary.newPackagingForm.category[props.catid].column">
       <option value="none" selected="">Select column</option>
-      <option v-for="dtl in storeLibrary.publicLibrary.datatype">
-        <option value=dtl.key>{{ dtl.value.concept.name }}</option>
+      <option v-for="dtl in storeLibrary?.newDatafile?.columns">
+        <option value=dtl.key>{{ dtl.name }}</option>
       </option>
     </select>
     <label for="add-category-rule">Rule/code:</label>
@@ -31,43 +31,7 @@ const props = defineProps({
   })
 
   /* methods */
-  const categoryDTSelect = () => {
-    // this.$store.dispatch('buildRefPackageCategory', this.newPackagingForm.category)
-  }
 
-  const categorycolumnSelect = () => {
-    // this.$store.dispatch('buildRefPackageCategoryColumn', this.newPackagingForm.categorycolumn)
-  }
-  
-  const categoryruleSave = () => {
-    // this.$store.dispatch('buildRefPackageCategoryRule', this.newPackagingForm.categoryrule)
-  }
-
-// datatypesLive
-
-/* export default {
-  name: 'describe-category',
-  components: {
-  },
-  props: {
-    catID: null,
-    newPackagingForm: {
-      type: Object
-    }
-  },
-  computed: {
-    datatypesLive: function () {
-      return this.$store.state.dataTypesLive
-    },
-    categoryLive: function () {
-      return this.$store.state.newPackingForm.category
-    }
-  },
-  data: () => ({
-  }),
-
-  }
-} */
 </script>
 
 <style>

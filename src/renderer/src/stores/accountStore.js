@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
 import { useSocketStore } from '@/stores/socket.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
+import { libraryStore } from '@/stores/libraryStore.js'
 
 export const accountStore = defineStore('account', {
   state: () => ({
     sendSocket: useSocketStore(),
     storeAI: aiInterfaceStore(),
+    storeLibrary: libraryStore(),
     accountMenu: 'Sign-in',
     accountStatus: false,
     peerauth: false,
@@ -13,12 +15,15 @@ export const accountStore = defineStore('account', {
     warmPeers: [],
     publickeyDrive: [],
     publicKeysList: [],
-    sharePubkey: ''
+    sharePubkey: '',
+    agentList: [{ name: 'cale-gpt4all', active: false }, {name: 'cale-evolution', active: false }]
   }),
   actions: {
     processReply (received) {
       if (received.action === 'hyperbee-pubkeys') {
         this.publicKeysList = received.data
+        // ask for library
+        this.storeLibrary.startLibrary()
       } else if (received.action === 'drive-pubkeys') {
         this.publickeyDrive = received.data
       } else if (received.action === 'warm-peers') {
@@ -74,8 +79,18 @@ export const accountStore = defineStore('account', {
       console.log(shareInfo)
       this.sendMessageHOP(shareInfo)
     },
+    processAgentStatus (data) {
+      for (let agent of this.agentList) {
+        if (agent.name === data.name) {
+          if (data.status === 'loaded') {
+            agent.active = true
+          } else if (data.status === 'closed') {
+            agent.active = false
+          }
+        }
+      }
+    },
     sendMessageHOP (message) {
-      console.log('mesage acc')
       this.sendSocket.send_message(message)
     }
   }
