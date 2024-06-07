@@ -4,7 +4,7 @@ import AboutView from '../views/AboutView.vue'
 import HelpView from '../views/HelpView.vue'
 
 const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL),
+  history: createWebHashcommgitHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
