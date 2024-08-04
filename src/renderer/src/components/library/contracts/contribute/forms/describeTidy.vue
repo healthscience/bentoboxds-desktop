@@ -10,7 +10,7 @@
       </option>
     </select>
     <label for="add-category-rule">Tidy code:</label>
-    <input type="text"  id="mapping-rule-code" placeholder="" required v-model="storeLibrary.newPackagingForm.tidy[props.tidyid].code"/>
+    <input type="text"  id="mapping-rule-code" placeholder="" required v-model="storeLibrary.newPackagingForm.tidy[props.tidyid].tidycode"/>
   </div>
 </template>
 

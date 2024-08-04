@@ -19,7 +19,8 @@ import { libraryStore } from '@/stores/libraryStore.js'
   const storeLibrary = libraryStore()
 
   const props = defineProps({
-    fileTypeIn: String
+    fileTypeIn: String,
+    bboxid: String
   })
 
   let tableChoice = ref('')
@@ -35,6 +36,10 @@ import { libraryStore } from '@/stores/libraryStore.js'
   }
 
   const showTables = () => {
+    storeLibrary.newPackagingForm.sqlitetablename = tableChoice.value.name
+    storeLibrary.newPackagingForm.tableQuery = tableChoice.value.name
+    // keep track of active table selected
+    storeLibrary.newDatafile.deviceTable = tableChoice.value.name
     // send message to HOP to get columsn for this table
     // file type coming from library or chat UI?
     let fileType = ''
@@ -43,6 +48,8 @@ import { libraryStore } from '@/stores/libraryStore.js'
     } else {
       fileType = props.fileTypeIn
     }
+    // set bboxid for this interaction
+    storeLibrary.liveBBox = props.bboxid
     let messageHOP = {}
     messageHOP.type = 'library'
     messageHOP.action = 'source'

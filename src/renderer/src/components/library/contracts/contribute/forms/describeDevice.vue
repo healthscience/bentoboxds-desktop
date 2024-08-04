@@ -2,15 +2,24 @@
   <div id="describe-device">
     <div id="type-device-entry">
       <div id="manual-device-info">
-        <button @click="setDevicemanual">Manual</button>
+        <button @click="setDevicemanual()">Manual entry</button>
       </div>
       <div id="manual-device-info">
-        <button @click="setDevicequery">Query path</button>
+        <button @click="setDevicequery()">Device query</button>
       </div>
     </div>
     <div class="device-select" v-if="deviceQuery === true">
       <div id="desribe-source-device">
         <describe-datastructure></describe-datastructure>
+      </div>
+      <!--<input type="text" v-model="storeLibrary.newPackagingForm.device.query">-->
+    </div>
+    <div id="firmware-device-info">
+        <button @click="setDeviceFirmwareHistory()">Firmware history</button>
+    </div>
+    <div class="device-select" v-if="deviceFirmware === true">
+      <div id="desribe-source-device">
+        <describe-firmware></describe-firmware>
       </div>
       <!--<input type="text" v-model="storeLibrary.newPackagingForm.device.query">-->
     </div>
@@ -38,20 +47,28 @@
 <script setup>
 import { ref } from 'vue'
 import DescribeDatastructure from '@/components/library/contracts/contribute/forms/describeDeviceStructure.vue'
+import DescribeFirmware from '@/components/library/contracts/contribute/forms/describeDeviceFirmware.vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 
   const storeLibrary = libraryStore()
     
   let deviceQuery = ref(false)
   let deviceManual = ref(false)
+  let deviceFirmware = ref(false)
 
   /* methods */
   const setDevicemanual = () => {
     deviceManual.value = !deviceManual.value
   } 
+
   const setDevicequery = () =>{
     deviceQuery.value = !deviceQuery.value
   }
+
+  const setDeviceFirmwareHistory = () =>{
+    deviceFirmware.value = !deviceFirmware.value
+  }
+
 </script>
 
 <style scoped>
@@ -66,7 +83,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
 #type-device-entry {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   margin-bottom: 1em;
 }
 

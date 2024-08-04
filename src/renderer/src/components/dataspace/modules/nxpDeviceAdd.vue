@@ -49,8 +49,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
   const storeLibrary = libraryStore()
 
   const refContractPackage = computed (() => {
-    console.log('data pack')
-    console.log(storeLibrary.newnxp.packagingLive)
     return storeLibrary.newnxp.packagingLive
   })
   

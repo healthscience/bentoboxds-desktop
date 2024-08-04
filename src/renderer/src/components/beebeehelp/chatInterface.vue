@@ -9,11 +9,17 @@
           <div v-if="chati.question?.data?.active === true" class="left-chat"> {{ chati.question?.data?.text }} </div>
           <span class="left-chat">{{ chati.question?.data?.time }}</span>
         </div>
-        <div class="beebee-reply" v-bind:class="{ active: chati.reply.network === true }">
+        <div class="beebee-reply" v-bind:class="{ networkactive: chati.reply.network === true }">
           <span class="right-time">{{ chati.reply.time }}</span>
           <div class="reply-text-chart">
             <div class="right-chat">
-              {{ chati.reply.type }}  {{ chati.reply.action }}
+              {{ chati.reply.type }} {{ chati.reply.action }}aa
+              <div v-if="chati.reply.type === 'experiment' && chati.reply.data">
+                <button @click="viewSaveExperiment(chati.question.bbid, chati.reply.data)">View experiment</button>
+              </div>
+              <div v-if="chati.reply.type === 'network-publib-board'">
+                {{ chati.reply.data.text.boardname }}<button @click="publibLibAdd(chati.reply.data.text)"> yes add this board to public library</button>
+              </div>
               <div v-if="chati.reply.type === 'hopquery'">
                 <span>Datatype: {{ chati.data.library.text }} for month {{ chati.data.time.words.day }} day {{ chati.data.time.words.month }}</span>---
                 <button id="new-query" @click.prevent="beebeeChartSpace(chati.data)">yes, produce chart</button>
@@ -33,19 +39,39 @@
                 </div>
                 <div v-if="chati.reply.data?.type !== 'library-peerlibrary'">
                   <div class="beeebee-text">
-                    {{ chati.reply?.data?.text}}
+                    {{ chati.reply?.data?.text}} tt--{{ chati.reply.data?.type }}
                     </div>
-                    <div v-if="chati.reply?.data?.filedata" class="bee-file-data">{{ chati.reply.data.filedata }}
-                      {{ chati.reply.data.filedata.type }} - {{ chati.reply.data.filedata.file?.name }} -- {{ chati.reply.data.filedata.columns}}
-                      <csv-preview v-if="storeLibrary.csvpreviewLive === true" :summarydata="chati.reply.data.filedata.grid"></csv-preview>
+                    <div v-if="chati.reply?.data?.filedata" class="bee-file-data">
+                      <div class="file-feedback-csv">
+                        {{ chati.reply.data.filedata.type }} - {{ chati.reply.data.filedata.file?.name }} -- {{ chati.reply.data.filedata.columns }}
+                      </div>
+                      <button id="csv-file-summary" @click="viewSummaryCSV(chati.reply.bbid)">view summary</button>ss {{ storeLibrary.csvpreviewLive }} == {{ summaryCSVState }}
+                      <csv-preview v-if="storeLibrary.imagepreviewLive !== true && storeLibrary.csvpreviewLive === summaryCSVState" :summarydata="chati.reply.data.filedata.grid"></csv-preview>
+                      <image-preview v-if="storeLibrary.imagepreviewLive === true && summaryCSVState === false" :summaryimagedata="chati.reply.data.filedata.grid"></image-preview>
                     </div>
                     <div v-if="chati.reply?.data?.prompt?.length > 0" class="bee-prompt-question">
                       {{ chati.reply.data.prompt }}
                       <!-- if csv file, show column to chart else sql need to select table then columns to chart-->
-                      <div id="type-data-options" v-if="chati.reply?.data?.filedata.type !== 'sqlite'">
+                      <div id="type-data-options" v-if="chati.reply?.data?.filedata.type !== 'sqlite'">fileddd {{ chati.reply.data.opitons }}
                         <div class="data-options"  v-for="(dopt, index) in chati.reply?.data?.options">
                           <div v-if="typeof dopt === 'string'">
-                            <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid)">
+                            <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid, chati.reply?.data?.options)">
+                              {{ dopt }}
+                            </button>
+                          </div>
+                          <div v-else>
+                              <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid, chati.reply?.data?.options )">
+                                {{ dopt.name }}
+                              </button>
+                          </div>
+                          <button class="data-option-select" :class="{ active: index === isDateColumn }" @click.prevent="dateOptionSelect(index, dopt, chati.reply.bbid)">date</button>
+                        </div>
+                      </div>
+                      <div v-else>
+                        <describe-datastructure :bboxid="chati.reply.bbid" :fileTypeIn="chati.reply?.data?.filedata.type"></describe-datastructure>
+                        <div class="data-options"  v-for="(dopt, index) in storeLibrary.newDatafile.columns">{{ dopt }}
+                          <div v-if="typeof dopt === 'string'">
+                            <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid, chati.reply?.data?.options )">
                               {{ dopt }}
                             </button>
                           </div>
@@ -56,21 +82,21 @@
                           </div>
                           <button class="data-option-select" :class="{ active: index === isDateColumn }" @click.prevent="dateOptionSelect(index, dopt, chati.reply.bbid)">date</button>
                         </div>
-                      </div>
-                      <div v-else>
-                        <describe-datastructure :fileTypeIn="chati.reply?.data?.filedata.type"></describe-datastructure>
+                        <div id="further-filter">Want to further filter the data query?  Select a column</div>
                         <div class="data-options"  v-for="(dopt, index) in storeLibrary.newDatafile.columns">
                           <div v-if="typeof dopt === 'string'">
-                            <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid)">
+                            <button class="data-option-select" @click.prevent="dataOptionFilter(index, dopt, chati.reply.bbid)">
                               {{ dopt }}
                             </button>
                           </div>
                           <div v-else>
-                              <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid)">
+                              <button class="data-option-select" @click.prevent="dataOptionFilter(index, dopt, chati.reply.bbid)">
                                 {{ dopt.name }}
                               </button>
                           </div>
-                          <button class="data-option-select" :class="{ active: index === isDateColumn }" @click.prevent="dateOptionSelect(index, dopt, chati.reply.bbid)">date</button>
+                        </div>
+                        <div id="filter-options" v-if="filterActive === true">ddd
+                          <describe-devicestructure :bboxid="chati.reply.bbid" :fileTypeIn="chati.reply?.data?.filedata.type" @device-filter="filterdeviceEvent()" @device-id="choicedeviceEvent()"></describe-devicestructure>
                         </div>
                       </div>
                     </div>
@@ -79,7 +105,6 @@
               <div v-else-if="chati.reply.type === 'upload'">
                 {{ chati.reply.data.text }}
                 <button id="upload-button" @click="uploadButton">Click to upload file</button>
-                <space-upload></space-upload>
               </div>
               <div v-else-if="chati.reply.type === 'library-peerlibrary'">
                 <button @click="openLibrary">open library</button>
@@ -116,25 +141,34 @@
 <script setup>
 import WelcomeBeebee from '@/components/beebeehelp/welcomeBeebee.vue'
 import inputBox from '@/components/beebeehelp/inputBox.vue'
-import SpaceUpload from '@/components/dataspace/upload/uploadSpace.vue'
 import CsvPreview from '@/components/dataspace/upload/csvPreview.vue'
+import ImagePreview from '@/components/dataspace/upload/imagePreview.vue'
 import DescribeDatastructure from '@/components/library/contracts/contribute/forms/describeSourceStructure.vue'
+import DescribeDevicestructure from '@/components/library/contracts/contribute/forms/describeDeviceStructure.vue'
 import BentoBox from '@/components/bentobox/baseBox.vue'
 import { ref, computed, onMounted } from 'vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { libraryStore } from '@/stores/libraryStore.js'
 
   // const askStart = ref('What would you like to chart?')
-  let chartStyle = ref('')
+  // let chartStyle = ref('')
+  let columnFilter = ref('')
+  let deviceFilter = ref('')
+  let columnLive = ref('')
+  let datecolLive = ref('')
+  let bbidLive = ref('')
   let isDateColumn = ref(0)
+  let filterActive = ref(false)
+  let summaryCSVState = ref(false) // need to make per bbid in store TEMP
 
   const storeAI = aiInterfaceStore()
   const storeLibrary = libraryStore()
 
+  /*
   const chartBuild = style => {
     storeAI.beebeeChatLog = true
     chartStyle.value = style
-  }
+  } */
 
   /* computed */
   const libraryAvailable = computed (() => {
@@ -184,6 +218,14 @@ import { libraryStore } from '@/stores/libraryStore.js'
     }
   }
 
+  const viewSaveExperiment = (bbid, contractID) => {
+    storeLibrary.prepareLibraryViewFromContract(bbid, contractID)
+  }
+
+  const publibLibAdd = (board) => {
+    storeLibrary.confrimAddPublicLibrary(board)
+  }
+
   const uploadButton = () =>  {
     storeAI.dataBoxStatus = true
     storeLibrary.uploadStatus = true
@@ -196,17 +238,73 @@ import { libraryStore } from '@/stores/libraryStore.js'
     storeLibrary.libraryStatus = true
   }
 
-  const dataOptionVis = (did, colName, bbid) => {
+  const dataOptionVis = (did, colName, bbid, options) => {
+    let dateColSelected = ''
+    if (options === undefined) {
+      dateColSelected = 'TIMESTAMP'
+    } else {
+      dateColSelected = options[isDateColumn.value]
+    }
+    // keep track of live selections
+    datecolLive.value = did
+    columnLive.value = colName
+    bbidLive.value = bbid
     let dataCode = {}
     dataCode.id = did
+    dataCode.deviceTable = storeLibrary.newDatafile.deviceTable
+    dataCode.devicetablename = ''
     dataCode.name = colName
+    // what is name of date column?
+    dataCode.timestampname = dateColSelected
     dataCode.timestamp = isDateColumn.value
+    dataCode.device = ''
+    dataCode.deviceCol = ''
+    dataCode.timerange = []
     dataCode.bbid = bbid
     storeAI.submitAsk(dataCode)
   }
 
+  const viewSummaryCSV = (bbid) => {
+    summaryCSVState.value = !summaryCSVState.value
+  }
+  
+  const dataOptionFilter = (did, colName, bbid) => {
+    deviceFilter.value = colName
+    filterActive.value = true
+  }
+
   const dateOptionSelect = (did, colName, bbid) => {
     isDateColumn.value = did
+  }
+
+  const filterdeviceEvent = () => {
+    let dataCode = {}
+    dataCode.id = datecolLive.value
+    dataCode.deviceTable = storeLibrary.newDatafile.deviceTable
+    dataCode.devicetablename = storeLibrary.newDatafile.sqlitetablename
+    dataCode.name = columnLive.value
+    dataCode.timestamp = isDateColumn.value
+    dataCode.device = storeLibrary.newDatafile.deviceSelected
+    dataCode.deviceID = storeLibrary.newDatafile.deviceID
+    dataCode.deviceCol = deviceFilter.value
+    dataCode.timerange = []
+    dataCode.bbid = bbidLive.value
+    storeAI.submitAsk(dataCode)
+  }
+
+  const choicedeviceEvent = () => {
+    let dataCode = {}
+    dataCode.id = datecolLive.value
+    dataCode.deviceTable = storeLibrary.newDatafile.deviceTable
+    dataCode.devicetablename = storeLibrary.newDatafile.sqlitetablename
+    dataCode.name = columnLive.value
+    dataCode.timestamp = isDateColumn.value
+    dataCode.device = storeLibrary.newDatafile.deviceSelected
+    dataCode.deviceID = storeLibrary.newDatafile.deviceID
+    dataCode.deviceCol = deviceFilter.value
+    dataCode.timerange = []
+    dataCode.bbid = bbidLive.value
+    storeAI.submitAsk(dataCode)
   }
 
 </script>
@@ -365,6 +463,14 @@ import { libraryStore } from '@/stores/libraryStore.js'
       background-color: green;
     }
 
+    .networkactive {
+      background-color: rgb(227, 243, 218);
+    }
+
+    .file-feedback-csv {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
   }
 
 </style>

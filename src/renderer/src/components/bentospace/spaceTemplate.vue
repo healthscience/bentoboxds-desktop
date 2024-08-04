@@ -31,15 +31,15 @@
             <button class="point-change" @click="setzoomScale(0.05)">+</button>
           </div>
         </div>
-        <div id="bentospace-holder" v-dragscroll.noleft.noright="true" >
+        <div id="bentospace-holder" v-dragscroll.noleft.noright="true" @click="whereMinmap($event)">
           <div id="bento-space" v-bind:style="{ transform: 'scale(' + zoomscaleValue + ')' }">
             <!-- location for bentobox - es -->
             <div id="bento-layout" v-for="bbox in storeAI.bentoboxList[storeAI.liveBspace.spaceid]">
-             <bento-boxspace :bboxid="bbox"></bento-boxspace>
+             <bento-boxspace :bboxid="bbox.bboxid" :contractid="bbox.contract"></bento-boxspace>
             </div>
           </div>
         </div>
-        <mininav-map></mininav-map>
+        <mininav-map :spaceid="storeAI.liveBspace.spaceid" :bboxid="'null'"></mininav-map>
       </template>
       <template #footer>
       </template>
@@ -55,12 +55,21 @@ import BeebeeAi from '@/components/beebeehelp/inputBox.vue'
 import MininavMap from '@/components/bentospace/map/mininavMap.vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
+import { mapminiStore } from '@/stores/mapStore.js'
 
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
+  const storeMmap = mapminiStore()
   
   let beebeeSpace = ref(false)
+  let mouseLive = ref(
+    {
+      x: 10,
+      y: 10
+    }
+  )
 
+  /* computed */
   const bentospaceStatus = computed(() => {
     return storeAI.bentospaceState
   })
@@ -83,6 +92,16 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   const setzoomScale = (change) => {
     storeBentobox.scaleZoom = storeBentobox.scaleZoom + change
   }
+
+  const whereMinmap = (mo) => {
+    mouseLive.x = mo.offsetX
+    mouseLive.y = mo.offsetY
+    // if click on minimap do not send
+    if (mo.target.id !== 'minimap') {
+      storeMmap.actionPostionCoordMouse(mouseLive)
+    }
+  }
+
 </script>
 
 <style scoped>

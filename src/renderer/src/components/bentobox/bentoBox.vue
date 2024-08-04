@@ -1,4 +1,9 @@
 <template>
+  <div id="bentobox-data-live" v-if="typeof storeAI.visData[props.bboxid] === 'undefined'">
+    <button @click="viewSaveExperiment(props.bboxid, props.contractid)">View experiment</button>
+  </div>
+  <div v-else>
+  </div>
   <div id="bentobox-quants" ref="bentoboxQuants" @mouseup.prevent="EndDrag()" @mousemove.prevent="OnDrag($event)">
     <div id="bentobox-tools">
       <box-tools :bboxid="props.bboxid"></box-tools>
@@ -34,7 +39,6 @@
         </div>
       </div>
       <div id="bento-past" v-if="quantSelect['now']">
-        <!--<div id="past-box">past toolbar <button id="full-past-toolbar">Tools</button></div>-->
         <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartData"></bar-chart>-
         <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartData"></line-chart>
       </div>
@@ -59,8 +63,6 @@
             </option>
           </select>
           <button id="full-future-toolbar" @click="predictFuture()">Predict</button>
-        <!--<button id="full-future-toolbar" @click="predictFuture()">Predict</button>-->
-        <!-- <div id="future-box">future toolbar <button id="full-future-toolbar">full</button></div>-->
         <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartfutureData" ></bar-chart>
         <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartfutureData"></line-chart>
       </div>
@@ -82,7 +84,6 @@
         </div>
       </div>
       <div id="bento-past" v-if="quantSelect['nnow']">
-        <!--<div id="past-box">past toolbar <button id="full-past-toolbar">Tools</button></div>-->
         <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartData"></bar-chart>-
         <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartData"></line-chart>
       </div>
@@ -107,7 +108,6 @@
             </option>
           </select>
           <button id="full-future-toolbar" @click="predictFuture()">Predict</button>
-        <!--<div id="future-box">future toolbar <button id="full-future-toolbar">full</button></div>-->
         <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartfutureData" ></bar-chart>
         <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartfutureData"></line-chart>
       </div>
@@ -139,6 +139,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
   
   const props = defineProps({
     bboxid: String,
+    contractid: String,
     bbwidth: String
   })
 
@@ -157,9 +158,9 @@ import { libraryStore } from '@/stores/libraryStore.js'
   let isExpandDragging = ref(false)
   let isNetworkExpandDragging = ref(false)
   let liveBoxNow = ref('block')
-  let liveBoxFuture = ref('block')
-  let liveBoxNetNow = ref('block')
-  let liveBoxNetFuture = ref('block')
+  let liveBoxFuture = ref('none')
+  let liveBoxNetNow = ref('none')
+  let liveBoxNetFuture = ref('none')
 
   let event = ref('')
   let timerPress = ref(0)
@@ -352,8 +353,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
   }
 
   const selectPredModel = (model) => {
-    console.log(model)
-    console.log(modelFuture)
   }
 
   /* computed */
@@ -376,16 +375,8 @@ import { libraryStore } from '@/stores/libraryStore.js'
     return storeAI.tempLabelData[props.bboxid]
   })
 
-   const chartData = computed(() => {
+  const chartData = computed(() => {
     return storeAI.visData[props.bboxid]
-    /* {
-      // labels: dataLabel.value, // [ 'January', 'February', 'March' ],
-      // datasets: [ { data: dataValues.value } ]
-    } */
-   })
-
-   const boxToolsShow = computed(() => {
-    return storeBentobox.boxtoolsShow[props.bboxid]
   })
 
   const computeList = computed(() => {
@@ -422,6 +413,10 @@ import { libraryStore } from '@/stores/libraryStore.js'
     modulesShow.value = !modulesShow.value
   }
 
+  const viewSaveExperiment = (bbid, contractID) => {
+    storeLibrary.prepareLibraryViewFromContract(bbid, contractID)
+  }
+
 </script>
 
 <style scoped>
@@ -429,14 +424,28 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
 @media (min-width: 1024px) {
 
+  #bentobox-data-live {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-self: center;
+  }
+
+  #bentobox-data-live button {
+    font-size: 1.2em;
+    background-color:rgb(113, 172, 114);
+    padding: .3em;
+    margin: 1em;
+    color: white;
+  }
+
   #bentobox-quants {
     display: grid;
     grid-template-areas:
     'bentobox-tools bentobox-tools bentobox-tools'
     'boxnow vertdragbar boxfuture'
     'expand expand expand';
-    grid-template-rows: 1fr 300px 30px;
-    grid-template-columns: 4fr 6px 1fr;
+    grid-template-rows: 1fr 500px 30px;
+    grid-template-columns: 4fr 6px .5fr;
     height: auto;
     width: var(--bentoboxWidth);
     border: 2px solid rgb(141, 145, 226);
@@ -510,7 +519,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
     background-color: rgb(245, 247, 245);
     grid-area: boxnow;
     overflow: hidden;
-    min-height: 30vh;
+    min-height: 500px;
   }
 
   #vertdragbar {
@@ -520,10 +529,11 @@ import { libraryStore } from '@/stores/libraryStore.js'
   }
 
   #box-future {
+    display: none;
     background-color: rgb(241, 238, 231);
     grid-area: boxfuture;
     overflow: hidden;
-    min-height: 30vh;
+    min-height: 500px;
   }
 
   #expand {
@@ -543,25 +553,27 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
 
   #networkbox-now {
+    display: none;
     background-color: rgb(245, 247, 245);
     grid-area: netboxnow;
     overflow: hidden;
-    min-height: 30vh;
+    min-height: 40vh;
   }
 
   #networkbox-future {
+    display: none;
     background-color: rgb(241, 238, 231);
     grid-area: netboxfuture;
     overflow: hidden;
-    min-height: 30vh;
+    min-height: 40vh;
   }
 
   #bento-past {
     position: relative;
-    height: 80%;
+    height: 90%;
     min-width: 20vw;
-    margin: 2em;
-    border: 0px solid orange;
+    margin: 1em;
+    border: 1px solid orange;
   }
 
   #bento-future {
@@ -573,9 +585,9 @@ import { libraryStore } from '@/stores/libraryStore.js'
   }
   /* modules css */
   #bentobox-modules {
+    position: relative;
     display: grid;
     grid-template-columns: 1fr;
-    grid-area: bbmodules;
     cursor: default;
   }
 

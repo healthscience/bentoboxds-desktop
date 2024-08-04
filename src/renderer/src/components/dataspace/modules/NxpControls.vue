@@ -83,14 +83,9 @@ export default {
   },
   methods: {
     selectNXP (exB) {
-      // dispatch select to store
-      console.log('select NXP')
-      console.log(this.nxpSelect)
-      // this.$store.dispatch('actionSetNXP', this.nxpSelect)
       this.$store.dispatch('actionDashboardState', this.nxpSelect)
     },
     nxpNew () {
-      console.log('set up new NXP')
       this.$store.dispatch('actionNewNXP', true)
       this.$store.dispatch('actionSetNXP', true)
     },

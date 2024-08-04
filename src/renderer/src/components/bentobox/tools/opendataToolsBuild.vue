@@ -125,7 +125,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
  
   const opendataSettingsLive = computed (() => {
     let packKey = Object.keys(storeLibrary.newnxp.packagingLive)
-    console.log(storeLibrary.newnxp.packagingLive[packKey].value)
     let packInfo = {}
     packInfo.devices = storeLibrary.newnxp.packagingLive[packKey].value.concept.devicesList
     packInfo.xaxis = ['time'] // storeLibrary.newnxp.packagingLive[packKey].value.concept.

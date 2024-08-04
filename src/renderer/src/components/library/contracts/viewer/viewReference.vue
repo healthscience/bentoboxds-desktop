@@ -116,7 +116,10 @@
                 <div class="packaging-basics" v-if="index === 'path'" >
                   {{ index }} -- {{ pi }}
                 </div>
-                <div class="packaging-basics" v-if="index === 'sqlitetablename'" >
+                <div class="packaging-basics" v-if="index === 'tableQuery'" >
+                  {{ index }} -- {{ pi }}
+                </div>
+                <div class="packaging-basics" v-if="index === 'sourcedevicecol'" >
                   {{ index }} -- {{ pi }}
                 </div>
                 <div class="packaging-basics" v-if="index === 'apibase'" >
@@ -160,7 +163,7 @@
                       <ul v-if="index === 'tidy'" >
                         <header>Tidy rules:</header>
                         <li v-for="ipv in pi" :key="ipv.key" >
-                            {{ ipv.tidy }} -- {{ ipv.datatype }} -- {{ ipv.code }}
+                            {{ ipv.tidy }} -- {{ ipv.datatype }} -- {{ ipv.tidycode }}
                         </li>
                       </ul>
                     </li>
@@ -169,7 +172,10 @@
               </li>
             </ul>
             <div id="device-info">
-              Device {{ cd.value.concept.device }}
+              <div class="device-query">Device query: {{ cd.value.concept.devicequery }}</div>
+              <div class="device-query">Device col. ID: {{ cd.value.concept.deviceColumnID }}</div>
+              <div class="device-query">Firmware history: {{ cd.value.concept.firmwarequery }}</div>
+            <div>Device {{ cd.value.concept.device }}</div>
             </div>
             <div id="packaging-network">
               <header>Active use on network</header>

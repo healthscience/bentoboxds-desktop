@@ -29,14 +29,10 @@ import { accountStore } from '@/stores/accountStore.js'
   let newPeerPubKey = ref('')
 
   const addWarmpeer = () => {
-    console.log('add warm peer')
     addWarm.value = !addWarm.value
   }
 
   const saveWarmpeer = () => {
-    console.log('save warm peer')
-    console.log(newPeername)
-    console.log(newPeerPubKey)
     // send to HOP to save
     // temp
     let peerPair = {}

@@ -8,7 +8,10 @@
         <div class="agent-name">{{ agent.name }} </div>
         <div class="agent-description">local machine learning</div>
         <div class="agent-active" v-bind:class="{ active: agent.active }">
-          <div id="status-agent">Status: {{ agent.active }}</div>
+          <div v-if="agent.loading === true">
+            <div class="loading-agent blink_me">Loading</div>
+          </div>
+          <div id="status-agent  blink_me">Status: {{ agent.active }}</div>
           <button v-if="agent.active === false" id="start-llm-learn" @click="startAgentlearn(agent.name, 'start')">Begin</button>
           <button v-else="agent.active === true" id="start-llm-learn" @click="startAgentlearn(agent.name, 'stop')">Stop</button>
         </div>
@@ -23,32 +26,38 @@ import { accountStore } from '@/stores/accountStore.js'
 
   const storeAccount = accountStore()
 
-  let swarmState = ref(true)
-  let agentStatus = ref({})
-  agentStatus['cale-gpt4all'] = false
-  agentStatus['cale-evolution'] = true
-
   /* computed */
   const agentList = computed(() => {
   return storeAccount.agentList
 })
 
   /* methods */
-  let startAgentlearn = (agent, action) => {
+  let startAgentlearn = (agentChoice, action) => {
     if (action === 'start') {
+      // display loading animation
+      for (let agent of storeAccount.agentList) {
+        if (agent.name === agentChoice) {
+          agent.loading = true
+        }
+      }
       let learnMessage = {}
       learnMessage.type = 'bbai'
       learnMessage.reftype = 'ignore'
       learnMessage.action = 'learn-agent-start'
-      learnMessage.data = { model: agent}
+      learnMessage.data = { model: agentChoice}
       learnMessage.bbid = ''
       storeAccount.sendMessageHOP(learnMessage)
     } else if (action === 'stop') {
+      for (let agent of storeAccount.agentList) {
+        if (agent.name === 'cale-gpt4all') {
+          agent.loading = false
+        }
+      }
       let learnMessage = {}
       learnMessage.type = 'bbai'
       learnMessage.reftype = 'ignore'
       learnMessage.action = 'learn-agent-stop'
-      learnMessage.data = { model: agent}
+      learnMessage.data = { model: agentChoice}
       learnMessage.bbid = ''
       storeAccount.sendMessageHOP(learnMessage)
     }
@@ -86,6 +95,16 @@ import { accountStore } from '@/stores/accountStore.js'
     background-color: green;
     color: white;
     font-weight: bold;
+  }
+
+  .blink_me {
+    animation: blinker 2s linear infinite;
+  }
+
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
   }
 }
 

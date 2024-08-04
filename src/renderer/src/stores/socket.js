@@ -50,7 +50,6 @@ export const useSocketStore = defineStore({
     },
     onSocketMessage (evt) {
       // console.log('ui socket')
-      // console.log(evt)
       // we parse the json that we receive
       var received = JSON.parse(evt.data)
       // console.log(received)
@@ -96,16 +95,12 @@ export const useSocketStore = defineStore({
       // this.autoReconnect()
     },
     onSocketClose (evt) {
-      console.log('close socket')
-      console.log(evt)
       this.connection_loss = true
       // this.websocket.close()
       // this.autoReconnect()
     },
     autoReconnect () {
        function socketReconnect () {
-        console.log(this.connection_ready)
-        console.log('check if socket existigs now')
         if (this.connection_ready === undefined || this.connection_ready === false) {
           const sockets_bay_url = `wss://127.0.0.1:9888` // `wss://165.227.244.213:9888` // `wss://127.0.0.1:9888`
           this.websocket = new WebSocket(sockets_bay_url)
@@ -113,15 +108,11 @@ export const useSocketStore = defineStore({
           this.websocket.onmessage = this.onSocketMessage
           this.websocket.onerror = this.onSockerError
           this.websocket.onclose = this.onSocketClose
-          console.log('after reattempt')
-          console.log(this.connection_ready)
           if (this.connection_ready === true) {
-            console.log('pass --true now')
             this.connection_error = false
             this.connection_loss = false
           }
         } else {
-          console.log('connection restabished')
           this.connection_error = false
           this.connection_loss = false
         }

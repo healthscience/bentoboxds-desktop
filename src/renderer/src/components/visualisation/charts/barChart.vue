@@ -1,6 +1,6 @@
 <template>
   <Bar
-    id="my-chart-id"
+    id="bar-chart-id"
     :options="chartOptions"
     :data="props.chartData"
   />
@@ -40,6 +40,7 @@ const props = defineProps({
   */
   const chartOptions = computed(() => {
     return {
+      type: 'bar',
       responsive: true,
       maintainAspectRatio: false,
       options: {
@@ -54,6 +55,9 @@ const props = defineProps({
                quarter: 'MMM YYYY'
               }
             }
+          },
+          y: {
+            beginAtZero: true
           }
         }
       }
@@ -62,5 +66,16 @@ const props = defineProps({
 </script>
 
 <style scoped>
+
+
+@media (min-width: 1024px) {
+
+  #bar-chart-id {
+    display: relative;
+    height: 90%;
+    width: 90%;
+  }
+
+}
 
 </style>

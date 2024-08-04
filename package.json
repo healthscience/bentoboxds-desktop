@@ -1,6 +1,6 @@
 {
   "name": "bentoboxds",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "author": "aboynejames",
   "private": true,
   "main": "./out/main/index.js",
@@ -38,6 +38,7 @@
     "pinia": "^2.0.28",
     "vue": "^3.4.27",
     "vue-chartjs": "^5.2.0",
+    "vue-date-picker": "^2.5.0",
     "vue-dragscroll": "^4.0.5",
     "vue-i18n": "^9.2.2",
     "vue-resizable": "^2.1.7",

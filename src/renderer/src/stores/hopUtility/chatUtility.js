@@ -120,7 +120,8 @@ class ChatUtility {
         vistoolsstatus: { active: false },
         scalezoom: 1,
         location: {},
-        chartstyle: 'line'
+        chartstyle: 'line',
+        legends: true
       }
     return boxSettings
   }

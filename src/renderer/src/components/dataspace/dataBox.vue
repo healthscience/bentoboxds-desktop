@@ -30,9 +30,10 @@
         </button>
       </template>
       <template #body>
-        <space-upload v-if="uploadStatus === true"></space-upload>
+        <space-upload v-if="uploadStatus === true && joinNXPStatus !== true"></space-upload>
         <rest-upload v-if="restStatus === true"></rest-upload>
         <csv-preview v-if="storeLibrary.csvpreviewLive === true"></csv-preview>
+        <image-preview v-if="storeLibrary.imagepreviewLive === true"></image-preview>
         <div v-if="libraryStatus === true">
           <network-library></network-library>
         </div>
@@ -52,10 +53,11 @@ import ModalData from '@/components/dataspace/datamodal/dataModal.vue'
 import SpaceUpload from '@/components/dataspace/upload/uploadSpace.vue'
 import RestUpload from '@/components/dataspace/upload/restUpload.vue'
 import CsvPreview from '@/components/dataspace/upload/csvPreview.vue'
+import ImagePreview from '@/components/dataspace/upload/imagePreview.vue'
 import NetworkLibrary from '@/components/library/index.vue'
 import LibraryexpView from '@/components/dataspace/libraryNXPView.vue'
 import NewnxpView from '@/components/dataspace/newnxpView.vue'
-import JoinnxpView from '@/components/dataspace/joinnxpView.vue'
+import JoinnxpView from '@/components/library/contracts/join/joinnxpView.vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { libraryStore } from '@/stores/libraryStore.js'
@@ -77,6 +79,10 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
   const uploadStatus = computed(() => {
     return storeLibrary.uploadStatus
+  })
+
+  const joinNXPStatus = computed(() => {
+    return  storeLibrary.joinNXP
   })
 
   const restStatus = computed(() => {
@@ -183,6 +189,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
       background-color: rgb(113, 172, 114);
       border: 1px solid green;
     }
+
   }
 
 </style>

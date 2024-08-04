@@ -1,5 +1,5 @@
 <template>
-  <div id="experiment-builder-header">Module Builder</div>{{ storeLibrary.moduleNxpActive }}ii
+  <div id="experiment-builder-header">Module Builder</div>
   <div id="experiment-holder">
     <div id="modules-available"
       v-on:dragover.prevent
@@ -103,7 +103,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
         }
       }
     } else {
-      console.log('dro ref is true')
       handleRefDrop(event, targetContainer)
     }
   }
@@ -156,6 +155,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
   #modules-available {
     display: grid;
     grid-template-columns: 1fr;
+    align-items: end;
     border: 1px solid lightblue;
     padding: 2em;
   }

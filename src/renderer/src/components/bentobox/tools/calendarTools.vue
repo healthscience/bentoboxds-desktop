@@ -71,12 +71,14 @@
 
 <script setup>
 import { DateTime, Interval } from 'luxon'
-import { ref, onMounted, onBeforeMount, shallowRef } from 'vue'
+import { ref, computed, onMounted, onBeforeMount, shallowRef } from 'vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { libraryStore } from '@/stores/libraryStore.js'
+import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
   const storeAI = aiInterfaceStore()
   const storeLibrary = libraryStore()
+  const storeBentobox = bentoboxStore()
 
   const props = defineProps({
     bboxid: String
@@ -101,6 +103,11 @@ import { libraryStore } from '@/stores/libraryStore.js'
   onBeforeMount(() => {
     const now = DateTime.now()
     boxDate.value = now
+  })
+
+  /* computed */
+  const tidyOp = computed(() => {
+   return libraryStore.tidyOption
   })
 
   /* methods */
@@ -128,7 +135,9 @@ import { libraryStore } from '@/stores/libraryStore.js'
 const handleDate = () => {
   let dateChange = boxDate.value
   // now change date
-  mutDate.value = DateTime.fromJSDate(dateChange).toMillis()
+  let timeCaptured = DateTime.fromJSDate(dateChange)
+  let startDay = timeCaptured.startOf('day')
+  mutDate.value = startDay.toMillis()
 }
 
   const updateHOPquery = () => {
@@ -136,51 +145,65 @@ const handleDate = () => {
     // what time period is active, single, pick or range? Or update via open data settings?
     let hopTime = []
     if (selectedTimeBundle.value === 'single') {
-      // make luxton time object
-      let luxTime = DateTime.now(mutDate.value)
-      // boxDate.value = luxTime
-      hopTime.push(luxTime.toMillis())
+      let startDay = mutDate.value
+      hopTime.push(startDay)
     } else if (selectedTimeBundle.value === 'range') {
       // need to expand our range
       let i = Interval.fromDateTimes(boxDaterange.value[0], boxDaterange.value[1]).splitBy({ day: 1 })
       // let arryDates = i.map(d => d.start)
       for (let date of i) {
-        let luxTime = DateTime.local(date)
-        hopTime.push(luxTime.toMillis())
+        let luxTime = date // DateTime.local(date)
+        hopTime.push(date.e.ts)
       }
     } else if (selectedTimeBundle.value === 'multi') {
       for (let date of boxDaterange.value) {
-        let luxTime = DateTime.local(date)
-        hopTime.push(luxTime.toMillis())
+        let luxTime =  DateTime.fromJSDate(date)
+        let startDay = luxTime.startOf('day')
+        hopTime.push(startDay.toMillis())
       }
     }
-    
     // get the library contracts
     storeAI.prepareLibrarySummary(props.bboxid)
     // no summary if already save  NEED other way to set contect
     // what updates are there moduels?  Device/source, compute, vis controls or settings?
     let moduleUpdate = {}
     let computeChanges = {}
-    // controls
-    if (selectedTimeBundle.value === 'single') {
-      computeChanges.controls = { date: mutDate.value, rangedate: [mutDate.value]}
-    } else if (selectedTimeBundle.value === 'range') {
-      let timeMills = []
-      for (let tm of boxDaterange.value) {
-        let tmm = DateTime.fromJSDate(tm).toMillis()
-        timeMills.push(tmm)
+    let selectedDevice = ''
+    let currentYaxis = []
+    if (storeBentobox.openDataControls[props.bboxid] !== undefined) {
+      if (storeBentobox.openDataControls[props.bboxid].yaxis.length > 0) {
+        for (let ya of storeBentobox.openDataControls[props.bboxid].yaxis) {
+          currentYaxis.push(ya)
+        }
+        // controls
+        if (selectedTimeBundle.value === 'single') {
+          let timeMills = hopTime
+          computeChanges.controls = { device: selectedDevice, yaxis: currentYaxis, date: timeMills[0], rangedate: timeMills, tidy: tidyOp.value, category: false }
+        } else if (selectedTimeBundle.value === 'range') {
+          let timeMills = hopTime
+          computeChanges.controls = { device: selectedDevice, yaxis: currentYaxis, date: timeMills[0], rangedate: timeMills, tidy: tidyOp.value, category: false  }
+        } else if (selectedTimeBundle.value === 'multi') {
+          let timeMills = hopTime
+          computeChanges.controls = { device: selectedDevice, yaxis: currentYaxis, date: timeMills[0], rangedate: timeMills, tidy: tidyOp.value, category: false }
+        }
       }
-      computeChanges.controls = { date: mutDate.value, rangedate: timeMills }
-    } else if (selectedTimeBundle.value === 'multi') {
-      let timeMills = []
-      for (let tm of boxDaterange.value) {
-        let tmm = DateTime.fromJSDate(tm).toMillis()
-        timeMills.push(tmm)
+    } else {
+      // controls
+      if (selectedTimeBundle.value === 'single') {
+        let timeMills = hopTime
+        computeChanges.controls = { device: selectedDevice, date: timeMills[0], rangedate: timeMills, tidy: tidyOp.value, category: false }
+      } else if (selectedTimeBundle.value === 'range') {
+        let timeMills = hopTime
+        computeChanges.controls = { device: selectedDevice, date: timeMills[0], rangedate: timeMills, tidy: tidyOp.value, category: false  }
+      } else if (selectedTimeBundle.value === 'multi') {
+        let timeMills = hopTime
+        computeChanges.controls = { device: selectedDevice, date: timeMills[0], rangedate: timeMills, tidy: tidyOp.value, category: false }
       }
-      computeChanges.controls = { date: mutDate.value, rangedate: timeMills }
     }
+
     // any settings changes?
     moduleUpdate.compute = computeChanges
+    // prepare HOPquery
     let entityID = Object.keys(storeAI.boxLibSummary[props.bboxid].data)
     let HOPcontext = {}
     HOPcontext.entityUUID = storeAI.boxLibSummary[props.bboxid].data[entityID[0]].shellID
@@ -195,9 +218,6 @@ const handleDate = () => {
     updateECS.changes = moduleUpdate
     HOPcontext.update = updateECS
     // close the calendar options and dispay date summary selected
-    // console.log('update time')
-    // console.log(moduleUpdate.compute)
-    // console.log(HOPcontext)
     storeLibrary.updateHOPqueryContracts(HOPcontext)
     setDateStatus.value = false
   }
@@ -205,19 +225,22 @@ const handleDate = () => {
   const setShiftTimeData = (seg) => {
     if (seg.text.word === '+day') {
       let dateNew = DateTime.fromJSDate(boxDate.value)
-      let updateDate = dateNew.plus({ days: 1 })
+      let startDay = dateNew.startOf('day')
+      let updateDate = startDay.plus({ days: 1 })
       boxDate.value = updateDate.toJSDate()
     } else if (seg.text.word === '-day') {
-      let updateDate = DateTime.fromJSDate(boxDate.value).minus({ days: 1 })
+      let dateNew = DateTime.fromJSDate(boxDate.value)
+      let startDay = dateNew.startOf('day')
+      let updateDate = startDay.minus({ days: 1 })
       boxDate.value = updateDate.toJSDate()
     } else if (seg.text.word === '+week') {
-        let updateDate = DateTime.fromJSDate(boxDate.value).minus({ weeks: 1 })
+        let updateDate = DateTime.fromJSDate(boxDate.value).plus({ weeks: 1 })
         boxDate.value = updateDate.toJSDate()
     } else if (seg.text.word === '-week') {
         let updateDate = DateTime.fromJSDate(boxDate.value).minus({ weeks: 1 })
         boxDate.value = updateDate.toJSDate()
     } else if (seg.text.word === '+year') {
-        let updateDate = DateTime.fromJSDate(boxDate.value).minus({ year: 1 })
+        let updateDate = DateTime.fromJSDate(boxDate.value).plus({ year: 1 })
         boxDate.value = updateDate.toJSDate()
     } else if (seg.text.word === '-year') {
         let updateDate = DateTime.fromJSDate(boxDate.value).minus({ year: 1 })

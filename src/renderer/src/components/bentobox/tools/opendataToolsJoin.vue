@@ -55,7 +55,7 @@
             <select class="select-category-id" id="category-mapping-build" v-model="storeLibrary.joinOptions.category">
               <option value="please" selected="">Please select</option>
               <option v-for="catL in props.setOptions.category">
-                {{ catL }}
+                {{ catL.category }}
               </option>
             </select>
           </div>

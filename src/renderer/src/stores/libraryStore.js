@@ -35,6 +35,7 @@ export const libraryStore = defineStore('librarystore', {
     peerLibraryNXP: [],
     newRefcontractForm: {},
     genesisModules: [],
+    liveBBox: '',
     saveSuccessnxp: false,
     newnxp: {
       questionLive: [],
@@ -67,7 +68,11 @@ export const libraryStore = defineStore('librarystore', {
       columns: [],
       devicecolumns: [],
       path: '',
-      device: []
+      device: [],
+      deviceTable: '',
+      devicetableSelected: '',
+      deviceSelected: '',
+      deviceID: ''
     },
     newPackagingForm:
     {
@@ -75,6 +80,8 @@ export const libraryStore = defineStore('librarystore', {
       type: '',
       filename: '',
       path: '',
+      tableQuery: '',
+      sourcedevicecol: '',
       sqlitetablename: '',
       baseapi: '',
       jsonpath: '',
@@ -87,6 +94,9 @@ export const libraryStore = defineStore('librarystore', {
       tidyCount: 0,
       category: {},
       tidy: {},
+      deviceQuery: '',
+      firmwareQuery: '',
+      deviceColumnID: '',
       devicesList: [],
       deviceColumns: [],
       device:
@@ -109,6 +119,7 @@ export const libraryStore = defineStore('librarystore', {
     fileBundleList: [],
     linesLimit: {},
     csvpreviewLive: false,
+    imagepreviewLive: false,
     lineBundle:
     {
       cnumber: '',
@@ -138,6 +149,7 @@ export const libraryStore = defineStore('librarystore', {
       firmware: '',
       mobileapp: ''
     },
+    tidyOption: false,
     sourceDataSelected: false,
     newLists: {},
     newListsave: {},
@@ -156,63 +168,116 @@ export const libraryStore = defineStore('librarystore', {
       for (let contract of defaultConts) {
         this.sendMessage(contract)
       }
+      // send message to HOP to update live refcontracts i.e. will be empty of first time use
+      this.refreshPublibary()   
+    },
+    refreshPublibary () {
+      // message to update master lib in HOP itself  ( TODO auto update per change)
+      // put in timier for now
+      setTimeout(() => {
+        let messageHOP = {}
+        messageHOP.type = 'library'
+        messageHOP.action = 'contracts'
+        messageHOP.reftype = 'refresh-publiclibrary'
+        messageHOP.privacy = 'public'
+        messageHOP.task = 'GET'
+        messageHOP.data = {}
+        this.sendSocket.send_message(messageHOP)
+      }, "2000")
     },
     startLibrary () {
       // ask network library for contracts via HOP
       this.sendMessage('get-library')
       this.sendMessage('get-results')
     },
+    joinNXPprocess (message) {
+      // need to query source table?? (just to check?) need to query devices to get list personal to peer
+      this.sendMessage(message)
+      // send message to HOP to get columsn for this table
+      /* let messageHOP = {}
+      messageHOP.type = 'library'
+      messageHOP.action = 'source'
+      messageHOP.reftype = message.data.type
+      messageHOP.privacy = 'private'
+      messageHOP.task = 'GET' */
+      // messageHOP.data = { query: 'devices', db: storeLibrary.describeSource.path, table: tableChoice.value.name }
+      //storeLibrary.sendMessage(messageHOP)
+    },
+    confrimAddPublicLibrary (message) {
+      let messageHOP = {}
+      messageHOP.type = 'library'
+      messageHOP.action = 'contracts'
+      messageHOP.reftype = 'confirm-add'
+      messageHOP.privacy = 'public'
+      messageHOP.task = 'PUT'
+      messageHOP.data = message
+     this.sendSocket.send_message(messageHOP)
+    },
     processReply (message, questionStart) {
-      // console.log('library process')
-      // console.log(message)
       if (message.action === 'save-file') {
         this.describeSource = message.data
         // set message
-        if (message.task === 'sqlite') {
-          // need to extract out to chat prepare utility TODO
-					this.storeAI.qcount++
-					let question = {}
-					question.type ='bbai'
-					question.reftype = 'ignore'
-					question.action = 'question'
-					question.data = { "count": this.storeAI.qcount, "text": "Upload of file", "active": true, "time": new Date() }
-					let hashQuestion = hashObject(question.data + message.data.path)
-					// extract headers assume first line
-					let headerLocal = {}
-          headerLocal[hashQuestion] = message.data.columns // localHeaderExtract(splitLines[0])
+        if (this.joinNXP !== true) {
+          if (message.task === 'sqlite') {
+            // is this part of joining a NXP module?
 
-					question.bbid = hashQuestion
-					let bbReply = {}
-					bbReply.type = 'bbai-reply'
-					bbReply.data = { text: 'Summary of tables in SQLite file, heading are:', filedata: { type: 'sqlite', file: message.data.path, columns: 'one', grid: [] }, prompt: 'Select data table to chart:', options: headerLocal[hashQuestion], }
-					bbReply.bbid = hashQuestion
-					let newPair = {}
-					newPair.question = question
-					newPair.reply = bbReply
-					this.storeAI.historyPair[this.storeAI.chatAttention].push(newPair)
-          this.newDatafile.columns = message.data.columns
-          this.newDatafile.path = 'sqlite'
-          this.newDatafile.file = message.data.path
+            // need to extract out to chat prepare utility TODO
+            this.storeAI.qcount++
+            let question = {}
+            question.type ='bbai'
+            question.reftype = 'ignore'
+            question.action = 'question'
+            question.data = { "count": this.storeAI.qcount, "text": "Upload of file", "active": true, "time": new Date() }
+            let hashQuestion = hashObject(question.data + message.data.path)
+            // extract headers assume first line
+            let headerLocal = {}
+            headerLocal[hashQuestion] = message.data.columns
+            question.bbid = hashQuestion
+            let bbReply = {}
+            bbReply.type = 'bbai-reply'
+            bbReply.data = { text: 'Summary of tables in SQLite file, heading are:', filedata: { type: 'sqlite', file: message.data.path, columns: 'one', grid: [] }, prompt: 'Select data table to chart:', options: headerLocal[hashQuestion], }
+            bbReply.bbid = hashQuestion
+            let newPair = {}
+            newPair.question = question
+            newPair.reply = bbReply
+            this.storeAI.historyPair[this.storeAI.chatAttention].push(newPair)
+            this.newDatafile.columns = message.data.columns
+            this.newDatafile.path = 'sqlite'
+            this.newDatafile.file = message.data.path
+          } else {
+            this.libraryMessage = message.data
+            this.newPackagingForm.apicolumns = message.data.data.headerinfo.splitwords
+            this.newDatafile.columns = message.data.columns
+            this.newDatafile.path = 'sqlite'
+            this.newDatafile.file = message.data.path
+          }
         } else {
-          this.libraryMessage = message.data
-          this.newPackagingForm.apicolumns = message.data.data.headerinfo.splitwords
-          this.newDatafile.columns = message.data.columns
-          this.newDatafile.path = 'sqlite'
-          this.newDatafile.file = message.data.path
+          // package of join source and device data
+          console.log('join info package on queries')
+          // this.joinOptions.yaxis = message.data.tables
+          // this.joinOptions.yaxis = ['time']
         }
       } else if (message.action === 'source') {
         if (message.reftype === 'sqlite') {
+          if (this.joinNXP === true) {
+            this.devicesJoin = message.data.devices
+          }
+          // set open data x and y axis , category, device etc.
+          this.storeBentoBox.openDataSettings[this.liveBBox] = {}
           // what is data
           let desribesD = Object.keys(message.data)
           for (let dd of desribesD) {
             if (dd === 'headers') {
               this.newDatafile.columns = message.data.headers
+              this.storeBentoBox.openDataSettings[this.liveBBox].yaxis = this.newDatafile.columns
             }
             if (dd === 'tables') {
               this.newDatafile.devicecolumns = message.data.tables.headers
+              this.storeBentoBox.openDataSettings[this.liveBBox].yaxis = this.newDatafile.devicecolumns
             }
             if (dd === 'devices') {
               this.newDatafile.device = message.data.devices
+              this.storeBentoBox.openDataSettings[this.liveBBox].devices = this.newDatafile.device
             }
           }
         }
@@ -307,11 +372,12 @@ export const libraryStore = defineStore('librarystore', {
       this.storeBentoBox.openDataSettings[bboxid] = datatypeContext
       // this.openDataSettings[bboxid] = extractedSettings
     },
-    prepareJoinNXPMessage (genContract, settings) {
-      //let updateJoinSettings = this.utilLibrary.updateSettings(genContract, settings)
+    prepareJoinNXPMessage (genContract, setControls, settingsInfo) {
+      // let updateJoinSettings = this.utilLibrary.updateSettings(genContract, settings)
+      setControls.opendata = settingsInfo
       let updateJoinSettings = {}
       updateJoinSettings.genesisnxp = genContract.value
-      updateJoinSettings.updates = settings
+      updateJoinSettings.updates = setControls
       let libMessageout = {}
       libMessageout.type = 'library'
       libMessageout.action = 'contracts'
@@ -352,12 +418,23 @@ export const libraryStore = defineStore('librarystore', {
       let reply = {}
       reply.time = new Date()
       reply.type = 'experiment'
-      reply.data = {}
+      reply.data = contract.id
       pairBB.reply = reply
-      this.storeAI.historyPair[this.storeAI.chatAttention] = []
+      // this.storeAI.historyPair[this.storeAI.chatAttention] = []
       this.storeAI.historyPair[this.storeAI.chatAttention].push(pairBB)
-      // console.log('view jioned NXP')
-      // console.log(libMessageout)
+      this.storeAI.chatBottom++
+      this.sendSocket.send_message(libMessageout)
+    },
+    prepareLibraryViewFromContract (bbid, contractID) {
+      let contractQuery = this.utilLibrary.matchNXPcontract(contractID, this.peerLibraryNXP)
+      let libMessageout = {}
+      libMessageout.type = 'library'
+      libMessageout.action = 'contracts'
+      libMessageout.reftype = 'experiment'
+      libMessageout.privacy = 'private'
+      libMessageout.task = 'assemble'
+      libMessageout.data = contractQuery
+      libMessageout.bbid = bbid
       this.sendSocket.send_message(libMessageout)
     },
     prepareGenesisModContracts (message) {
@@ -395,8 +472,6 @@ export const libraryStore = defineStore('librarystore', {
       aiMessageout.task = 'update-hopquery'
       aiMessageout.data = HOPq
       aiMessageout.bbid = HOPq.bbid
-      // console.log('LIB--update QUERY out')
-      // console.log(aiMessageout)
       this.sendSocket.send_message(aiMessageout)
       this.storeAI.helpchatHistory.push(aiMessageout)
       this.storeAI.qcount++

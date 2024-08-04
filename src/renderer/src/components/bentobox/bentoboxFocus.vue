@@ -18,7 +18,9 @@
         <h3>Expanded</h3>
       </template>
       <template #body>
-        <bento-box :bboxid="props.bboxid" :bbwidth="'90vw'"></bento-box>
+        <div id="focus-bentobox">
+          <bento-box :bboxid="props.bboxid" :bbwidth="'90vw'"></bento-box>
+        </div>
       </template>
       <template #footer>
       </template>
@@ -70,6 +72,12 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
     #return-modal-close {
       justify-content: right;
+    }
+
+    #focus-bentobox {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr;
     }
 
 

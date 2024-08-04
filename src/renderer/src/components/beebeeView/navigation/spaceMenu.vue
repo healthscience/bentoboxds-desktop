@@ -126,6 +126,8 @@ const deleteSpaceHistory = (space) => {
   delBentoBoxsetting.task = 'delete'
   delBentoBoxsetting.data = space
   delBentoBoxsetting.bbid = ''
+  console.log('dleelel sapce')
+  console.log(delBentoBoxsetting)
   storeAI.sendMessageHOP(delBentoBoxsetting)
 }
 </script>

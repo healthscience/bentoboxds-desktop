@@ -1,6 +1,6 @@
 <template>
   <div id="visualise-nxp-build">
-    <header>VISUALISE BUILDER:</header> {{ livePackaging }}
+    <header>VISUALISE BUILDER:</header>
     <div id="prime-visualise-build" v-if="props.refFocus === 'visualise'">
       <header>Type of visualisation:</header>
       <div  v-if="refContractVisualise">
@@ -16,7 +16,7 @@
           Contract:
           <input v-model="visualRefCont" placeholder="Reference Contract">
           <button type="button" class="btn" @click="refContractLookup()">Lookup</button>
-          <opendata-tool :bboxid="'genesis-123579'"></opendata-tool>
+          <!--<opendata-tool :bboxid="'genesis-123579'"></opendata-tool>-->
           <!--<chart-builder v-if="type === 'chart.js'" :shellID="shellID" :moduleCNRL="moduleCNRL" :moduleType="moduleType" :mData="mData"></chart-builder>-->
         </div>
       </div>
@@ -30,7 +30,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import OpendataTool from '@/components/bentobox/tools/opendataToolsBuild.vue'
+// import OpendataTool from '@/components/bentobox/tools/opendataToolsBuild.vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 
 

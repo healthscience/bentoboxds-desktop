@@ -18,7 +18,7 @@
       </div>
       <component :is="contractformType.form" ></component>
       <div class="api-form-item">
-        <button class="submit-save" type="submit"  id="save-new-refcontract" @click.prevent="saveRefContract()">Save contract</button>
+        <button class="submit-save" type="submit"  id="save-new-refcontract" @click.prevent="saveRefContract()">Save reference contract</button>
         <!-- <button class="submit" type="submit" id="check-new-refcontract" @click.prevent="checkRefContract()">Check Contract</button>
         <button class="submit" type="submit" id="network-library-submit" @click.prevent="networkLibraryRefContract()" >Submit to network library</button> -->
       </div>
@@ -81,8 +81,6 @@ const formContribute = [
     } else if (contractformType.value.type === 'visualise') {
       refContract.data = storeLibrary.newVisualiseForm
     }
-    console.log('save ref contract new')
-    console.log(refContract)
     storeLibrary.sendMessage(refContract)
     // reset the form data
     if (contractformType.value.type === 'question') {

@@ -32,22 +32,21 @@ import { ref, computed } from 'vue'
   const sourceSelect = () => {
     if (fileType.value === 'csv') {
       storeLibrary.uploadStatus = !storeLibrary.uploadStatus
-      storeLibrary.sourceDataSelected = !storeLibrary.sourceDataSelected
+      storeLibrary.sourceDataSelected = true
       storeLibrary.newPackagingForm.type = 'csv'
     } else if (fileType.value === 'json') {
       storeLibrary.uploadStatus = !storeLibrary.uploadStatus
-      storeLibrary.sourceDataSelected = !storeLibrary.sourceDataSelected
+      storeLibrary.sourceDataSelected = true
       storeLibrary.newPackagingForm.type = 'json'
     } else if (fileType.value === 'sqlite') {
       storeLibrary.uploadStatus = !storeLibrary.uploadStatus
-      storeLibrary.sourceDataSelected = !storeLibrary.sourceDataSelected
+      storeLibrary.sourceDataSelected = true
       storeLibrary.newPackagingForm.type = 'sqlite'
     } else if (fileType.value === 'rest') {
-      storeLibrary.restStatus = !storeLibrary.restStatus
+      storeLibrary.restStatus = true
       // storeLibrary.sourceDataSelected = !storeLibrary.sourceDataSelected
       storeLibrary.newPackagingForm.type = 'rest'
     }
-    console.log(storeLibrary.newPackagingForm.type)
   }
 
 </script>

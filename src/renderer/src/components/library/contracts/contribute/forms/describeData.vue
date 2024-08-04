@@ -21,7 +21,17 @@
         :key='col.id'
       >
         <div class="col-name">
-          <h3>{{ col.name }}</h3>
+          <div class="desribe-source-cols" v-if="col.name">
+            <div class="source-data-assess">
+              {{ col.name }}
+            </div>
+            <div class="source-data-assess">
+              <button id="id-column-device" :class="{ active: deviceCol.name === col.name }" @click=identifyDeviceCol(col)>device</button>
+            </div>
+          </div>
+          <div v-else >
+          {{ col }}
+          </div>
           <div class="list-group" :list="storeLibrary.newLists[col.cid]" group="matchdt" 
             v-on:dragover.prevent
             v-on:drop="handleDrop($event, 'match-column', col.cid)"
@@ -43,6 +53,8 @@ import { ref, computed } from 'vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 
   const storeLibrary = libraryStore()
+
+  let deviceCol = ref('')
 
   /* computed */
   const handleDragStart = (event, itemData) => {
@@ -77,8 +89,11 @@ import { libraryStore } from '@/stores/libraryStore.js'
       storeLibrary.newPackagingForm.apicolumns = storeLibrary.newDatafile.columns
       storeLibrary.newPackagingForm.apicolHolder = storeLibrary.newListsave
     }
-    console.log('packaing new forming')
-    console.log(storeLibrary.newPackagingForm)
+  }
+
+  const identifyDeviceCol = (col) => {
+    deviceCol.value = col
+    storeLibrary.newPackagingForm.sourcedevicecol = col
   }
 
 </script>
@@ -97,6 +112,13 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
   #match-datatypes {
     border: 2px solid green;
+  }
+
+  .desribe-source-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-size: 1.2em;
+    font-weight: bold;
   }
 
   .col-name {
@@ -146,6 +168,10 @@ import { libraryStore } from '@/stores/libraryStore.js'
     border: 2px solid orange;
     background-color: #E6ECEC;
     font-size: 1.2em;
+  }
+
+  .active {
+    background-color: rgb(113, 172, 114);
   }
 }
 </style>

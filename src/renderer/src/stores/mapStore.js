@@ -1,110 +1,78 @@
 import { defineStore } from 'pinia'
+import { bentoboxStore } from "@/stores/bentoboxStore.js"
+import VisPositionUtility from '@/stores/hopUtility/positionUtility.js'
 
-
-export const mapStore = defineStore('mapstore', {
+export const mapminiStore = defineStore('mapministore', {
   state: () => ({
-
-  })
-})
-
-/*
-import Vue from 'vue'
-import VisPositionUtility from '@/mixins/positionUtility.js'
-const PositionUtility = new VisPositionUtility()
-
-export default {
-  state: {
+    storeBentoBox: bentoboxStore(),
     liveSpaceCoord: {},
     c: {},
-    ctx: PositionUtility,
+    ctx: new VisPositionUtility(),
     spaceClick: true,
     minmapClick: false,
     mouseClickCount: 0
-  },
-  getters: {
-  },
-  mutations: {
-    SET_CANVAS_SPACE: (state, inVerified) => {
-      state.ctx.setCanvas(inVerified)
+  }),
+  actions: {
+    // since we rely on `this`, we cannot use an arrow function
+    setMapstyle (style) {
+      console.log(style)
     },
-    SET_RESET_MMAP: (state, inVerified) => {
-      state.ctx.clearMMap()
+    actionSetminmap (update) {
+      this.ctx.setCanvas(update)
     },
-    SET_POSITION_MOUSE: (state, inVerified) => {
+    actionResetMmap () {
+      this.ctx.clearMMap()
+    },
+    actionPostionCoordMouse (update) {
       // has the minimouse area been clicked?
-      state.ctx.mousePointer(inVerified)
+      this.ctx.mousePointer(update)
     },
-    SET_SPACEPOSITION_STATE: (state, inVerified) => {
-      let positionTrack = state.ctx.startPositionSpace(inVerified.nxp, inVerified.coord, inVerified.type)
-      Vue.set(state.liveSpaceCoord, inVerified.nxp, positionTrack)
-      // update the minimap
-      state.ctx.miniMapLocations()
+    actionPostionCoord (spaceID) {
+      let boxesInspace = Object.keys(this.storeBentoBox.locationBbox[spaceID])
+      for (let bbox of boxesInspace) {
+        // extract current coords
+        let currentCoord = {}
+        currentCoord.bboxid = spaceID
+        currentCoord.coord = this.storeBentoBox.locationBbox[spaceID][bbox]
+        currentCoord.type = 'saved'
+        // keep track of position in bento space
+        this.ctx.startPositionSpace(currentCoord.bboxid, currentCoord.coord, currentCoord.type)
+        // Vue.set(this.liveSpaceCoord, update.nxp, positionTrack)
+        // update the minimap
+        this.ctx.miniMapLocations()
+      }
     },
-    SET_SPACEPOSITION_REFRESH: (state, inVerified) => {
-      console.log(inVerified)
-    },
-    SET_UPDATEMMAP_POSITION: (state, inVerified) => {
-      let updateCOORD = state.ctx.updateMMapSpace(inVerified)
-      let updateXY = {}
-      updateXY.x = updateCOORD.x
-      updateXY.y = updateCOORD.y
-      Vue.set(state.liveSpaceCoord, inVerified.nxp, updateXY)
-    },
-    SET_REMOVEMMAP_POSITION: (state, inVerified) => {
-      // let updateCOORD = state.ctx.removeMMapSpace(inVerified)
-      state.ctx.removeMMapSpace(inVerified)
-      /* let updateXY = {}
-      updateXY.x = updateCOORD.x
-      updateXY.y = updateCOORD.y
-      Vue.set(state.liveSpaceCoord, inVerified.nxp, updateXY) */ /*
-    },
-    SET_SCROLLTO_POSITION: (state, inVerified) => {
-      state.ctx.scrollTODashboard(inVerified)
-    },
-    SET_ZOOM_MAP: (state, inVerified) => {
-      state.ctx.setZoom(inVerified)
-    },
-    SET_CLEAR_POSITION: (state, inVerified) => {
-      let coordKeys = Object.keys(state.liveSpaceCoord)
-      const clearCoord = { ...state.liveSpaceCoord }
+    actionClearPosition () {
+      let coordKeys = Object.keys(this.liveSpaceCoord)
+      const clearCoord = { ...this.liveSpaceCoord }
       for (let ck of coordKeys) {
         delete clearCoord[ck]
       }
-    }
-  },
-  actions: {
-    actionSetminmap: (context, update) => {
-      context.commit('SET_CANVAS_SPACE', update)
     },
-    actionResetMmap: (context) => {
-      context.commit('SET_RESET_MMAP')
+    actionMMapMove (update) {
+      // context.rootState.activeScalevalue = 1
+      this.ctx.scrollTODashboard(update)
     },
-    actionPostionCoordMouse: (context, update) => {
-      context.commit('SET_POSITION_MOUSE', update)
+    actionDashBmove (update) {
+      let updateCOORD = this.ctx.updateMMapSpace(update)
+      let updateXY = {}
+      updateXY.x = updateCOORD.x
+      updateXY.y = updateCOORD.y
+      // Vue.set(this.liveSpaceCoord, inVerified.nxp, updateXY) use
     },
-    actionPostionCoord: (context, update) => {
-      // keep track of position in bento space
-      context.commit('SET_SPACEPOSITION_STATE', update)
+    actionDashBRemove (update) {
+      // let updateCOORD = state.ctx.removeMMapSpace(inVerified)
+      this.ctx.removeMMapSpace(update)
+      /* let updateXY = {}
+      updateXY.x = updateCOORD.x
+      updateXY.y = updateCOORD.y
+      Vue.set(state.liveSpaceCoord, inVerified.nxp, updateXY) */
     },
-    actionClearPosition: (context, update) => {
-      context.commit('SET_CLEAR_POSITION', update)
+    actionZoomset (update) {
+      this.ctx.setZoom(update)
     },
-    actionMMapMove: (context, update) => {
-      context.rootState.activeScalevalue = 1
-      context.commit('SET_SCROLLTO_POSITION', update)
-    },
-    actionDashBmove: (context, update) => {
-      context.commit('SET_UPDATEMMAP_POSITION', update)
-    },
-    actionDashBRemove: (context, update) => {
-      context.commit('SET_REMOVEMMAP_POSITION', update)
-    },
-    actionZoomset: (context, update) => {
-      context.commit('SET_ZOOM_MAP', update)
-    },
-    actionRefreshminimap: (context, update) => {
-      context.commit('SET_SPACEPOSITION_REFRESH', update)
+    actionRefreshminimap (update) {
+      console.log(update)
     }
   }
-}
-*/
+})

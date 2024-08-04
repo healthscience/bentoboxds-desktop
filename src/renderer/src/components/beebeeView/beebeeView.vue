@@ -1,6 +1,10 @@
 <template>
   <div id="beebee-shaper">
     <div class="bento-history">
+      <div id="bento-ai-diary">
+        <button id="diary-button" @click="openBentoDiary()" :class="{ active: diaryActive === true }">Diary</button>
+
+      </div>
       <div class="history-buttons">
         <div class="history">
           <button @click="historyType('history')" class="button-chat-menu" v-bind:class="{ active: historyList === 'history' }">Chat</button>
@@ -17,37 +21,46 @@
         <beebee-chat></beebee-chat>
        </div>
        <bento-space></bento-space>
+       <bento-diary></bento-diary>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import ChatMenu from '@/components/beebeeView/navigation/chatMenu.vue'
 import SpaceMenu from '@/components/beebeeView/navigation/spaceMenu.vue'
 import BeebeeChat from '@/components/beebeehelp/chatInterface.vue'
 import BentoSpace from '@/components/bentospace/spaceTemplate.vue'
+import BentoDiary from '@/components/bentodiary/diaryTemplate.vue'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { computed } from 'vue'
 
-const storeAI = aiInterfaceStore()
-const storeBentobox = bentoboxStore()
+  const storeAI = aiInterfaceStore()
+  const storeBentobox = bentoboxStore()
+
+  let diaryActive = ref(false)
+
+  const historyActive = computed(() => {
+    return storeBentobox.historyActive
+  })
+
+  const historyList = computed(() => {
+    return storeAI.historyList
+  })
 
 
+  let historyType = (type) => {
+    storeAI.historyList = type
+    storeBentobox.historyActive = !storeBentobox.historyActive // true
+  }
 
-const historyActive = computed(() => {
-  return storeBentobox.historyActive
-})
+  const openBentoDiary = () => {
+    diaryActive.value = !diaryActive.value
+    storeAI.bentodiaryState = !storeAI.bentodiaryState
+  }
 
-const historyList = computed(() => {
-  return storeAI.historyList
-})
-
-
-let historyType = (type) => {
-  storeAI.historyList = type
-  storeBentobox.historyActive = !storeBentobox.historyActive // true
-}
 </script>
 
 <style scoped>
@@ -125,6 +138,11 @@ let historyType = (type) => {
       grid-template-rows: 1fr 1fr 10fr;
       margin-top: 8.5em;
       height: 60vh;
+    }
+
+    #bento-ai-diary {
+      margin-top: 2em;
+      margin-bottom: 2em;
     }
 
     .history-buttons {

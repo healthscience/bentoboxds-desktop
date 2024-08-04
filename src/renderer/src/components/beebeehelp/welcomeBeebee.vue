@@ -36,18 +36,26 @@
                 </div>
                 <bento-box :bboxid="commentaryBox"></bento-box>
               </div>
-            <div class="bb-commentary-spaces">
-              <div class="space-commentary-text">
-                Click on space for detailed commentary for that context.
+              <div class="bb-commentary-spaces">
+                <div class="space-commentary-text">
+                  Click on space for detailed commentary for that context.
+                </div>
+                <div class="space-container-buttons">
+                  <div class="space-list" v-for="sis in spaceList">
+                    <button
+                        class="space-commentary-button"  @click="spaceCommentary(sis)"> {{ sis.name }}
+                      </button>
+                    </div>
+                </div>
               </div>
-              <div class="space-container-buttons">
-                <div class="space-list" v-for="sis in spaceList">
-                  <button
-                      class="space-commentary-button"  @click="spaceCommentary(sis)"> {{ sis.name }}
-                    </button>
-                  </div>
-            </div>
-            </div>
+              <div class="bb-shortcuts">
+                <div class="shortcut-buttons-container">
+                  Shortcut links:
+                  <button class="shortcut-buttons" @click="openLibrary()">Library</button>
+                  <button class="shortcut-buttons" @click="openExperiments()">Experiments</button>
+                  <button class="shortcut-buttons" @click="uploadButton()">Upload</button>
+                </div>
+              </div>
           </div>
         </div>
         <div class="beebee">
@@ -97,7 +105,6 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   }
 
   const spaceCommentary = (spaceID) => {
-    console.log('agent review of this space')
     storeAI.bentospaceState = !storeAI.bentospaceState
     storeAI.liveBspace = spaceID
     // make button green
@@ -112,6 +119,19 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
       }
     }
     storeBentobox.spaceList = spaceLiveList
+  }
+
+  const uploadButton = () =>  {
+    storeAI.dataBoxStatus = true
+    storeLibrary.uploadStatus = true
+    storeLibrary.libraryStatus = false
+  }
+
+  const openExperiments = () => {
+    storeAI.dataBoxStatus = true
+    storeAI.uploadStatus = false
+    storeLibrary.libraryStatus = false
+    storeLibrary.libPeerview = true
   }
 
 </script>
@@ -173,6 +193,15 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   .space-list{
     display: inline;
     padding: 0.5em;
+  }
+
+  .bb-shortcuts {
+    margin: 1em;
+  }
+
+  .shortcut-buttons {
+    margin-left: 1em;
+    color: darkblue;
   }
 
  }

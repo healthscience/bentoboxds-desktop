@@ -61,7 +61,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       vistoolsstatus: { active: false },
       scalezoom: 1,
       location: {},
-      chartstyle: 'line'
+      chartstyle: 'line',
+      legends: true
     },
     liveFutureCollection: { active: false },
     visData: {},
@@ -73,13 +74,15 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     futureNumberData: {},
     beebeeChatLog: {},
     bentospaceState: false,
+    bentodiaryState: false,
     longPress: false,
     liveBspace: '',
     bentoboxList: { '91919191': [] },
     countNotifications: 0,
     notifList: [],
     boxLibSummary: {},
-    boxModelUpdate: {}
+    boxModelUpdate: {},
+    computeModuleLast: {}
   }),
   actions: {
     sendMessageHOP (message) {
@@ -250,6 +253,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
           pairBB.reply = received
           this.historyPair[this.chatAttention].push(pairBB)
         }
+      } else if (received.action === 'no-data') {
+        console.log('no data')
       } else {
         // match to question via bbid
         if (received.data) {
@@ -276,18 +281,17 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
                 vistoolsstatus: { active: false },
                 scalezoom: 1,
                 location: {},
-                chartstyle: 'line'
+                storeBentoboxstoreBentobox: 'line'
               } */
               this.storeBentoBox.devicesettings[received.bbid] = {}
               this.storeBentoBox.devicesettings[received.bbid] = this.storeBentoBox.settings
-              this.storeBentoBox.chartStyle[received.bbid] = 'line'
+              this.storeBentoBox.chartStyle[received.bbid] = this.boxSettings.chartstyle  // 'line'
             } else {
               let pairBB = {}
               pairBB.question = questionStart
               pairBB.reply = received
               // is the peer signed in?
               if (this.storeAcc.peerauth === false) {
-                console.log('not signed in')
               } else {
                 this.historyPair[this.chatAttention].push(pairBB)
                 this.storeBentoBox.boxToolStatus[received.bbid] = this.boxSettings
@@ -329,7 +333,27 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         this.chatBottom++
       } else if (received.action === 'warm-peer-new') {
         this.storeAcc.warmPeers.push(received.data)
+      } else if (received.action === 'network-publib-board') {
+        // create a notification accept public board and save?
       }
+    },
+    preparePublicConfirm (item) {
+      // produce a pair for the current chat
+      let newBBID = '23232'
+      let pairBB = {}
+      let question = {}
+      question.bbid = newBBID 
+      question.data = { active: true, text: 'Please confirm adding board to public library' }
+      pairBB.question = question
+      let reply = {}
+      reply.time = new Date()
+      reply.type = item.action
+      reply.data = { text: item.data }
+      reply.network = true
+      pairBB.reply = reply
+      this.historyPair[this.chatAttention].push(pairBB)
+      this.beginChat = true
+      this.chatBottom++
     },
     processPeerData (dataNetwork) {
       let matchBBID = dataNetwork.hop.bbid
@@ -350,6 +374,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.hopSummary.push({ HOPid: HOPshell, summary: dataSummary })
     },
     processHOPdata (dataHOP) {
+      // console.log('process IN HOP Data')
+      // console.log(dataHOP)
       // match input id to bbid
       // is the data for past or future or no data
       if (dataHOP.data.data === 'none') {
@@ -359,16 +385,18 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         this.dataBoxStatus = false
         // stil produce a bentobox
         let boxID = this.liveChatUtil.matchHOPbbid(dataHOP.context.dataprint.shell, this.bbidHOPid)
+        // update the latest compute module contract back from HOP
+        this.computeModuleLast[boxID] = dataHOP.context.tempComputeMod.info
         // set open data toolbar
         let opendataToolbar = this.liveChatUtil.setOpendataToolbar()
         this.storeBentoBox.boxToolStatus[boxID] = {}
         this.storeBentoBox.boxToolStatus[boxID] = opendataToolbar
         let pairBB = this.liveChatUtil.prepareChatQandA(boxID, matchSummary)        
         let hopDataChart = {}
-        hopDataChart.datasets = [ { label: 'datatype', data: [] } ]
+        hopDataChart.datasets = [ { label: 'datatype11', data: [] } ]
         hopDataChart.labels = []
         this.visData[boxID] = hopDataChart
-        this.storeBentoBox.setChartstyle(boxID, 'line')
+        this.storeBentoBox.setChartstyle(boxID, dataHOP.context.moduleorder.visualise.value.info.settings.visualise)
         // this.expandBentobox[boxID] = true
         this.beebeeChatLog[boxID] = true
         // feed the chat
@@ -377,11 +405,15 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       } else if (dataHOP.context.input.update !== 'predict-future') {
         this.dataBoxStatus = false
         let matchBBID = this.liveChatUtil.matchHOPbbid(dataHOP.data.context.shell, this.bbidHOPid)
+        // update the latest compute module contract back from HOP
+        if (dataHOP.context.tempComputeMod !== undefined) {
+          this.computeModuleLast[matchBBID] = dataHOP.context.tempComputeMod.info
+        }
         this.bentoboxList['space1'] = []
         // this.expandBentobox[matchBBID] = true
         this.beebeeChatLog[matchBBID] = true
         let hopDataChart = {}
-        hopDataChart.datasets = [ { label: 'datatype', data: dataHOP.data.data.chartPackage.datasets[0].data } ]
+        hopDataChart.datasets = dataHOP.data.data.chartPackage.datasets // [ { label: dataHOP.data.data.chartPackage.datasets[0].label, data: dataHOP.data.data.chartPackage.datasets[0].data } ]
         hopDataChart.labels = dataHOP.data.data.chartPackage.labels
         this.visData[matchBBID] = hopDataChart
         this.storeBentoBox.setChartstyle(matchBBID, dataHOP.context.moduleorder.visualise.value.info.settings.visualise)
@@ -442,13 +474,29 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
             this.boxLibSummary[boxid] = hi.summary.summary
           }
         } else {
-          this.boxLibSummary[boxid] = hi.summary.summary
+          if (hi.summary.summary === undefined) {
+            this.boxLibSummary[boxid] = hi.summary
+
+          } else {
+            this.boxLibSummary[boxid] = hi.summary.summary
+          }
         }
       }
-      let NXPcontract = this.boxLibSummary[boxid].data
+      // let NXPcontract = this.boxLibSummary[boxid].data
       let key = Object.keys(this.boxLibSummary[boxid].data)
-      let modulesContracts = NXPcontract[key].modules
-      let extractedOD = this.storeLibrary.utilLibrary.moduleExtractSettings(modulesContracts)
+      // now update compute contract to latest one back from HOP
+      let computeLatestModules = []
+      for (let mod of this.boxLibSummary[boxid].data[key[0]].modules) {
+        if (mod.value.style === 'compute') {
+          let lastMod = this.computeModuleLast[boxid]
+          computeLatestModules.push(lastMod)
+        } else {
+          computeLatestModules.push(mod)
+        }
+      }
+      this.boxLibSummary[boxid].data.modules = computeLatestModules
+      // let modulesContracts = NXPcontract[key[0]].modules
+      let extractedOD = this.storeLibrary.utilLibrary.moduleExtractSettings(computeLatestModules)
       this.storeBentoBox.openDataSettings[boxid] = extractedOD
       return true
     },
@@ -482,13 +530,18 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     prepareSpaceSave (message) {
       let boxidPerspace = this.bentoboxList[message.data.spaceid]
       let visDataperSpace = []
+      let locationPerSpace = []
       for (let bbi of boxidPerspace) {
-        let visD = this.visData[bbi]
+        let visD = this.visData[bbi.bboxid]
         visDataperSpace.push(visD)
+        // current location to save
+        locationPerSpace.push({ bboxid: bbi.bboxid, location: this.storeBentoBox.locationBbox[message.data.spaceid][bbi.bboxid] })
       }
+
       let saveData = {}
       saveData.pair = {}
       saveData.space = message.data
+      saveData.location = locationPerSpace
       saveData.visData = visDataperSpace
       saveData.bboxlist = boxidPerspace
       message.data = saveData
