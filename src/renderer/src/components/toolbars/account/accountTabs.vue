@@ -54,7 +54,7 @@ let peerActive = ref(false)
 let dsActive = ref(false)
 let aiActive = ref(false)
 let walletActive = ref(false)
-let listContext = ref('')
+let listContext = ref('peers')
 
 
   const selectTab = (ls) => {

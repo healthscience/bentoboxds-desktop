@@ -1,6 +1,6 @@
 {
   "name": "bentoboxds",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "author": "aboynejames",
   "private": true,
   "main": "./out/main/index.js",
@@ -36,13 +36,16 @@
     "ol-contextmenu": "^5.4.0",
     "ol-ext": "^4.0.18",
     "pinia": "^2.0.28",
+    "sigma": "^3.0.0-beta.30",
     "vue": "^3.4.27",
     "vue-chartjs": "^5.2.0",
     "vue-date-picker": "^2.5.0",
     "vue-dragscroll": "^4.0.5",
     "vue-i18n": "^9.2.2",
+    "vue-plyr": "^7.0.0",
     "vue-resizable": "^2.1.7",
     "vue-router": "^4.1.6",
+    "vue3-colorpicker": "^2.3.0",
     "vue3-openlayers": "^9.0.1"
   },
   "devDependencies": {

@@ -34,6 +34,8 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     if (item.action === 'network-publib-board') {
       // create a message for beebee to display
       storeAI.preparePublicConfirm(item)
+    } else if (item.action === 'cue-space') {
+      storeAI.prepareCuespace(item)
     }
     storeAI.startChat = false
     // reset count of notifications
@@ -73,6 +75,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   width: 60px;
   margin-left: 20px;
   text-align: center;
+  cursor: pointer;
 }
 
 .box {
@@ -85,6 +88,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
 .notification-item {
   color: rgb(61, 44, 44);
+  cursor: pointer;
 }
 
 .active {

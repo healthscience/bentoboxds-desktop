@@ -32,9 +32,17 @@
           <div class="right-chat">
               <div class="bb-commentary">
                 <div id="text-summary">
-                  Commentary:  beebee to bring attention to something or summarise some charts etc.
+                  Commentary:  beebee commentary coming soon
                 </div>
-                <bento-box :bboxid="commentaryBox"></bento-box>
+                <div id="oracle-attention" v-if="oracleAttention.length > 0">
+                  <div class="oracle-item" v-for="ori of oracleAttention">
+                    {{ ori.name }} -- {{ ori.oracle }}
+                  </div>
+                </div>
+                <div v-else>
+                  beebee oracle has nothing to show. View the holistic wheel  <img class="cues-holitic-wheel" src="../.././assets/cues-holistic-icon.png" alt="cues" @click=cuesHolistic()>
+                </div>
+                <!--<bento-box :bboxid="commentaryBox"></bento-box>-->
               </div>
               <div class="bb-commentary-spaces">
                 <div class="space-commentary-text">
@@ -68,10 +76,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import BentoBox from '@/components/bentobox/baseBox.vue'
+import { cuesStore } from '@/stores/cuesStore.js'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
+  const storeCues = cuesStore()
   const storeLibrary = libraryStore()
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
@@ -92,10 +102,19 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     return storeBentobox.spaceList
   })
 
+  const oracleAttention  = computed(() => {
+    return storeCues.oracleAttention
+  })
+
   /* methods */
   const setupLibrary = () => {
     // setup default time datatype contract, observation compute contract and chartjs visualise contract
     storeLibrary.defaultLibContracts()
+  }
+
+  const cuesHolistic = () => {
+    storeCues.liveCueContext = 'flake'
+    storeAI.bentoflakeState = !storeAI.bentoflakeState
   }
 
   const openLibrary = () => {

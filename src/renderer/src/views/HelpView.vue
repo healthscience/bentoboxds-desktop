@@ -13,6 +13,10 @@
           Guides
         </p>
       </div>
+        <!-- youtube div element -->
+        <vue-plyr>
+          <div data-plyr-provider="youtube" data-plyr-embed-id="cXQcSB4hLfA"></div>
+        </vue-plyr>
     </div>
   </div>
 </template>

@@ -1,5 +1,4 @@
 <template>
-
   <Teleport to="body">
     <modal-Diary :show="bentoDiaryStatus" @close="closeBentoDiary">
       <div id="simpleblock" ref="simpleblock">ddfdf</div>

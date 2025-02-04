@@ -17,9 +17,7 @@
     <div id="match-datatypes">
       <header>Drag datatype to column name</header>
       <div
-        v-for='col in storeLibrary?.newDatafile?.columns'
-        :key='col.id'
-      >
+        v-for='col in storeLibrary?.newDatafile?.columns' :key='col.id'>
         <div class="col-name">
           <div class="desribe-source-cols" v-if="col.name">
             <div class="source-data-assess">

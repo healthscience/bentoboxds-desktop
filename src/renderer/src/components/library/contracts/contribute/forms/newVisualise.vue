@@ -48,49 +48,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
     storeLibrary.newVisualiseForm.visHolder.push({})
   }
 
-
-/* export default {
-  name: 'visualise-form',
-  components: {
-  },
-  computed: {
-    newVisRefContract: function () {
-      return this.$store.state.newVisualiseForm
-    }
-  },
-  props: {
-    formData: {
-      type: Object
-    }
-  },
-  data: () => ({
-    index: 0
-  }),
-  created () {
-  },
-  mounted () {
-  },
-  methods: {
-    primarySelect () {
-      this.$store.dispatch('buildVisualisePrimary', this.formData.primary)
-    },
-    nameSave (k) {
-      this.$store.dispatch('buildRefVisualiseName', this.formData.name)
-    },
-    descriptionSave (dk) {
-      this.$store.dispatch('buildRefVisualiseDescription', this.formData.description)
-    },
-    structureSave () {
-      this.$store.dispatch('buildRefVisualiseStructure', this.formData.structureName)
-    },
-    typeESelect (index) {
-      this.$store.dispatch('buildRefVisualiseStructureElementType', this.formData.visHolder[index])
-    },
-    addElement () {
-      this.formData.visHolder.push({})
-    }
-  }
-} */
 </script>
 
 <style scoped>
@@ -121,4 +78,10 @@ import { libraryStore } from '@/stores/libraryStore.js'
   grid-template-columns: 2fr 1fr 2fr;
   margin-top: 2em;
 }
+
+@media (min-width: 1024px) {
+
+
+}
+
 </style>

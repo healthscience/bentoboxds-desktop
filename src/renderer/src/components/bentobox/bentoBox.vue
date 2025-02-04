@@ -103,11 +103,11 @@
       </div>
       <div id="bento-future" v-if="quantSelect['nfuture']">
         <select class="select-model-save" id="bbox-model-save" v-model="modelFuture" @change="selectPredModel()">
-            <option selected="" v-for="fm in computeList" :value="fm.key">
-              {{ fm.value.computational.name }}
-            </option>
-          </select>
-          <button id="full-future-toolbar" @click="predictFuture()">Predict</button>
+          <option selected="" v-for="fm in computeList" :value="fm.key">
+            {{ fm.value.computational.name }}
+          </option>
+        </select>
+        <button id="full-future-toolbar" @click="predictFuture()">Predict</button>
         <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartfutureData" ></bar-chart>
         <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartfutureData"></line-chart>
       </div>

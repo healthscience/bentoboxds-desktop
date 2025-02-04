@@ -9,6 +9,9 @@
           <option v-for="dev in props.setOptions.devices" :value="dev">
             {{ dev.NAME }}
           </option>
+          <option v-for="dev in props.setOptions.devices" :value="dev">
+            {{ dev.name }}
+          </option>
         </select>
       </div>
     </div>

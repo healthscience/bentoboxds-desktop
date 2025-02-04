@@ -21,11 +21,11 @@
       </div>
       <div class="api-form-item">
         <label for="rdf-add-description">Wikipedia entry:</label>
-        <input id="wikipedia-datatype-name" @input="wikiSave" @paste="wikiSave" @keyup="wikiSave" v-model="storeLibrary.datatypeForm.wiki" placeholder="wikipedia link" required="" type="text">
+        <input id="wikipedia-datatype-name" @input="wikiSave" @paste="wikiSave" @keyup="wikiSave" v-model="storeLibrary.datatypeForm.wiki" placeholder="wikipedia link" required="" type="text" value="https://en.wikipedia.org/wiki/">
       </div>
       <div class="api-form-item">
         <label for="rdf-add-description">RDF linked data:</label>
-        <input id="rdf-datatype-name" @input="rdfSave" @paste="rdfSave" @keyup="rdfSave" v-model="storeLibrary.datatypeForm.rdf" placeholder="rdf link" required="" type="text">
+        <input id="rdf-datatype-name" @input="rdfSave" @paste="rdfSave" @keyup="rdfSave" v-model="storeLibrary.datatypeForm.rdf" placeholder="rdf link" required="" type="text" value="https://dbpedia.org/page/">
       </div>
     </div>
     <div v-if="storeLibrary.datatypeForm.primary==='no'" id="build-existing-datatypes">

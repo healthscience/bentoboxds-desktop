@@ -72,12 +72,12 @@
 
 <script setup>
 import SourceBuilder from '@/components/library/contracts/contribute/source/sourceBuilder.vue'
-import DescribeDevice from '@/components/library/contracts/contribute/forms/describeDevice.vue'
-import DescribeAuth from '@/components/library/contracts/contribute/forms/describeAuth.vue'
-import DescribeDatastructure from '@/components/library/contracts/contribute/forms/describeSourceStructure.vue'
-import DescribeData from '@/components/library/contracts/contribute/forms/describeData.vue'
-import DescribeCategory from '@/components/library/contracts/contribute/forms/describeCategory.vue'
-import DescribeTidy from '@/components/library/contracts/contribute/forms/describeTidy.vue'
+import DescribeDevice from '@/components/library/contracts/contribute/forms/packaging/describeDevice.vue'
+import DescribeAuth from '@/components/library/contracts/contribute/forms/packaging/describeAuth.vue'
+import DescribeDatastructure from '@/components/library/contracts/contribute/forms/packaging/describeSourceStructure.vue'
+import DescribeData from '@/components/library/contracts/contribute/forms/packaging/describeData.vue'
+import DescribeCategory from '@/components/library/contracts/contribute/forms/packaging/describeCategory.vue'
+import DescribeTidy from '@/components/library/contracts/contribute/forms/packaging/describeTidy.vue'
 
 import { computed } from 'vue'
 import { libraryStore } from '@/stores/libraryStore.js'

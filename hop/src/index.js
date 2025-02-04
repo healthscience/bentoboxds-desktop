@@ -5,7 +5,7 @@
 *
 * @class HOP
 * @package    HOP
-* @copyright  Copyright (c) 2022 James Littlejohn
+* @copyright  Copyright (c) 2024 James Littlejohn
 * @license    http://www.gnu.org/licenses/old-licenses/gpl-3.0.html
 * @version    $Id$
 */
@@ -31,6 +31,7 @@ class HOP extends EventEmitter {
 
   constructor(options) {
     super()
+    this.hoptoken = ''
     this.options = options
     this.MessagesFlow = new MessageFlow()
     this.DataNetwork = new HolepunchHOP()
@@ -108,12 +109,17 @@ class HOP extends EventEmitter {
 
       this.wsocket.on('message', (msg) => {
         const o = JSON.parse(msg)
-        // console.log('message into HOP')
-        // console.log(o)
-        if (o.type.trim() === 'close') {
-          this.closeHOP()
+        // check keys / pw and startup HOP if all secure
+        if (o.type.trim() === 'hop-auth') {
+          this.messageAuth()
         } else {
-         this.messageResponder(o)
+          if (this.hoptoken === o.jwt)
+          // listen of close messages
+          if (o.type.trim() === 'close') {
+            this.closeHOP()
+          } else {
+          this.messageResponder(o)
+          }
         }
       })
 
@@ -186,17 +192,21 @@ class HOP extends EventEmitter {
   */
   listenSF = async function () {
     this.SafeRoute.on('sfauth', async (data) => {
-      console.log('sf aut complete listener')
       await this.setupHolepunch()
       data.type = 'auth-hop'
       this.wsocket.send(JSON.stringify(data))
     })
     this.SafeRoute.on('library-systems', async (data) => {
-      console.log('start systems HOP')
       await this.LibRoute.libManager.systemsContracts()
     })
 
     this.DataNetwork.on('hcores-active', () => {
+      this.hoptoken =  uuidv4()
+      let authMessage = {}
+      authMessage.type = 'account'
+      authMessage.action = 'hop-verify'
+      authMessage.data = { auth: true, jwt: this.hoptoken }
+      this.sendSocketMessage(JSON.stringify(authMessage))
       // allow other components have access to data
       this.processListen()
     })
@@ -225,6 +235,10 @@ class HOP extends EventEmitter {
       // return vis data, like from SafeFlow
       this.SafeRoute.networkSFpeerdata(data)
     })
+
+    this.DataNetwork.on('peer-cuespace', (data) => {
+      this.BBRoute.liveBBAI.networkPeerSpace(data)
+    })
   
     this.DataNetwork.on('peer-incoming', (data) => {
       let peerId = {}
@@ -241,7 +255,29 @@ class HOP extends EventEmitter {
       peerId.data = data
       this.sendSocketMessage(JSON.stringify(peerId))
     })
+
+    this.DataNetwork.on('drive-save-large', (data) => {
+      this.sendSocketMessage(JSON.stringify(data))
+    })
   }  
+
+  /**
+  * response to verify auth
+  * @method messageAuth
+  *
+  */
+  messageAuth = (o) => {
+    // TODO  schnorr sig verifty and setup
+    // bring store to life
+    this.DataNetwork.startStores()
+    // once store setup, then info BBox HOP ready
+    /* this.hoptoken =  uuidv4()
+    let authMessage = {}
+    authMessage.type = 'account'
+    authMessage.action = 'hop-verify'
+    authMessage.data = { auth: true, jwt: this.hoptoken }
+    this.sendSocketMessage(JSON.stringify(authMessage)) */
+  }
 
   /**
   * listen for outputs from SafeFlow
@@ -253,7 +289,6 @@ class HOP extends EventEmitter {
     // console.log('message in')
     // console.log(o)
     let messageRoute = this.MessagesFlow.messageIn(o)
-    // console.log(messageRoute)
     if (messageRoute.type === 'bbai-reply') {
       this.BBRoute.bbAIpath(messageRoute)
     } else if (messageRoute.type === 'safeflow') {

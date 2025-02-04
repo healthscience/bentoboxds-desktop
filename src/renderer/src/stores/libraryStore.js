@@ -1,10 +1,11 @@
-import { ref, computed, shallowRef, defineAsyncComponent } from 'vue'
 import { defineStore } from 'pinia'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import LibraryUtility from '@/stores/hopUtility/libraryUtility.js'
-import { bentoboxStore } from "@/stores/bentoboxStore.js"
+import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { useSocketStore } from '@/stores/socket.js'
 import hashObject from 'object-hash'
+import ChatUtilty from '@/stores/hopUtility/chatUtility.js'
+import { cuesStore } from "@/stores/cuesStore.js"
 
 export const libraryStore = defineStore('librarystore', {
   state: () => ({
@@ -14,10 +15,12 @@ export const libraryStore = defineStore('librarystore', {
     joinNXP: false,
     joinSelected: {},
     joinFeedback: false,
+    storeCues: cuesStore(),
     storeAI: aiInterfaceStore(),
     storeBentoBox: bentoboxStore(),
     utilLibrary: new LibraryUtility(),
     sendSocket: useSocketStore(),
+    liveChatUtil: new ChatUtilty(),
     startLibrary: false,
     libraryMessage: '',
     uploadStatus: false,
@@ -28,6 +31,9 @@ export const libraryStore = defineStore('librarystore', {
       data: []
     },
     publicLibrary: {},
+    libraryAvailable: false,
+    peerExperimentWaiting: false,
+    peerNXPWaiting: [],
     listPublicNXP: [],
     peerLibrary: [],
     peerResults: [],
@@ -139,6 +145,28 @@ export const libraryStore = defineStore('librarystore', {
       structureName: '',
       visHolder: [],
     },
+    newMediaForm: {
+      primary: true,
+      url: '',
+      context: '',
+      relationship: []
+    },
+    newResearchForm: {
+      primary: true,
+      url: ''
+    },    
+    newMarkerForm: {
+      primary: true,
+      name: '',
+      url: '',
+      type: ''
+    },    
+    newProductForm: {
+      primary: true,
+      name: '',
+      url: '',
+      type: ''
+    },    
     deviceForm:
     {
       query: '',
@@ -158,7 +186,9 @@ export const libraryStore = defineStore('librarystore', {
     moduleNxpActive: 'question',
     dtcolumns: [],
     fileSaveStatus: false,
-    fileFeedback: ''
+    fileFeedback: '',
+    devicesJoin: [],
+    inContext: 'chat' 
   }),
   actions: {
     // since we rely on `this`, we cannot use an arrow function
@@ -257,6 +287,20 @@ export const libraryStore = defineStore('librarystore', {
           // this.joinOptions.yaxis = message.data.tables
           // this.joinOptions.yaxis = ['time']
         }
+      } else if (message.action === 'PUT-stream') {
+        this.storeAI.qcount++
+        let chatPair = this.liveChatUtil.setlargeUploadChat(message, this.storeAI.qcount)
+        this.storeAI.historyPair[this.storeAI.chatAttention].push(chatPair)
+        // structure header to id, name object
+        let structureHeader = []
+        let countC = 1
+        for (let col of message.data.columns) {
+          structureHeader.push({ cid: countC, name: col})
+          countC++
+        }
+        this.newDatafile.columns = structureHeader  // need to be in object format
+        this.newDatafile.path = 'csv'
+        this.newDatafile.file = message.data.path
       } else if (message.action === 'source') {
         if (message.reftype === 'sqlite') {
           if (this.joinNXP === true) {
@@ -291,16 +335,72 @@ export const libraryStore = defineStore('librarystore', {
             setupContracts.push(true)
           }
         }
-        let checkLogic = (element) => element  === true;
+        let checkLogic = (element) => element  === true
         let checkSetup = setupContracts.some(checkLogic)
         if (checkSetup === false) {
           this.startLibrary = true
         } else {
+          // starting public library (TODO bring in what is needed given context of Peer cues, nxps, besearch cycles etc.)
           this.publicLibrary = message
+          if(this.peerExperimentWaiting === true) {
+            // prepare the peer experiments for library display
+            if (message.networkPeerExpModules.length > 0) {
+              this.peerExperimentList = this.utilLibrary.prepareBentoSpaceJoinedNXPlist(this.peerNXPWaiting, this.publicLibrary.referenceContracts)
+              // keep track NXP contract bundle
+              this.peerLibraryNXP = this.peerNXPWaiting
+              this.peerExperimentWaiting = false
+              this.peerNXPWaiting = []
+            }
+          }
         }
-      } else if (message.action === 'referenc-contract') {
+        // check if start cues are here and needing processed
+        if (this.storeBentoBox.libraryCheck === false) {
+          // yes go ahead and expand cues
+          let updateCueExpand = []
+          for (let cueContract of this.storeCues.waitingCues) {
+            let expandDTCue = this.utilLibrary.expandCuesDTSingle(cueContract, this.publicLibrary.referenceContracts)
+            updateCueExpand.push(expandDTCue)
+          }
+          this.storeCues.cuesList = updateCueExpand
+          // this.storeCues.waitingCues = []
+        }
+      } else if (message.action === 'cue-contract') {
+        if (message.task === 'save-complete') {
+          let expandDTCue = this.utilLibrary.expandCuesDTSingle(message.data, this.publicLibrary.referenceContracts)
+          // add to cues list
+          this.storeCues.cuesList.push(expandDTCue)
+          this.storeCues.spaceListHistory.push(expandDTCue)
+        } else if (message.task === 'update-complete') {
+          // update contract in list
+          let updateCueList = []
+          for (let cue of this.storeCues.cuesList) {
+            if (cue.key === message.data.key) {
+              updateCueList.push(message.data)
+            } else {
+              updateCueList.push(cue)
+            }
+          }
+          this.storeCues.cuesList = updateCueList
+        }
+      } else if (message.action === 'media-contract') {
+        let mediaContract = message.data.data
+        this.storeCues.mediaMatch[mediaContract.value.concept.cueid].push(mediaContract)
+      } else if (message.action === 'marker-contract') {
+        let markerContract = message.data.data
+        this.storeCues.markerMatch[markerContract.value.concept.cueid].push(markerContract)
+      } else if (message.action === 'research-contract') {
+        // add to research list
+        let researchContract = message.data.data
+        this.storeCues.researchPapers[researchContract.value.concept.cueid].push({researchContract})
+      } else if (message.action === 'product-contract') {
+        // product added
+        let productContract = message.data.data
+        this.storeCues.productMatch[productContract.value.concept.cueid].push(productContract)
+      } else if (message.action === 'reference-contract') {
         // call HOP to get latest changes to public library
         this.sendMessage('get-public-library')
+        // call HOP to get latest changes to results library
+        this.sendMessage('get-results')
       } else if (message.action === 'peer-library') {
         // prepare network experiment lists
         let newPair = {}
@@ -316,10 +416,17 @@ export const libraryStore = defineStore('librarystore', {
         // peer library data
         this.peerLibrary = message.referenceContracts
         // prepare the list of peer experiments for library display
-        if (message.networkPeerExpModules.length > 0) {
-          this.peerExperimentList = this.utilLibrary.prepareBentoSpaceJoinedNXPlist(message.networkPeerExpModules, this.publicLibrary.referenceContracts)
-          // keep track NXP contract bundle
-          this.peerLibraryNXP = message.networkPeerExpModules
+        // process if public library is available
+        if (this.publicLibrary.referenceContracts !== undefined) {
+          if (message.networkPeerExpModules.length > 0) {
+            this.peerExperimentList = this.utilLibrary.prepareBentoSpaceJoinedNXPlist(message.networkPeerExpModules, this.publicLibrary.referenceContracts)
+            // keep track NXP contract bundle
+            this.peerLibraryNXP = message.networkPeerExpModules
+          }
+        } else {
+           // inform beebee when library arrives
+          this.peerExperimentWaiting = true
+          this.peerNXPWaiting = message.networkPeerExpModules
         }
       } else if (message.action === 'new-modules') {
         this.genesisModules = message.data.modules
@@ -426,16 +533,22 @@ export const libraryStore = defineStore('librarystore', {
       this.sendSocket.send_message(libMessageout)
     },
     prepareLibraryViewFromContract (bbid, contractID) {
-      let contractQuery = this.utilLibrary.matchNXPcontract(contractID, this.peerLibraryNXP)
-      let libMessageout = {}
-      libMessageout.type = 'library'
-      libMessageout.action = 'contracts'
-      libMessageout.reftype = 'experiment'
-      libMessageout.privacy = 'private'
-      libMessageout.task = 'assemble'
-      libMessageout.data = contractQuery
-      libMessageout.bbid = bbid
-      this.sendSocket.send_message(libMessageout)
+      if (this.peerLibraryNXP.length === 0) {
+        // empty call library to get nxps
+        this.startLibrary()
+        // inform beebee feedback to try now library has loaded
+      } else {
+        let contractQuery = this.utilLibrary.matchNXPcontract(contractID, this.peerLibraryNXP)
+        let libMessageout = {}
+        libMessageout.type = 'library'
+        libMessageout.action = 'contracts'
+        libMessageout.reftype = 'experiment'
+        libMessageout.privacy = 'private'
+        libMessageout.task = 'assemble'
+        libMessageout.data = contractQuery
+        libMessageout.bbid = bbid
+        this.sendSocket.send_message(libMessageout)
+      }
     },
     prepareGenesisModContracts (message) {
       let aiMessageout = {}

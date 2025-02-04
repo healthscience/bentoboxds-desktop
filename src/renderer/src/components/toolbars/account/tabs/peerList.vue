@@ -2,7 +2,7 @@
   <div id="list-space">
     <div id="network-keys">
       <div class="type-peer">Public key (network share):</div>
-      <div class="type-peer-key">{{ storeAccount.networkInfo.publickey }}</div>
+      <div class="type-peer-key">{{ storeAccount.networkInfo.publickey }} <button @click="copyKey(storeAccount.networkInfo.publickey)">copy</button></div> 
     </div>
     <button type="button" class="btn" @click.prevent="addWarmpeer()">Add new</button>
     <div v-if="addWarm === true" id="add-warm-peer">
@@ -10,17 +10,19 @@
       <input v-model="newPeerPubKey" placeholder="public key">
       <button type="button" class="btn" @click="saveWarmpeer()">save</button>
     </div>
-    <ul class="peer-list-set" v-for='peer in storeAccount.warmPeers' :key='peer.id'>
-      <li>Peer {{ peer.datastore }} --- {{ peer.name }} --- {{ peer.publickey }}
-        <!-- <button type="button" class="btn" @click="peerSyncLibrary(peer.publickey)">Replicate</button> -->
-      </li>
-    </ul>
+    <div class="peer-list-set" v-for='peer in storeAccount.warmPeers' :key='peer.id'>
+      <div class="peer-g">
+        Peer {{ peer.datastore }} --- {{ peer.name }} --- {{ peer.publickey }} <button @click="copyKey(peer.publickey)">copy</button>
+      </div>
+    </div>
+    <social-graph></social-graph>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { accountStore } from '@/stores/accountStore.js'
+import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
 
   const storeAccount = accountStore()
 
@@ -41,6 +43,10 @@ import { accountStore } from '@/stores/accountStore.js'
     storeAccount.warmPeers.push(peerPair)
   }
 
+  const copyKey = (key) => {
+    navigator.clipboard.writeText(key)
+  }
+
 </script>
 
 <style scoped>
@@ -48,6 +54,12 @@ import { accountStore } from '@/stores/accountStore.js'
 #network-keys {
   padding: 1em;
 }
+
+.peer-list-set {
+  margin-left: 2em;
+  margin-bottom: 1em;
+}
+
 
 @media (min-width: 1024px) {
 

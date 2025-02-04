@@ -1,5 +1,5 @@
 <template>
-  <div class="live-drop-zone" v-if="historyActive ===  true" @mouseover="hoverCheck(sis)">
+  <div class="live-drop-zone" @mouseover="hoverCheck(sis)">
     <div v-if="historyList === 'history'">
       <button class="create-chat" @click="newChatchannel">
         + create chat
@@ -162,6 +162,12 @@ const deleteChatHistory = (chat) => {
 
 .history-list {
   display: inline-block;
+}
+
+.save-chat-history, .delete-chat-history {
+  display: grid;
+  height: 50%;
+  align-self: center;
 }
 
 /* .history-list:first-child {

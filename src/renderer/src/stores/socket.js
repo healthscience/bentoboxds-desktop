@@ -4,14 +4,17 @@ import { aiInterfaceStore } from "@/stores/aiInterface.js"
 import { libraryStore } from "@/stores/libraryStore.js"
 import { accountStore } from "@/stores/accountStore.js"
 import { bentoboxStore } from "@/stores/bentoboxStore.js"
+import { cuesStore } from "@/stores/cuesStore.js"
 
 export const useSocketStore = defineStore({
   id: "socket",
   state: () => ({
     bentoboxStore: bentoboxStore(),
     aiStore: aiInterfaceStore(),
+    storeCues: cuesStore(),
     libStore: libraryStore(),
     accStore: accountStore(),
+    jwt: '',
     count: 0,
     websocket: {},
     connection_ready: false,
@@ -62,6 +65,8 @@ export const useSocketStore = defineStore({
         this.libStore.processReply(received)
       } else if (received.type == 'publiclibrary') {
         this.libStore.processReply(received)
+      } else if (received.type == 'oracle') {
+        this.storeCues.processReply(received)
       } else if (received.type == 'upload') {
         this.aiStore.processReply(received)
       } else if (received.type == 'bbai-reply') {
@@ -85,6 +90,7 @@ export const useSocketStore = defineStore({
     
     },
     send_message (data) {
+      data.jwt = this.jwt
       this.websocket.send(JSON.stringify(data))
       // keep list of message per session live?
       // this.messages.push( { from: "send", message: to_send.message } )

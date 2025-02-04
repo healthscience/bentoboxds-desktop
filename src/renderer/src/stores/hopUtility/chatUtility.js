@@ -10,6 +10,7 @@
 * @version    $Id$
 */
 // import EventEmitter from 'events'
+import hashObject from 'object-hash'
 
 class ChatUtility {
 
@@ -124,6 +125,60 @@ class ChatUtility {
         legends: true
       }
     return boxSettings
+  }
+
+  /**
+  * prepare summary chat for upload sqlite
+  * @method setSqliteUploadChat
+  *
+  */
+  setSqliteUploadChat = function () {
+
+    let question = {}
+    question.type ='bbai'
+    question.reftype = 'ignore'
+    question.action = 'question'
+    question.data = { "count": this.storeAI.qcount, "text": "Upload of file", "active": true, "time": new Date() }
+    let hashQuestion = hashObject(question.data + message.data.path)
+    // extract headers assume first line
+    let headerLocal = {}
+    headerLocal[hashQuestion] = message.data.columns
+    question.bbid = hashQuestion
+    let bbReply = {}
+    bbReply.type = 'bbai-reply'
+    bbReply.data = { text: 'Summary of tables in SQLite file, heading are:', filedata: { type: 'sqlite', file: message.data.path, columns: 'one', grid: [] }, prompt: 'Select data table to chart:', options: headerLocal[hashQuestion], }
+    bbReply.bbid = hashQuestion
+    let newPair = {}
+    newPair.question = question
+    newPair.reply = bbReply
+  }
+
+  /**
+  * prepare summary chat for large upload e.g. csv
+  * @method setlargeUploadChat
+  *
+  */
+  setlargeUploadChat = function (message, count) {
+    console.log('large path')
+    console.log(message)
+    let question = {}
+    question.type ='bbai'
+    question.reftype = 'ignore'
+    question.action = 'question'
+    question.data = { "count": count, "text": "Upload of large file", "active": true, "time": new Date() }
+    let hashQuestion = hashObject(question.data + message.data.path)
+    // extract headers assume first line
+    let headerLocal = {}
+    headerLocal[hashQuestion] = message.data.columns
+    question.bbid = hashQuestion
+    let bbReply = {}
+    bbReply.type = 'bbai-reply'
+    bbReply.data = { text: 'Header for large CSV file, heading are:', filedata: { type: 'csv', size: 'large', file: message.data.path, columns: 'one', grid: [] }, prompt: 'Select data table to chart:', options: headerLocal[hashQuestion], }
+    bbReply.bbid = hashQuestion
+    let newPair = {}
+    newPair.question = question
+    newPair.reply = bbReply
+    return newPair
   }
 
 }

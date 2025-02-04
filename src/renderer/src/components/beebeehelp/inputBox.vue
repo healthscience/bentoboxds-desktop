@@ -2,10 +2,10 @@
   <div id="ai-interaction">
     <form id="ask-ai-form" @submit.prevent="storeAI.submitAsk()">
       <label for="askname"></label><!--  v-on:keyup="storeAI.actionNatlangIn($event)" -->
-      <input type="text-area" id="askinput" name="ainame" placeholder="What would you like to know?" v-model="storeAI.askQuestion.text" autofocus>
+      <input type="text-area" id="askinput" name="ainame" placeholder="Ask the health oracle anything." v-model="storeAI.askQuestion.text" autofocus>
     </form>
     <button id="natlang-ask" type="submit" v-if="beebeeAIStatus.active === true" @click="storeAI.submitAsk">
-      Ask BeeBee
+      BeeBee
     </button>
     <data-box v-if="dataBoxStatus === true"></data-box>
   </div>
@@ -18,6 +18,11 @@ import { computed } from 'vue'
 
   const storeAI = aiInterfaceStore()
 
+  const props = defineProps({
+    prompt: Object
+   })
+
+  /* computed */
   const beebeeAIStatus = computed(() => {
     return storeAI.helpchatAsk
   })
@@ -49,7 +54,7 @@ import { computed } from 'vue'
 @media (min-width: 1024px) {
   #ai-interaction {
     display: grid;
-    grid-template-columns: 4fr 1fr
+    grid-template-columns: 6fr 1fr
   }
 
   #askinput {

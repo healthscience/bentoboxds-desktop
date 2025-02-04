@@ -109,6 +109,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
   const handleRefDrop = (event, targetContainer) => {
     let dropItem = JSON.parse(event.dataTransfer.getData('application/json'))
+    console.log(dropItem)
     // match to module and add
     if (dropItem?.value?.refcontract === 'question') {
       storeLibrary.newnxp.questionLive.push(dropItem)

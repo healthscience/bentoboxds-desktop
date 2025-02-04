@@ -38,6 +38,12 @@ import NewCompute from '@/components/library/contracts/contribute/forms/newCompu
 import NewUnits from '@/components/library/contracts/contribute/forms/newUnits.vue'
 import NewPackaging from '@/components/library/contracts/contribute/forms/newPackage.vue'
 import NewVisualise from '@/components/library/contracts/contribute/forms/newVisualise.vue'
+import NewMedia from '@/components/library/contracts/contribute/forms/newMedia.vue'
+import NewResearch from '@/components/library/contracts/contribute/forms/newResearch.vue'
+import NewMarker from '@/components/library/contracts/contribute/forms/newMarker.vue'
+import NewProduct from '@/components/library/contracts/contribute/forms/newProduct.vue'
+
+
 
 import { libraryStore } from '@/stores/libraryStore.js'
 import { ref, computed, markRaw} from 'vue'
@@ -50,7 +56,11 @@ const formContribute = [
   { type: 'compute', form: markRaw(NewCompute) },
   /* { type: 'units', form: shallowRef(NewUnits }, */
   { type: 'packaging', form: markRaw(NewPackaging) },
-  { type: 'visualise', form: markRaw(NewVisualise) }
+  { type: 'visualise', form: markRaw(NewVisualise) },
+  { type: 'media', form: markRaw(NewMedia) },
+  { type: 'research', form: markRaw(NewResearch) },
+  { type: 'marker', form: markRaw(NewMarker) },
+  { type: 'product', form: markRaw(NewProduct) }
 ]
 
   let contractformType = ref(markRaw({ type: 'question', form: NewDatatype }))
@@ -80,7 +90,21 @@ const formContribute = [
       refContract.data = storeLibrary.newPackagingForm
     } else if (contractformType.value.type === 'visualise') {
       refContract.data = storeLibrary.newVisualiseForm
+    } else if (contractformType.value.type === 'media') {
+      console.log('media')
+      refContract.action = 'media'
+      refContract.data = storeLibrary.newMediaForm
+    } else if (contractformType.value.type === 'research') {
+      refContract.action = 'research'
+      refContract.data = storeLibrary.newResearchForm
+    } else if (contractformType.value.type === 'marker') {
+      refContract.action = 'marker'
+      refContract.data = storeLibrary.newMarkerForm
+    } else if (contractformType.value.type === 'product') {
+      refContract.action = 'product'
+      refContract.data = storeLibrary.newProductForm
     }
+    // send message for saving as ref contract
     storeLibrary.sendMessage(refContract)
     // reset the form data
     if (contractformType.value.type === 'question') {
@@ -144,11 +168,36 @@ const formContribute = [
     } else if (contractformType.value.type === 'visualise') {
       storeLibrary.newVisualiseForm = 
       {
+        primary: true,
+        url: ''
+      }
+    } else if (contractformType.value.type === 'media') {
+      storeLibrary.newVisualiseForm = 
+      {
+        primary: true,
+        url: '',
+      }
+    } else if (contractformType.value.type === 'research') {
+      storeLibrary.newVisualiseForm = 
+      {
+        primary: true,
+        name: ''
+      }
+    } else if (contractformType.value.type === 'marker') {
+      storeLibrary.newVisualiseForm = 
+      {
         primary: Boolean,
         name: '',
-        description: '',
-        structureName: '',
-        visHolder: []
+        url: '',
+        type: ''
+      }
+    } else if (contractformType.value.type === 'product') {
+      storeLibrary.newVisualiseForm = 
+      {
+        primary: true,
+        name: '',
+        url: '',
+        type: ''
       }
     }
   }

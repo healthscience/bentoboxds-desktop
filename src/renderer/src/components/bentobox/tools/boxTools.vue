@@ -3,6 +3,18 @@
     <div id="bb-toolbar">
       <div class="bb-bar-main">a bentobox</div>
       <div class="bb-bar-main">
+        <button @click="besearchCycle(props.bboxid)">
+          besearch
+        </button>
+        <div id="besearch-cycle" v-if="besearchSelect">
+          <select class="select-cycle-save" id="besearch-options-save" v-model="besearchSave" @change="selectBesearchCycle()">
+            <option selected="" v-for="bsc in besearchList" :value="bsc.key">
+              {{ bsc.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="bb-bar-main">
         <button @click="clickSummaryLib(props.bboxid)" v-bind:class="{ active: libSum }">
           Lib
         </button>
@@ -13,8 +25,8 @@
         </button>
         <div id="spaces-list" v-if="shareSelect">
           <select class="select-space-save" id="space-options-save" v-model="spaceSave" @change="selectBentoSpace()">
-            <option selected="" v-for="sp in spaceList" :value="sp.spaceid">
-              {{ sp.name }}
+            <option selected="" v-for="sp in spaceList" :value="sp.key">
+              {{ sp.value.concept.name }}
             </option>
           </select>
         </div>
@@ -37,13 +49,7 @@
     </div>
   </div>
   <div id="share-form" v-if="shareForm">
-    <form id="ask-ai-form" @submit.prevent="storeAccount.shareProtocol(props.bboxid, 'privatechart')">
-      <label for="sharepeer"></label>
-      <input type="input" id="sharekey" placeholder="publickey" v-model="storeAccount.sharePubkey" autofocus>
-      <button id="share-send" type="submit">
-        Send invite
-      </button>
-    </form>
+    <share-protocol :bboxid="props.bboxid" :shareType="'privatechart'"></share-protocol>
   </div>
   <bb-tools v-if="boxToolsShow" :bboxid="props.bboxid"></bb-tools>
   <div id="library-summary" v-if="libSum">
@@ -63,12 +69,15 @@
 
 <script setup>
 import BbTools from '@/components/bentobox/tools/vistoolBar.vue'
+import ShareProtocol from '@/components/bentobox/tools/shareForm.vue'
 import { ref, computed } from 'vue'
+import { cuesStore } from '@/stores/cuesStore.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { accountStore } from '@/stores/accountStore.js'
 import { libraryStore } from '@/stores/libraryStore.js'
 
+  const storeCues = cuesStore()
   const storeAccount = accountStore()
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
@@ -78,6 +87,16 @@ import { libraryStore } from '@/stores/libraryStore.js'
   const shareForm = ref(false)
   let libSum = ref(false)
   let spaceSave = ref('')
+  let peerPshare = ref('')
+  let besearchList = ref([
+    { key: 'bsc-1111111', name: '24 hours' },
+    { key: 'bsc-2222222', name: '7 days' },
+    { key: 'bsc-3333333', name: '1 month' },
+    { key: 'bsc-4444444', name: '3 months' },
+    { key: 'bsc-5555555', name: '1 year' },
+  ])
+  let besearchSelect = ref('')
+  let besearchSave = ref('')
 
 const props = defineProps({
     bboxid: String
@@ -104,7 +123,28 @@ const selectedTimeFormat = ref('timeseries')
     return storeAI.expandBentobox[props.bboxid]    
   })
 
+  const peerWarmlist = computed(() => {
+    // warm peers filter to unique
+    let peerUnqiue = []
+    const uniquePeers = storeAccount.warmPeers.filter((value, index, self) =>
+      index === self.findIndex((t) => (
+          t.publickey === value.publickey
+      ))
+    )
+    return uniquePeers
+  })
+
   /* methods */
+  const besearchCycle = () => {
+    // display cycle option
+    besearchSelect.value = !besearchSelect.value
+  }
+
+  const selectBesearchCycle = () => {
+    console.log('select besearch cycle')
+    console.log(besearchSave.value)
+  }
+
   const openLibrary = () => {
     storeAI.dataBoxStatus = true
     storeAI.uploadStatus = false
@@ -131,11 +171,18 @@ const selectedTimeFormat = ref('timeseries')
     }
 
   const selectBentoSpace = () => {
-    // clickSummaryLibSilent(props.bboxid)
+    console.log('select bento space')
+    console.log(spaceSave.value)
+    console.log(storeAI.bentoboxList)
+    console.log(props.bboxid)
+    console.log(expLibrarySummary.value.key[0])
     let bidPair = { bboxid: props.bboxid, contract: expLibrarySummary.value.key[0]}
     // check object set in list
-    if (Object.keys(storeAI.bentoboxList[spaceSave.value]).length === 0) {
+    if (storeAI.bentoboxList[spaceSave.value] === undefined) {
       storeAI.bentoboxList[spaceSave.value] = []
+    }
+    if (storeBentobox.locationBbox[spaceSave.value] === undefined) {
+      storeBentobox.locationBbox[spaceSave.value] = []
     }
     storeAI.bentoboxList[spaceSave.value].push(bidPair)
     clickAddbentoSpace(props.bboxid)
@@ -151,9 +198,13 @@ const selectedTimeFormat = ref('timeseries')
   const chartSelect = () => {
   }
 
+  const selectPeerShare = () => {
+    storeAccount.sharePubkey = peerPshare.value 
+  }
+
   /*  computed */
   const spaceList = computed(() => {
-    return storeBentobox.spaceList
+    return storeCues.cuesList
   })
 
   /*
@@ -199,7 +250,7 @@ const selectedTimeFormat = ref('timeseries')
 
 #bb-toolbar {
   display: grid;
-  grid-template-columns: 4fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 4fr 1fr 1fr 1fr 1fr 1fr 1fr;
 }
 
 #bb-network-graph {
@@ -313,7 +364,7 @@ const selectedTimeFormat = ref('timeseries')
   #bb-toolbar {
     position: relative;
     display: grid;
-    grid-template-columns: 4fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 4fr 1fr 1fr 1fr 1fr 1fr 1fr;
     width: 100%;
     background-color:rgb(141, 145, 226);
   }

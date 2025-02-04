@@ -62,7 +62,7 @@ import { diaryStore } from '@/stores/diaryStore.js'
 <style scoped>
 .modal-mask {
   position: fixed;
-  z-index: 9;
+  z-index: 25;
   top: 0;
   left: 0;
   width: 100%;
@@ -74,7 +74,7 @@ import { diaryStore } from '@/stores/diaryStore.js'
 }
 
 .modal-container {
-  z-index: 10;
+  z-index: 25;
   width: 92vw;
   height: 92vh;
   margin: auto;

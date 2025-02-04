@@ -1,10 +1,14 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
+import { libraryStore } from '@/stores/libraryStore.js'
+import { cuesStore } from "@/stores/cuesStore.js"
 
 export const bentoboxStore = defineStore('bentostore', {
   state: () => ({
+    storeLibrary: libraryStore(),
     storeAI: aiInterfaceStore(),
+    storeCues: cuesStore(),
     historyActive: false,
     chatList: [
       {
@@ -44,13 +48,30 @@ export const bentoboxStore = defineStore('bentostore', {
     locationBbox: {
       91919191: {}
     },
+    locationMbox: {
+      91919191: {}
+    },
+    locationRbox: {
+      81819191: {}
+    },
+    locationMarkerbox: {
+      84819191: {}
+    },
+    locationProductbox: {
+      3319191: {}
+    },
     boxLocation:
     {
       x: 200,
       y: 200
     },
     locX: 140,
-    locY: 140
+    locY: 140,
+    videoMedia: {},
+    researchMedia: {},
+    markerMedia: {},
+    productMedia: {},
+    libraryCheck: false
   }),
   actions: {
     // since we rely on `this`, we cannot use an arrow function
@@ -70,6 +91,8 @@ export const bentoboxStore = defineStore('bentostore', {
       this.locY = loc.y
     },
     processReply (message) {
+      // console.log('start')
+      // console.log(message)
       // prepare chat menu and pairs
       if (message.reftype.trim() === 'chat-history') {
         if (message.action.trim() === 'start') {
@@ -128,25 +151,26 @@ export const bentoboxStore = defineStore('bentostore', {
               } else {
                 // BENTOSPACES setup on start
                 // add to menu list  no duplicate and TODO set one as active
-                if (this.spaceList[0].spaceid !== cm.value.space.spaceid) {
+                if (this.spaceList[0].cueid !== cm.value.space.cueid) {
                   this.spaceList.push(cm.value.space)
                 }
                 this.storeAI.liveBspace = cm.value.space
+                // prepare the bentobox location for space
                 if (cm.value.bboxlist.length > 0) {
-                  this.storeAI.bentoboxList[cm.value.space.spaceid] = cm.value.bboxlist
+                  this.storeAI.bentoboxList[cm.value.space.cueid] = cm.value.bboxlist
                   // set the default or save location of box in space
                   for (let bbox of cm.value.bboxlist) {
                     // setup default tempate i.e. prepare for adding to space
-                    const tW = 440
+                    const tW = 840
                     const tH = 440
                     let updateBox = {}
-                    updateBox.tW = 480
-                    updateBox.tH = 480
+                    updateBox.tW = tW
+                    updateBox.tH = tH
                     updateBox.handlers = ["r", "rb", "b", "lb", "l", "lt", "t", "rt"]
                     updateBox.left = 90 // ref(`calc(2% - ${tW / 2}px)`)
                     updateBox.top = 90 // ref(`calc(8% - ${tH / 2}px)`)
-                    updateBox.height = 'fit-content'
-                    updateBox.width = 'fit-content'
+                    // updateBox.height = 'fit-content'
+                    // updateBox.width = 'fit-content'
                     updateBox.maxW = '100%'
                     updateBox.maxH = '100%'
                     updateBox.minW = '20vw'
@@ -154,25 +178,39 @@ export const bentoboxStore = defineStore('bentostore', {
                     updateBox.fit = false
                     updateBox.event = ''
                     updateBox.dragSelector = '.drag-container-1, .drag-container-2'
-                    if (this.locationBbox[cm.value.space.spaceid] === undefined) {
-                      this.locationBbox[cm.value.space.spaceid] = {}
+                    // check if location holder is already prepared?
+                    if (this.locationBbox[cm.value.space.cueid] === undefined) {
+                      this.locationBbox[cm.value.space.cueid] = {}
                     }
-                    this.locationBbox[cm.value.space.spaceid][bbox.bboxid] = updateBox
+                    this.locationBbox[cm.value.space.cueid][bbox.bboxid] = updateBox
                   }
                 } else {
-                  this.storeAI.bentoboxList[cm.value.space.spaceid] = {}
+                  this.storeAI.bentoboxList[cm.value.space.cueid] = {}
                 }
-
-                // check for location spaces info. already saved
+                // prepare the mediabox location for space
+                /* if (cm.value?.mboxlist) {
+                  this.locationMbox[cm.value.space.cueid] = []
+                  // turn object into array of keys
+                  let mediaboxKeys = Object.keys(cm.value.mboxlist)
+                  let mBoxList = []
+                  for (let mbkey of mediaboxKeys) {
+                    mBoxList.push({ tag: 'video', id: mbkey })
+                    // this.locationMbox[cm.value.space.cueid].push({ tag: 'video', id: mbkey })
+                  }
+                  this.videoMedia[cm.value.space.cueid] = mBoxList
+                  this.locationMbox[cm.value.space.cueid] = cm.value.mboxlist
+                }
+                */
+                // check for BentoBox location spaces info. already saved
                 if (cm?.value?.location) {
                   // add to menu list
                   // this.spaceList.push(cm.value.space)
                   // set bbox settings
-                  this.storeAI.bentoboxList[cm.value.space.spaceid] = cm?.value?.bboxlist
+                  this.storeAI.bentoboxList[cm.value.space.cueid] = cm?.value?.bboxlist
                   // if location space not set set it
-                  if (cm.value.space.spaceid in this.locationBbox) {
+                  if (cm.value.space.cueid in this.locationBbox) {
                   } else {
-                    // this.locationBbox[cm.value.space.spaceid] = {}
+                    // this.locationBbox[cm.value.space.cueid] = {}
                   }
                   if (cm.value.bboxlist !== undefined) {
                     if (cm.value.bboxlist.length > 0) {
@@ -180,9 +218,9 @@ export const bentoboxStore = defineStore('bentostore', {
                         for (let cord of cm?.value.location) {
                           if (cord.bboxid === boxsp.bboxid) {
                             if (cord.location !== undefined && Object.keys(cord.location).length > 0) {
-                              this.locationBbox[cm.value.space.spaceid][boxsp.bboxid] = cord.location
+                              this.locationBbox[cm.value.space.cueid][boxsp.bboxid] = cord.location
                             } else {
-                              // this.locationBbox[cm.value.space.spaceid][boxsp.bboxid] = {}
+                              // this.locationBbox[cm.value.space.cueid][boxsp.bboxid] = {}
                             }
                           }
                         } 
@@ -229,6 +267,104 @@ export const bentoboxStore = defineStore('bentostore', {
         } else if (message.action.trim() === 'save') {
           console.log('saved feedback')
         }
+      } else if (message.reftype.trim() === 'spaces-history') {
+        // console.log('spaces-history')
+        // console.log(message.data)
+      } else if (message.reftype.trim() === 'cues-history') {
+        if (this.storeLibrary.publicLibrary.referenceContracts !== undefined) {
+          this.libraryCheck = true
+          // expand cues via library
+          this.storeLibrary.preparePublicCues(message.data)
+        } else {
+          this.storeCues.waitingCues = message.data
+        }
+      } else if (message.reftype.trim() === 'media-history') {
+        this.prepareMediaSpace(message.data)
+      } else if (message.reftype.trim() === 'research-history') {
+        this.prepareResearchSpace(message.data)
+      } else if (message.reftype.trim() === 'marker-history') {
+        this.prepareMarkerSpace(message.data)
+        // any measure cue cogglue to include?
+        // this.storeCues.
+      } else if (message.reftype.trim() === 'product-history') {
+        this.prepareProductSpace(message.data)
+      }
+    },
+    prepareMediaSpace (mData) {
+      let medBoxList = []
+      let tempSpaceID = ''
+      this.locationMbox = {}
+      for (let mkey of mData) {
+        tempSpaceID = mkey.value.concept.cueid
+        if (this.locationMbox[tempSpaceID] === undefined) {
+          this.locationMbox[tempSpaceID] = {}
+          this.videoMedia[tempSpaceID] = []
+          this.storeCues.mediaMatch[tempSpaceID] = []
+        }
+        medBoxList.push({ key: mkey.key, tag: 'video', id: mkey.value.concept })
+        this.setLocationMbox(tempSpaceID, mkey.key)
+        this.videoMedia[tempSpaceID].push({ key: mkey.key, tag: 'video', id: mkey.value.concept })
+        this.storeCues.mediaMatch[tempSpaceID].push(mkey)
+      }
+    },
+    prepareResearchSpace (rData) {
+      let resBoxList = []
+      let tempSpaceID = ''
+      for (let rkey of rData) {
+        tempSpaceID = rkey.value.concept.cueid
+        if (this.locationRbox[tempSpaceID] === undefined) {
+          this.locationRbox[tempSpaceID] = {}
+          this.researchMedia[tempSpaceID] = []
+          this.storeCues.researchPapers[tempSpaceID] = []
+        }
+        resBoxList.push({ key: rkey.key, tag: 'research', id: rkey.value.concept })
+        this.setLocationRbox(tempSpaceID, rkey.key)
+        this.researchMedia[tempSpaceID].push({ key: rkey.key, tag: 'research', id: rkey.value.concept })
+        this.storeCues.researchPapers[tempSpaceID].push(rkey)
+      }
+    },
+    prepareMarkerSpace (mData) {
+      // console.log('marke spa history')
+      // console.log(mData)
+      // console.log('save space struecure')
+      // list of active markers
+      this.storeCues.markerList = mData
+      let markerBoxList = []
+      let tempSpaceID = ''
+      for (let mkkey of mData) {
+        // match from cue relations or marker contract?
+        // list of incoming markers
+        if (mkkey.value.concept.spaceid !== undefined) {
+          tempSpaceID = mkkey.value.concept.spaceid
+          if (this.locationMarkerbox[tempSpaceID] === undefined) {
+            this.locationMarkerbox[tempSpaceID] = {}
+            this.markerMedia[tempSpaceID] = []
+            this.storeCues.markerMatch[tempSpaceID] = []
+          }
+          markerBoxList.push({ key: mkkey.key, tag: 'marker', id: mkkey.value.concept })
+          // only set location in space if value present saved
+          // this.setLocationMarkerbox(tempSpaceID, mkkey.key)
+          this.markerMedia[tempSpaceID].push({ key: mkkey.key, tag: 'marker', id: mkkey.value.concept })
+          this.storeCues.markerMatch[tempSpaceID].push(mkkey)
+        } else {
+          // run through cues and match maker to relathionships and add to cue space, marker in context
+        }
+      }
+    },
+    prepareProductSpace (pData) {
+      let tempSpaceID = ''
+      let productBoxList = []
+      for (let prokey of pData) {
+        tempSpaceID = prokey.value.concept.cueid
+        if (this.locationProductbox[tempSpaceID] === undefined) {
+          this.locationProductbox[tempSpaceID] = {}
+          this.productMedia[tempSpaceID] = []
+          this.storeCues.productMatch[tempSpaceID] = []
+        }
+        productBoxList.push({ key: prokey.key, tag: 'product', id: prokey.value.concept.product })
+        this.setLocationProductbox(tempSpaceID, prokey.key)
+        this.productMedia[tempSpaceID].push({ key: prokey.key, tag: 'product', id: prokey.value.concept.product })
+        this.storeCues.productMatch[tempSpaceID].push(prokey)
       }
     },
     setLocationBbox (space, bbox) {
@@ -236,24 +372,131 @@ export const bentoboxStore = defineStore('bentostore', {
       let spaceLive = this.locationBbox[space]
       if (bbox in spaceLive) {
       } else {
-        const tW = 440
+        const tW = 840
         const tH = 440
         let updateBox = {}
-        updateBox.tW = 480
-        updateBox.tH = 480
-        updateBox.handlers = ref(["r", "rb", "b", "lb", "l", "lt", "t", "rt"])
+        updateBox.tW = tW
+        updateBox.tH = tH
+        updateBox.handlers = ["r", "rb", "b", "lb", "l", "lt", "t", "rt"]
         updateBox.left = '90px' // ref(`calc(2% - ${tW / 2}px)`)
         updateBox.top = this.locationStart + 'px' // ref(`calc(8% - ${tH / 2}px)`)
-        // updateBox.height = ref('fit-content')
-        // updateBox.width = ref('fit-content')
-        // updateBox.maxW = ref('100%')
-        // updateBox.maxH = ref('100%')
-        // updateBox.minW = ref('20vw')
-        // updateBox.minH = ref('20vh')
-        updateBox.fit = ref(false)
-        updateBox.event = ref('')
-        updateBox.dragSelector = ref('.drag-container-1, .drag-container-2')
+        updateBox.height = 'auto'
+        updateBox.width = '40vw'
+        updateBox.maxW = '100%'
+        updateBox.maxH = '100%'
+        updateBox.minW = '40vw'
+        updateBox.minH = '20vh'
+        updateBox.fit = false
+        updateBox.event = ''
+        updateBox.dragSelector = '#bb-toolbar, .drag-container-2'
         this.locationBbox[space][bbox] = updateBox
+        // TODO make location start per space
+        this.locationStart+= 40
+      }
+    },
+    setLocationMbox (space, mbox) {
+      // check not already set
+      let spaceLive = this.locationMbox[space]
+      if (mbox in spaceLive) {
+      } else {
+        const tW = 840
+        const tH = 440
+        let updateBox = {}
+        updateBox.tW = tW
+        updateBox.tH = tH
+        updateBox.handlers = ["r", "rb", "b", "lb", "l", "lt", "t", "rt"]
+        updateBox.left = '90px' // ref(`calc(2% - ${tW / 2}px)`)
+        updateBox.top = this.locationStart + 'px' // ref(`calc(8% - ${tH / 2}px)`)
+        updateBox.height = 'auto'
+        updateBox.width = '20vw'
+        updateBox.maxW = '100%'
+        updateBox.maxH = '100%'
+        updateBox.minW = '20vw'
+        updateBox.minH = '20vh'
+        updateBox.fit = false
+        updateBox.event = ''
+        updateBox.dragSelector = '#bb-toolbar, .drag-container-2'
+        this.locationMbox[space][mbox] = updateBox
+        this.locationStart+= 40
+      }
+    },
+    setLocationRbox (space, rbox) {
+      // check not already set
+      let spaceLive = this.locationRbox[space]
+      if (rbox in spaceLive) {
+      } else {
+        const tW = 840
+        const tH = 440
+        let updateBox = {}
+        updateBox.tW = tW
+        updateBox.tH = tH
+        updateBox.handlers = ["r", "rb", "b", "lb", "l", "lt", "t", "rt"]
+        updateBox.left = '90px' // ref(`calc(2% - ${tW / 2}px)`)
+        updateBox.top = this.locationStart + 'px' // ref(`calc(8% - ${tH / 2}px)`)
+        updateBox.height = 'auto'
+        updateBox.width = '20vw'
+        updateBox.maxW = '100%'
+        updateBox.maxH = '100%'
+        updateBox.minW = '20vw'
+        updateBox.minH = '20vh'
+        updateBox.fit = false
+        updateBox.event = ''
+        updateBox.dragSelector = '#br-toolbar, .drag-container-2'
+        this.locationRbox[space][rbox] = updateBox
+        this.locationStart+= 40
+      }
+    },
+    setLocationMarkerbox (space, mbox) {
+      // check not already set
+      let mID = mbox
+      let spaceLive = this.locationMarkerbox[space]
+      if (mbox in spaceLive) {
+      } else {
+        const tW = 840
+        const tH = 440
+        let updateBox = {}
+        updateBox.tW = tW
+        updateBox.tH = tH
+        updateBox.handlers = ["r", "rb", "b", "lb", "l", "lt", "t", "rt"]
+        updateBox.left = '90px' // ref(`calc(2% - ${tW / 2}px)`)
+        updateBox.top = this.locationStart + 'px' // ref(`calc(8% - ${tH / 2}px)`)
+        updateBox.height = 'auto'
+        updateBox.width = '20vw'
+        updateBox.maxW = '100%'
+        updateBox.maxH = '100%'
+        updateBox.minW = '20vw'
+        updateBox.minH = '20vh'
+        updateBox.fit = false
+        updateBox.event = ''
+        updateBox.dragSelector = '#marker-bar, .drag-container-2'
+        this.locationMarkerbox[space][mID] = updateBox
+        this.locationStart+= 40
+      }
+    },
+    setLocationProductbox (space, pbox) {
+      // check not already set
+      let pID = pbox
+      let spaceLive = this.locationProductbox[space]
+      if (pbox in spaceLive) {
+      } else {
+        const tW = 840
+        const tH = 440
+        let updateBox = {}
+        updateBox.tW = tW
+        updateBox.tH = tH
+        updateBox.handlers = ["r", "rb", "b", "lb", "l", "lt", "t", "rt"]
+        updateBox.left = '90px' // ref(`calc(2% - ${tW / 2}px)`)
+        updateBox.top = this.locationStart + 'px' // ref(`calc(8% - ${tH / 2}px)`)
+        updateBox.height = 'auto'
+        updateBox.width = '20vw'
+        updateBox.maxW = '100%'
+        updateBox.maxH = '100%'
+        updateBox.minW = '20vw'
+        updateBox.minH = '20vh'
+        updateBox.fit = false
+        updateBox.event = ''
+        updateBox.dragSelector = '#product-bar, .drag-container-2'
+        this.locationProductbox[space][pID] = updateBox
         this.locationStart+= 40
       }
     },
@@ -267,6 +510,7 @@ export const bentoboxStore = defineStore('bentostore', {
       let mMapinfo = {}
       mMapinfo.bboxid = bboxid
       mMapinfo.spaceid = spaceid
+      mMapinfo.cueid = spaceid
       mMapinfo.nxp = ''
       mMapinfo.coord = cords
       mMapinfo.type = 'saved'
@@ -282,6 +526,7 @@ export const bentoboxStore = defineStore('bentostore', {
           boxLocList.push({ bbox: bbox.bboxid, coord: locInfo })
         }
         let spaceInfo = {}
+        spaceInfo.cueid = 's-' + spaceID
         spaceInfo.spaceid = 's-' + spaceID
         spaceInfo.spaceshort = spaceID
         spaceInfo.boxlist = this.storeAI.bentoboxList[spaceID]

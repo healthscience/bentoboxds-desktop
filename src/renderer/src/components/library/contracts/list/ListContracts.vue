@@ -66,7 +66,6 @@ import { accountStore } from '@/stores/accountStore.js'
       storeLibrary.joinNXP = true
       storeLibrary.uploadStatus = true
       // need to look at queries and perform them
-
     } else {
       // preview network experiment
       // this.$store.dispatch('actionJOINViewexperiment', board)
@@ -81,6 +80,7 @@ import { accountStore } from '@/stores/accountStore.js'
   }
 
   const removeExp = (exp) => {
+    console.log(exp)
     storeLibrary.removeExpModContract(exp.id, props.privacy)
     if (props.privacy === 'private') {
       let index = storeLibrary.peerExperimentList.data.indexOf(exp.id)

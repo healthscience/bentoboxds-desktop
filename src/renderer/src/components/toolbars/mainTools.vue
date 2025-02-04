@@ -24,7 +24,7 @@
           </div>
         </div>
         <div class="bentobox-top">
-          <div class="bb-align alpha-round">Alpha</div>
+          <div class="bb-align alpha-round">Beta</div>
         </div>
         <div class="bentobox-top">
           <network-notify></network-notify>
@@ -159,7 +159,7 @@ nav a:first-of-type {
     grid-template-columns: 1fr;
     border: 0px solid rgb(189, 30, 210);
     background-color: rgb(250, 246, 246);
-    z-index: 4
+    z-index: 25;
   }
 
   header {

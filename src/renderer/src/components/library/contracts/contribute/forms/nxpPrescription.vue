@@ -19,33 +19,12 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'nxp-prescription',
-  components: {
-  },
-  data: () => ({
-    prescription:
-      {
-        text: '',
-        forum: ''
-      }
-  }),
-  created () {
-  },
-  mounted () {
-  },
-  prescriptiond: {
-  },
-  methods: {
-    saveprescription () {
-      console.log('save prescription')
-    }
-  }
-}
+<script setup>
+import { ref } from 'vue'
+
 </script>
 
-<style>
+<style scoped>
 #prescription-nxp {
   margin: 1em;
   border: 1px solid grey;

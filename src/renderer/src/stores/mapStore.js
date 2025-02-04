@@ -28,18 +28,20 @@ export const mapminiStore = defineStore('mapministore', {
       this.ctx.mousePointer(update)
     },
     actionPostionCoord (spaceID) {
-      let boxesInspace = Object.keys(this.storeBentoBox.locationBbox[spaceID])
-      for (let bbox of boxesInspace) {
-        // extract current coords
-        let currentCoord = {}
-        currentCoord.bboxid = spaceID
-        currentCoord.coord = this.storeBentoBox.locationBbox[spaceID][bbox]
-        currentCoord.type = 'saved'
-        // keep track of position in bento space
-        this.ctx.startPositionSpace(currentCoord.bboxid, currentCoord.coord, currentCoord.type)
-        // Vue.set(this.liveSpaceCoord, update.nxp, positionTrack)
-        // update the minimap
-        this.ctx.miniMapLocations()
+      if (this.storeBentoBox.locationBbox[spaceID] !== undefined) {
+        let boxesInspace = Object.keys(this.storeBentoBox.locationBbox[spaceID])
+        for (let bbox of boxesInspace) {
+          // extract current coords
+          let currentCoord = {}
+          currentCoord.bboxid = spaceID
+          currentCoord.coord = this.storeBentoBox.locationBbox[spaceID][bbox]
+          currentCoord.type = 'saved'
+          // keep track of position in bento space
+          this.ctx.startPositionSpace(currentCoord.bboxid, currentCoord.coord, currentCoord.type)
+          // Vue.set(this.liveSpaceCoord, update.nxp, positionTrack)
+          // update the minimap
+          this.ctx.miniMapLocations()
+        }
       }
     },
     actionClearPosition () {

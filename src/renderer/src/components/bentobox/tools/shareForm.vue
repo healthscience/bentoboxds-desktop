@@ -1,29 +1,82 @@
 <template>
   <div id="share-protocol">
-    <form id="ask-ai-form" @submit.prevent="storeAccount.shareProtocol(props.bboxid, shareType)">
-      <label for="sharepeer"></label>
-      <input type="input" id="sharekey" placeholder="publickey" v-model="storeAccount.sharePubkey" autofocus>
-      <button id="share-send" type="submit">
+    <div id="share-address">
+      <form id="ask-ai-form" @submit.prevent="storeAccount.shareProtocol(props.bboxid, props.shareType)">
+        <label for="sharepeer"></label>
+        <input type="input" id="sharekey" placeholder="publickey" v-model="storeAccount.sharePubkey" autofocus>
+      </form>
+      <button id="share-send" type="submit" @click="sendPeerInvite()">
         Send invite
       </button>
-    </form>
+    </div>
+    <div id="peers-available">
+      <h3>Peers available</h3>
+      <select class="share-peer-list" id="peer-options-select" v-model="peerPshare" @change="selectPeerShare()">
+        <option selected="" v-for="pp in peerWarmlist" :value="pp.publickey">
+          {{ pp.publickey }}
+        </option>
+      </select>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
 import { accountStore } from '@/stores/accountStore.js'
 
   const storeAccount = accountStore()
   
+  let peerPshare = ref('')
 
+  /* props */
   const props = defineProps({
+    bboxid: String,
     shareType: String
   })
+
+  /* computed */
+  const peerWarmlist = computed(() => {
+    // warm peers filter to unique
+    const uniquePeers = storeAccount.warmPeers.filter((value, index, self) =>
+      index === self.findIndex((t) => (
+          t.publickey === value.publickey
+      ))
+    )
+    return uniquePeers
+  })
+
+  /* methods */
+  const selectPeerShare = () => {
+    storeAccount.sharePubkey = peerPshare.value 
+  }
+
+  const sendPeerInvite = () => {
+    storeAccount.shareProtocol(props.bboxid, props.shareType)
+  }
 
 </script>
 
 <style scoped>
 
+#share-protocol {
+  display: grid;
+  grid-template-columns: 1fr;
+  padding: 2em;
+  border: 1px solid lightblue;
+}
+
+#share-address {
+ display: grid;
+ grid-template-columns: 4fr 1fr; 
+}
+
+#ask-ai-form input{
+  width: 90%;
+}
+
+.share-peer-list {
+  width: 90%;
+}
 
 @media (min-width: 1024px) {
 

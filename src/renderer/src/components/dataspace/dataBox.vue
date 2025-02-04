@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body">
+  <Teleport to="body">ddddd
     <!-- use the modal component, pass in the prop -->
     <modal-data :show="dataBoxStatus" @close="closedataBox">
       <template #header>
@@ -30,13 +30,16 @@
         </button>
       </template>
       <template #body>
+        <!-- data utilities-->
         <space-upload v-if="uploadStatus === true && joinNXPStatus !== true"></space-upload>
         <rest-upload v-if="restStatus === true"></rest-upload>
         <csv-preview v-if="storeLibrary.csvpreviewLive === true"></csv-preview>
         <image-preview v-if="storeLibrary.imagepreviewLive === true"></image-preview>
+        <!-- mian library-->
         <div v-if="libraryStatus === true">
           <network-library></network-library>
         </div>
+        <!-- network experiments private and public-->
         <libraryexp-view v-if="storeLibrary.libPeerview === true"></libraryexp-view>
         <newnxp-view v-if="storeLibrary.newNXP === true"></newnxp-view>
         <joinnxp-view v-if="storeLibrary.joinNXP === true"></joinnxp-view>
@@ -129,6 +132,9 @@ import { libraryStore } from '@/stores/libraryStore.js'
     if (storeLibrary.publicLibrary.referenceContracts !== undefined) {
       storeLibrary.prepPublicNXPlist()
     }
+    // ask network library for contracts via HOP
+    storeLibrary.sendMessage('get-library')
+    storeLibrary.sendMessage('get-results')
   }
 
   const nxpAdd = () => {

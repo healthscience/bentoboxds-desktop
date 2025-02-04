@@ -6,16 +6,22 @@ import { bentoboxStore } from "@/stores/bentoboxStore.js"
 import { libraryStore } from '@/stores/libraryStore.js'
 import DataPraser from '@/stores/hopUtility/dataParse.js'
 import ChatUtilty from '@/stores/hopUtility/chatUtility.js'
+import ChatspaceUtilty from '@/stores/hopUtility/chatspaceUtility.js'
 import { accountStore } from "@/stores/accountStore.js"
+import { cuesStore } from "@/stores/cuesStore.js"
 
 export const aiInterfaceStore = defineStore('beebeeAIstore', {
   state: () => ({
     storeAcc: accountStore(),
     sendSocket: useSocketStore(),
+    storeCues: cuesStore(),
     storeBentoBox: bentoboxStore(),
     storeLibrary: libraryStore(),
     liveDataParse: new DataPraser(),
     liveChatUtil: new ChatUtilty(),
+    liveChatspaceUtil: new ChatspaceUtilty(),
+    cuesFeedback: '',
+    cuesRelationshipFeedback: {},
     startChat: true,
     chatAttention: '',
     historyList: '',
@@ -25,6 +31,9 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     qcount: 0,
     dataBoxStatus: false,
     chatBottom: 0,
+    beebeeContext: 'chat',
+    decisionDoughnutCue: false,
+    oracleData: { type: 'oracle', action: 'decision', elements: [{ label: 'muscle mass', datasets: { backgroundColor: '#01923c', data: 30 }}, { label: 'brain', datasets: { backgroundColor: '#71923c', data: 30 }}], concerns: [{ label: 'kidneys', datasets: { backgroundColor: '#b90e28', data: 30 }}, { label: 'pee more', datasets: { backgroundColor: '#e62643', data: 30 }}]},
     askQuestion: {
       text: ''
     },
@@ -44,6 +53,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     helpchatHistory: shallowRef([]),
     currentQuestion: {},
     historyPair: {},
+    chatSpacePair: {},
     bbidHOPid: [],
     hopSummary: [],
     futurePids: [],
@@ -73,8 +83,13 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     futureLabelData: {},
     futureNumberData: {},
     beebeeChatLog: {},
+    historySpacePair: {},
+    bentochatState: false,
     bentospaceState: false,
+    bentocuesState: false,
     bentodiaryState: false,
+    bentoflakeState: false,
+    bentographState: false,
     longPress: false,
     liveBspace: '',
     bentoboxList: { '91919191': [] },
@@ -82,7 +97,9 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     notifList: [],
     boxLibSummary: {},
     boxModelUpdate: {},
-    computeModuleLast: {}
+    computeModuleLast: {},
+    bentobesearchState: false,
+    cueAction: 'cues'
   }),
   actions: {
     sendMessageHOP (message) {
@@ -128,60 +145,78 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.beginChat = true
     },
     submitAsk (dataInfo) {
-      // remove start boxes
-      this.startChat = false
-      this.historyBar = true
-      let saveQ = {}
-      saveQ.count = this.qcount
-      saveQ.text = this.askQuestion.text
-      saveQ.active = true
-      let date = new Date()
-      // get the time as a string
-      let time = date.toLocaleTimeString()
-      saveQ.time = time
-      this.inputAskHistory.push(saveQ)
-      // provide feedback else forward to beebeeLogic via HOP
-      if (this.askQuestion.text === 'yes') {
-        let lastQuestion = this.historyPair[this.chatAttention].slice(-1)
-        lastQuestion[0].reply.data.content = lastQuestion.reply.data.grid // this.storeLibrary.linesLimit
-        this.actionFileAskInput(lastQuestion[0].reply)
-      } else if (dataInfo?.id) {
-        // if bbid match to that
-        let matchBBox = {}
-        let questionCount = []
-        for (let hpair of this.historyPair[this.chatAttention]) {
-          if (hpair.reply.bbid === dataInfo.bbid) {
-            matchBBox = hpair
-            questionCount.push(hpair)
+      // check for context of beebee default is Chat, other option spaces, cues(decisions)
+      if (this.beebeeContext === 'chat') {
+        // remove start boxes
+        this.startChat = false
+        this.historyBar = true
+        let saveQ = {}
+        saveQ.count = this.qcount
+        saveQ.text = this.askQuestion.text
+        saveQ.active = true
+        let date = new Date()
+        // get the time as a string
+        let time = date.toLocaleTimeString()
+        saveQ.time = time
+        this.inputAskHistory.push(saveQ)
+        // provide feedback else forward to beebeeLogic via HOP
+        if (this.askQuestion.text === 'yes') {
+          let lastQuestion = this.historyPair[this.chatAttention].slice(-1)
+          lastQuestion[0].reply.data.content = lastQuestion.reply.data.grid // this.storeLibrary.linesLimit
+          this.actionFileAskInput(lastQuestion[0].reply)
+        } else if (dataInfo?.id) {
+          // if bbid match to that
+          let matchBBox = {}
+          let questionCount = []
+          for (let hpair of this.historyPair[this.chatAttention]) {
+            if (hpair.reply.bbid === dataInfo.bbid) {
+              matchBBox = hpair
+              questionCount.push(hpair)
+            }
           }
-        }
-        if (questionCount.length > 1) {
-          matchBBox = questionCount[0]
-        }
-        if (matchBBox) {
-          let lastQuestion = matchBBox
-          lastQuestion.reply.data.content = matchBBox.reply.data.filedata.grid
-          lastQuestion.reply.data.context = dataInfo
-          this.currentQuestion = lastQuestion
-          this.actionFileAskInput(lastQuestion.reply)
-        } else {
-          // need to check if same pair but different data type context?
-          let checkCurrentQ = Object.keys(this.currentQuestion)
-          if (checkCurrentQ.length > 0) {
-            let lastQuestion = this.currentQuestion
-            lastQuestion[0].reply.data.context = dataInfo
-            this.actionFileAskInput(lastQuestion[0].reply)
-          } else {
-            let lastQuestion = this.historyPair[this.chatAttention].slice(-1)
-            lastQuestion[0].reply.data.content = this.storeLibrary.linesLimit
-            lastQuestion[0].reply.data.context = dataInfo
+          if (questionCount.length > 1) {
+            matchBBox = questionCount[0]
+          }
+          if (matchBBox) {
+            let lastQuestion = matchBBox
+            lastQuestion.reply.data.content = matchBBox.reply.data.filedata.grid
+            lastQuestion.reply.data.context = dataInfo
             this.currentQuestion = lastQuestion
-            this.actionFileAskInput(lastQuestion[0].reply)
+            this.actionFileAskInput(lastQuestion.reply)
+          } else {
+            // need to check if same pair but different data type context?
+            let checkCurrentQ = Object.keys(this.currentQuestion)
+            if (checkCurrentQ.length > 0) {
+              let lastQuestion = this.currentQuestion
+              lastQuestion[0].reply.data.context = dataInfo
+              this.actionFileAskInput(lastQuestion[0].reply)
+            } else {
+              let lastQuestion = this.historyPair[this.chatAttention].slice(-1)
+              lastQuestion[0].reply.data.content = this.storeLibrary.linesLimit
+              lastQuestion[0].reply.data.context = dataInfo
+              this.currentQuestion = lastQuestion
+              this.actionFileAskInput(lastQuestion[0].reply)
+            }
           }
+        } else {
+          this.actionHelpAskInput()
         }
-      } else {
-       this.actionHelpAskInput()
+      } else if (this.beebeeContext === 'chatspace') {
+        let spaceChatPrep = this.liveChatspaceUtil.prepareChatQandA(this.askQuestion, this.liveBspace)
+        // check if array set
+        if (this.chatSpacePair[this.liveBspace.cueid] === undefined) {
+          this.chatSpacePair[this.liveBspace.cueid] = []
+        }
+        this.chatSpacePair[this.liveBspace.cueid].push(spaceChatPrep)
+        this.askQuestion.text = ''
+      } else if (this.beebeeContext === 'graph') {
+      } else if (this.beebeeContext === 'cues-decision') {
+        this.decisionDoughnutCue = true
       }
+    },
+    largeFilesubmitAsk (dataInfo) {
+      // console.log('large file prep')
+      // console.log(dataInfo)
     },
     actionFileAskInput (fileData) {
       let aiMessageout = {}
@@ -335,6 +370,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         this.storeAcc.warmPeers.push(received.data)
       } else if (received.action === 'network-publib-board') {
         // create a notification accept public board and save?
+      } else if (received.action === 'cue-space') {
+        // populate space  check if cue needing setup then fill and notify
       }
     },
     preparePublicConfirm (item) {
@@ -354,6 +391,39 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.historyPair[this.chatAttention].push(pairBB)
       this.beginChat = true
       this.chatBottom++
+    },
+    prepareCuespace (notItem) {
+      let cueContract = notItem.data.data.content.cuecontract
+      let notCuespace = ''
+      this.beebeeContext = 'chatspace'
+      this.bentospaceState = !this.bentospaceState
+      this.liveBspace = cueContract // get from notificationspaceID
+      // make button green
+      let spaceLiveList = []
+      for (let spi of this.storeBentoBox.spaceList) {
+        if (spi.spaceid === cueContract.spaceid) {
+          spi.active = true
+          spaceLiveList.push(spi)
+        } else {
+          spi.active = false
+          spaceLiveList.push(spi)
+        }
+      }
+      this.storeBentoBox.spaceList = spaceLiveList
+      // now setup N=1 media, research, markers, products
+      let contentTypes = Object.keys(notItem.data.data.content)
+      for (let spcont of contentTypes) {
+        // media, research etc.
+        if (spcont === 'media') {
+          this.storeBentoBox.prepareMediaSpace(notItem.data.data.content[spcont])
+        } else if (spcont === 'research') {
+          this.storeBentoBox.prepareResearchSpace(notItem.data.data.content[spcont])
+        } else if (spcont === 'markers') {
+          this.storeBentoBox.prepareMarkerSpace(notItem.data.data.content[spcont])
+        } else if (spcont === 'products') {
+          this.storeBentoBox.prepareProductSpace(notItem.data.data.content[spcont])
+        }
+      }
     },
     processPeerData (dataNetwork) {
       let matchBBID = dataNetwork.hop.bbid
@@ -528,24 +598,45 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.sendSocket.send_message(message)
     },
     prepareSpaceSave (message) {
-      let boxidPerspace = this.bentoboxList[message.data.spaceid]
-      let visDataperSpace = []
-      let locationPerSpace = []
-      for (let bbi of boxidPerspace) {
-        let visD = this.visData[bbi.bboxid]
-        visDataperSpace.push(visD)
-        // current location to save
-        locationPerSpace.push({ bboxid: bbi.bboxid, location: this.storeBentoBox.locationBbox[message.data.spaceid][bbi.bboxid] })
+      // match bentoboxes, cues, content (media, research, markers, products)
+      // bentoboxes
+      let boxidPerspace = this.bentoboxList[message.data.cueid]
+      if (boxidPerspace !== undefined) {
+        let visDataperSpace = []
+        let locationPerSpace = []
+        for (let bbi of boxidPerspace) {
+          let visD = this.visData[bbi.bboxid]
+          visDataperSpace.push(visD)
+          // current location to save
+          locationPerSpace.push({ bboxid: bbi.bboxid, location: this.storeBentoBox.locationBbox[message.data.cueid][bbi.bboxid] })
+        }
+        // build media info per space
+        let saveData = {}
+        saveData.pair = {}
+        saveData.space = message.data
+        saveData.location = locationPerSpace
+        saveData.visData = visDataperSpace
+        saveData.bboxlist = boxidPerspace
+        // save media boxes
+        // saveData.mboxlist = bmMediaPerspace
+        message.data = saveData
+        this.sendSocket.send_message(message)
+      } else {
+        console.log('no boxid')
       }
-
-      let saveData = {}
-      saveData.pair = {}
-      saveData.space = message.data
-      saveData.location = locationPerSpace
-      saveData.visData = visDataperSpace
-      saveData.bboxlist = boxidPerspace
-      message.data = saveData
-      this.sendSocket.send_message(message)
+      // cues
+      // media
+      let mediaidPerspace = this.storeBentoBox.videoMedia[message.data.cueid]
+      // console.log(mediaidPerspace)
+      // research
+      let researchidPerspace = this.storeBentoBox.researchMedia[message.data.cueid]
+      // console.log(researchidPerspace)
+      // markers
+      let markeridPerspace = this.storeBentoBox.markerMedia[message.data.cueid]
+      // console.log(markeridPerspace)
+      // products
+      let productidPerspace = this.storeBentoBox.ProductMedia[message.data.cueid]
+      // console.log(productidPerspace)
     },
     prepareAI (message) {
       // need to build DML structure, proof of work hash

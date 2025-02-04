@@ -1,23 +1,23 @@
 <template>
   <div class="beebee-welcome" v-if="storeAI.startChat === true">
-    <div id="message-question">What can you do?</div>
+    <div id="message-question">What can be done?</div>
     <div id="bb-features">
       <div class="message-bb">
-        <header>Ask</header>
+        <header>Tools</header>
         <div class="message-learn">
-          BeeBee about a data source, enter numbers or drag in a file
+          Have agency over data and knowledge
         </div>
       </div>
       <div class="message-bb">
-        <header>Chart</header>
+        <header>BeeBee Oracle</header>
         <div class="message-learn">
-          A BentoBox offers a range of charts and analysis tools
+          Ask question of the health oracle
         </div>
       </div>
       <div class="message-bb">
         <header>Share</header>
         <div class="message-learn">
-          Securely send to other peers, employees or communities
+          Guide coherence & collective intelligences
         </div>
       </div>
     </div>

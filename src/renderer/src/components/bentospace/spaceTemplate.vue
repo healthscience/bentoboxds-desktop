@@ -18,10 +18,22 @@
         </div>
       </template>
       <template #body>
-        <beebee-ai v-if="beebeeSpace"></beebee-ai>
+        <beebee-ai></beebee-ai>
         <button id="open-beebee" @click.prevent="setShowBeeBee">beebee</button>
         <div id="space-toolbar">
-          <div id="beebee-help"></div>
+          <!--<div id="beebee-help"></div>-->
+          <div id="cues-connector">
+            <button @click="cueConnect()" v-bind:class="{ active: cuesTools === true }">Cues</button>
+          </div>
+          <div id="decision-tools">
+            <button @click="addCueDecision()" v-bind:class="{ active: spaceDecision === true }">+ decision</button>
+          </div>
+          <div id="add-context">
+            <button @click="contextAdd()" v-bind:class="{ active: contextTools === true }">+ content</button>
+          </div>
+          <div id="share-network">
+            <button @click="shareSpace()" v-bind:class="{ active: shareTools === true }">+ share</button>
+          </div>
           <div id="space-bar">space bar</div>
           <div class="scale-item scalebuttons">
             <label>Scale</label>
@@ -31,11 +43,78 @@
             <button class="point-change" @click="setzoomScale(0.05)">+</button>
           </div>
         </div>
+        <div id="space-context-tools" v-if="contextTools === true">
+          <div id="n1-tools">
+            <button @click="openLibrary()" v-bind:class="{ active: spaceN1setup === true }">+ N=1</button>
+            <div id="bento-n1" v-if="spaceN1setup === true">
+              <div id="create-new-n1">
+                <button class="button-lib-data" @click="nxpAdd">
+                  + new experiment
+                </button>
+              </div>
+              <libraryexp-view v-if="storeLibrary.libPeerview === true"></libraryexp-view>
+              <newnxp-view v-if="storeLibrary.newNXP === true"></newnxp-view>
+            </div>
+          </div>
+          <div id="media-tools">
+            <button @click="addCueMedia()" v-bind:class="{ active: spaceMedia === true }">+ media</button>
+            <div id="bento-cue-media" v-if="spaceMedia === true">
+              <media-cue></media-cue>
+            </div>
+          </div>
+          <div id="research-tools">
+            <button @click="addCueResearch()" v-bind:class="{ active: spaceResearch === true }">+ research</button>
+            <div id="bento-cue-research" v-if="spaceResearch === true">
+                <research-cue :spaceid="storeAI.liveBspace.spaceid"></research-cue>
+            </div>
+          </div>
+          <div id="marker-tools">
+            <button @click="addCueMarker()" v-bind:class="{ active: spaceMarker === true }">+ marker</button>
+            <div id="bento-cue-marker" v-if="spaceMarker === true">
+                <marker-cue></marker-cue>
+            </div>
+          </div>
+          <div id="product-tools">
+            <button @click="addCueProduct()" v-bind:class="{ active: spaceProduct === true }">+ product</button>
+            <div id="bento-cue-product" v-if="spaceProduct === true">
+                <product-cue></product-cue>
+            </div>
+          </div>
+        </div>
+        <div id="share-protocol" v-if="shareTools === true">
+          <header>Share protocol</header>
+          <share-protocol :bboxid="''" :shareType="'cue-space'"></share-protocol>
+        </div>
         <div id="bentospace-holder" v-dragscroll.noleft.noright="true" @click="whereMinmap($event)">
           <div id="bento-space" v-bind:style="{ transform: 'scale(' + zoomscaleValue + ')' }">
+            <div id="cues-context-tools" v-if="cuesTools === true">
+              <!-- existing cues -->
+             <cues-prepared v-if="wheelType === 'cues'"></cues-prepared>
+            </div>
+            <div id="bento-cue-decicion" v-if="spaceDecision === true">
+              <decision-cue></decision-cue>
+            </div>
             <!-- location for bentobox - es -->
-            <div id="bento-layout" v-for="bbox in storeAI.bentoboxList[storeAI.liveBspace.spaceid]">
-             <bento-boxspace :bboxid="bbox.bboxid" :contractid="bbox.contract"></bento-boxspace>
+            <div id="space-bento-items">
+              <div id="bento-layout" v-for="bbox in storeAI.bentoboxList[storeAI.liveBspace.cueid]">
+                <bento-boxspace :bboxid="bbox.bboxid" :contractid="bbox.contract"></bento-boxspace>
+              </div>
+              <!--video / image /  decision  / cues etc  to compliment bentobox-->
+              <div id="bento-media-space" v-for="bmedia in storeBentobox.videoMedia[storeAI.liveBspace.cueid]">
+                <media-space :bstag="bmedia.tag" :bsmedia="bmedia.key"></media-space>
+              </div>
+              <!-- research media -->
+              <div id="bento-research-space" v-for="rmedia in storeBentobox.researchMedia[storeAI.liveBspace.cueid]">
+                <research-space :bstag="rmedia.tag" :bsmedia="rmedia.key"></research-space>
+              </div>
+                <!-- marker -->
+                <div id="bento-research-space" v-for="mkmedia in storeBentobox.markerMedia[storeAI.liveBspace.spaceid]">
+                <marker-space :bstag="mkmedia.tag" :bsmedia="mkmedia.key"></marker-space>
+              </div>
+              <!-- product -->
+              <div id="bento-product-space" v-for="mkproduct in storeBentobox.productMedia[storeAI.liveBspace.cueid]">
+                <product-space :bstag="mkproduct.tag" :bsmedia="mkproduct.key"></product-space>
+              </div>
             </div>
           </div>
         </div>
@@ -50,24 +129,50 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ModalSpace from '@/components/bentospace/spaceModal.vue'
+import CuesPrepared from '@/components/bentocues/prepareCues.vue'
+import LibraryexpView from '@/components/dataspace/libraryNXPView.vue'
+import NewnxpView from '@/components/dataspace/newnxpView.vue'
 import BentoBoxspace from '@/components/bentobox/bentoboxSpace.vue'
-import BeebeeAi from '@/components/beebeehelp/inputBox.vue'
+import MediaSpace from '@/components/bentospace/video/mediaSpace.vue'
+import ResearchSpace from '@/components/bentospace/research/researchSpace.vue'
+import MarkerSpace from '@/components/bentospace/marker/markerSpace.vue'
+import ProductSpace from '@/components/bentospace/product/productSpace.vue'
+import DecisionCue from '@/components/bentocues/decisions/decisionCues.vue'
+import MediaCue from '@/components/bentocues/media/mediaCues.vue'
+import ResearchCue from '@/components/bentocues/research/researchCues.vue'
+import MarkerCue from '@/components/bentocues/marker/markerCues.vue'
+import ProductCue from '@/components/bentocues/product/productCues.vue'
+import BeebeeAi from '@/components/beebeehelp/spaceChat.vue'
+import ShareProtocol from '@/components/bentobox/tools/shareForm.vue'
 import MininavMap from '@/components/bentospace/map/mininavMap.vue'
+import { cuesStore } from '@/stores/cuesStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
+import { libraryStore } from '@/stores/libraryStore.js'
 import { mapminiStore } from '@/stores/mapStore.js'
 
+  const storeCues = cuesStore()
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
+  const storeLibrary = libraryStore()
   const storeMmap = mapminiStore()
-  
-  let beebeeSpace = ref(false)
+
   let mouseLive = ref(
     {
       x: 10,
       y: 10
     }
   )
+  let wheelType = ref('cues')
+  let cuesTools = ref(false)
+  let contextTools = ref(false)
+  let shareTools = ref(false)
+  let spaceN1setup = ref(false)
+  let spaceMedia = ref(false)
+  let spaceDecision = ref(false)
+  let spaceResearch = ref(false)
+  let spaceMarker = ref(false)
+  let spaceProduct = ref(false)
 
   /* computed */
   const bentospaceStatus = computed(() => {
@@ -80,13 +185,16 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
   /* methods */
   const setShowBeeBee = () => {
-    beebeeSpace.value = !beebeeSpace.value
+    // beebeeSpace.value = !beebeeSpace.value
+    storeAI.bentochatState = !storeAI.bentochatState
   }
 
   const closeBentoSpace = () => {
+    storeAI.beebeeContext = 'chat'
     storeAI.bentospaceState = !storeAI.bentospaceState
+    storeCues.cueContext = 'cueall'
     // save the current layout on close
-    storeBentobox.saveLayoutSpace(storeAI.liveBspace.spaceid)
+    storeBentobox.saveLayoutSpace(storeAI.liveBspace.cueid)
   }
 
   const setzoomScale = (change) => {
@@ -102,14 +210,115 @@ import { mapminiStore } from '@/stores/mapStore.js'
     }
   }
 
+  const addBentoN1 = () => {
+    spaceN1setup.value = !spaceN1setup.value
+    storeLibrary.libPeerview = !storeLibrary.libPeerview
+    // prepare public library for table list view
+    if (storeLibrary.publicLibrary.referenceContracts !== undefined) {
+      storeLibrary.prepPublicNXPlist()
+    }
+  }
+
+  const nxpAdd = () => {
+    storeLibrary.newNXP = !storeLibrary.newNXP
+    // send message to HOP to create genesis NXP contract structure
+    if (storeLibrary.newNXP === true) {
+      // setup gensis open tools data structure
+      let modSettings = {}
+      modSettings.xaxis = ['time'] // mod.value.info.settings.xaxis
+      modSettings.yaxis = ['333']
+      modSettings.category = []
+      storeBentobox.openDataSettings['genesis-123579'] = modSettings
+      storeLibrary.prepareGenesisModContracts()
+      storeLibrary.saveSuccessnxp = false
+    }
+  }
+
+  const openLibrary = () => {
+    // need to set context to library
+    storeLibrary.inContext = 'space'
+    storeAI.dataBoxStatus = true
+    storeAI.uploadStatus = false
+    storeLibrary.libraryStatus = true
+    storeLibrary.libPeerview = true
+    storeLibrary.newNXP = true
+  }
+
+  const addCueDecision = () => {
+    spaceDecision.value = !spaceDecision.value
+    // storeAI.decisionDoughnutCue = !storeAI.decisionDoughnutCue
+  }
+
+  const addCueMedia = () => {
+    spaceMedia.value = !spaceMedia.value
+  }
+
+  const addCueResearch = () => {
+    spaceResearch.value = !spaceResearch.value
+  }
+
+  const addCueMarker = () => {
+    spaceMarker.value = !spaceMarker.value
+    // check if measure glue has any existing relationships
+    storeCues.cueGluePrepare('measure') 
+  }
+
+  const addCueProduct = () => {
+    spaceProduct.value = !spaceProduct.value
+  }
+
+  const cueConnect = () => {
+    storeCues.cueContext = 'space'
+    // prepare cue wheel
+    // cueid and spaceid  mix need to standardise
+    let cueIDactive = ''
+    if (storeAI.liveBspace.spaceid !== undefined) {
+      cueIDactive = storeAI.liveBspace.spaceid
+    } else {
+      cueIDactive = storeAI.liveBspace.cueid
+    }
+    let cueContract = storeCues.cueUtil.cueMatch(cueIDactive, storeCues.cuesList)
+    storeCues.cueDisplayBuilder(storeAI.liveBspace.spaceid, cueContract, {})
+    cuesTools.value = !cuesTools.value
+  }
+
+  const contextAdd = () => {
+    contextTools.value = !contextTools.value
+  }
+
+  const shareSpace = () => {
+    shareTools.value = !shareTools.value
+  }
+
 </script>
 
 <style scoped>
 
+.active {
+  background-color: rgb(113, 172, 114);
+}
+
 #space-toolbar {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 2fr 1fr;
   background-color: antiquewhite;
+}
+
+#cues-context-tools {
+  display: absolute;
+  left: 0;
+  top: 0;
+  border: 1px solid lightgrey;
+  height: 460px;
+  width: 460px;
+  background-color: white;
+}
+
+#space-context-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  margin-top: 1em;
+  margin-bottom: .6em;
 }
 
 #bentospace-holder {
@@ -134,6 +343,41 @@ import { mapminiStore } from '@/stores/mapStore.js'
   text-align: right;
 }
 
+#share-protocol {
+  margin: 1em;
+  width: 40vw;
+}
+
+/*  media bar  */
+#bento-media {
+  position: absolute;
+  z-index: 33;
+  top: 10;
+  left: 20;
+  border-bottom: 1px solid lightgrey;
+  border-left: 1px solid lightgrey;
+  border-right: 1px solid lightgrey;
+  padding: 1em;
+  background: rgb(176, 176, 204);
+  width: 300px;
+  opacity: .8;
+}
+
+/* decision tools */
+#bento-cue-decicion {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 33;
+  width: auto;
+  border-bottom: 1px solid lightgrey;
+  border-left: 1px solid lightgrey;
+  border-right: 1px solid lightgrey;
+  padding: 1em;
+  background: rgb(176, 176, 204);
+  opacity: .98;
+}
+
   @media (min-width: 1024px) {
 
     #space-modal-header {
@@ -153,9 +397,14 @@ import { mapminiStore } from '@/stores/mapStore.js'
       z-index: 2;
     }
 
-    #pace-modal-header {
+    #space-bento-items {
+      position: relative;
+    }
+
+    #space-modal-header {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 8fr 1fr;
+
     }
 
     #return-modal-close {
@@ -181,6 +430,66 @@ import { mapminiStore } from '@/stores/mapStore.js'
     grid-template-columns: 1fr 1fr 1fr 1fr;
     justify-self: end;
   }
+
+  #bento-layout {
+    position: relative;
+    border: 3px solid purple;
+    height: 1px;
+    width: 1px;
+  }
+
+  #bento-media-space {
+    position: relative;
+    border: 2px solid green;
+    height: 1px;
+    width: 1px;
+  }
+
+  /*  media bar  */
+  #bento-media {
+    position: absolute;
+    z-index: 33;
+    top: 10;
+    left: 20;
+    border-bottom: 1px solid lightgrey;
+    border-left: 1px solid lightgrey;
+    border-right: 1px solid lightgrey;
+    padding: 1em;
+    background: rgb(176, 176, 204);
+    width: 300px;
+    opacity: .8;
+  }
+
+  /* decision tools */
+  #bento-cue-decicion {
+    position: absolute;
+    z-index: 33;
+    width: auto;
+    height: auto;
+    margin-left: 0px;
+    border-bottom: 1px solid lightgrey;
+    border-left: 1px solid lightgrey;
+    border-right: 1px solid lightgrey;
+    padding: 1em;
+    background: rgb(176, 176, 204);
+    opacity: .98;
+  }
+
+  /* research tools */
+  #bento-cue-research {
+    position: absolute;
+    z-index: 33;
+    width: auto;
+    height: auto;
+    margin-left: -120px;
+    border-bottom: 1px solid lightgrey;
+    border-left: 1px solid lightgrey;
+    border-right: 1px solid lightgrey;
+    padding: 1em;
+    background: rgb(176, 176, 204);
+    opacity: .98;
+  }
+
 }
 
 </style>

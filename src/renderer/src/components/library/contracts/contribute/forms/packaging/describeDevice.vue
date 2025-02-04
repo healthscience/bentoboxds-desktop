@@ -46,8 +46,8 @@
 
 <script setup>
 import { ref } from 'vue'
-import DescribeDatastructure from '@/components/library/contracts/contribute/forms/describeDeviceStructure.vue'
-import DescribeFirmware from '@/components/library/contracts/contribute/forms/describeDeviceFirmware.vue'
+import DescribeDatastructure from '@/components/library/contracts/contribute/forms/packaging/describeDeviceStructure.vue'
+import DescribeFirmware from '@/components/library/contracts/contribute/forms/packaging/describeDeviceFirmware.vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 
   const storeLibrary = libraryStore()

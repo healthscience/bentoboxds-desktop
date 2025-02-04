@@ -36,8 +36,10 @@ import FilePreview from '@/components/dataspace/upload/filePreview.vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { ref, shallowRef, computed } from "vue"
+import FileHander from '@/components/dataspace/upload/utils/fileHandler.js'
 
 	const file = shallowRef(null)
+	let HandleLargeFiles = new FileHander()
 	let headerLocal = ref({})
 
 	const storeLibrary = libraryStore()
@@ -45,6 +47,7 @@ import { ref, shallowRef, computed } from "vue"
 
 // File Management
 import useFileList from '@/components/dataspace/upload/compositions/fileList.js'
+
 const { files, addFiles, removeFile } = useFileList()
 
 	/* computed */
@@ -91,7 +94,15 @@ const checkElectron = () => {
 }
 
 const saveFiles = (files) => {
+	console.log(HandleLargeFiles)
 	for (let file of files) {
+		console.log('file size')
+		console.log(file.file.size)
+		let fileSize = file.file.size
+		let largeFileStatus = false
+		if ((fileSize / 1000000) > 10) {
+			largeFileStatus = true
+		}
 		/* upload file data flow */
 		// check if file type given? if not extract file extention (different browser different info NOTE)
 		if (file.file.type.length === 0) {
@@ -118,69 +129,14 @@ const saveFiles = (files) => {
 		storeLibrary.fileBundleList.push(fileBundle)
 		// give summary back to peer
 		if (file.file.type === 'text/csv') {
+			console.log('svs')
 			storeLibrary.csvpreviewLive = true
-			const reader = new FileReader()
-			reader.onload = function () {
-				const lines = reader.result 
-				let splitLines = lines.split(/\r\n|\n/)
-				storeLibrary.linesLimit = splitLines.slice(0, 40)
-				// if direct from beebee inform chat
-				if (storeAI.dataBoxStatus !== true) {
-					// TODO send to beebee via socket but for now create reply here
-					storeAI.qcount++
-					let question = {}
-					question.type ='bbai'
-					question.reftype = 'ignore'
-					question.action = 'question'
-					question.data = { "count": storeAI.qcount, "text": "Upload of file", "active": true, "time": new Date() }
-					let hashQuestion = hashObject(question.data + file.file.name)
-					// extract headers assume first line
-					const localHeaderExtract = (lineOne) => {
-						let headerInfo = lineOne.split(',')
-						return headerInfo
-					}
-					headerLocal[hashQuestion] = localHeaderExtract(splitLines[0])
-					let fileContent = reader.result
-					storeLibrary.fileBund.content = fileContent
-					// build for chart interface
-					question.bbid = hashQuestion
-					let bbReply = {}
-					bbReply.type = 'bbai-reply'
-					bbReply.data = { text: 'summary of file data file is csv, heading are:', filedata: { type: 'csv', file: fileBundle, columns: 'one', grid: storeLibrary.linesLimit }, prompt: 'Select data to chart:', options: headerLocal[hashQuestion], }
-					bbReply.bbid = hashQuestion
-					let newPair = {}
-					newPair.question = question
-					newPair.reply = bbReply
-					storeAI.historyPair[storeAI.chatAttention].push(newPair)
-					// if csv  active viewer
-					storeLibrary.csvpreviewLive = true
-				} else {
-					// extract headers assume first line
-					const localHeaderExtract = (lineOne) => {
-						let headerInfo = lineOne.split(',')
-						return headerInfo
-					}
-					let headerLocal = localHeaderExtract(splitLines[0])
-					// make columns in standard form object
-					let columnStructure = []
-					let scount = 0
-					for (let head of headerLocal) {
-						columnStructure.push({ cid: scount, name: head })
-						scount++
-					}
-					// build for library upload
-					storeLibrary.newPackagingForm.apicolumns = headerLocal
-					storeLibrary.newDatafile.columns = columnStructure
-					storeLibrary.newDatafile.path = 'csv'
-					storeLibrary.newDatafile.file = 'csv'
-				}
+			// use hander large or small?
+			if (largeFileStatus === false) {
+				HandleLargeFiles.csvHandler(file, storeAI, storeLibrary, hashObject, fileBundle)
+			} else {
+				HandleLargeFiles.handleLargeFile(file.file, 'csv', storeLibrary )
 			}
-			reader.onerror = function() {
-				console.log(reader.error)
-			}
-			reader.readAsText(file.file)
-			const reader2 = new FileReader();
-  		reader2.readAsArrayBuffer(file.file)
 		} else if (file.file.type === 'image/png') {
 			storeLibrary.imagepreviewLive = true
 			// get file data via reader
@@ -387,6 +343,7 @@ const saveFiles = (files) => {
 				messageHOP.task = 'PUT'
 				messageHOP.data = fileSave // storeLibrary.fileBund
 				// send to HOP
+				console.log('save on uplodald+++')
 				storeLibrary.sendMessage(messageHOP)
 				storeLibrary.uploadStatus = false
 			}

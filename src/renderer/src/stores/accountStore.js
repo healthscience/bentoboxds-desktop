@@ -1,15 +1,21 @@
 import { defineStore } from 'pinia'
 import { useSocketStore } from '@/stores/socket.js'
+import { cuesStore } from "@/stores/cuesStore.js"
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { libraryStore } from '@/stores/libraryStore.js'
+import { bentoboxStore } from "@/stores/bentoboxStore.js"
 import PeersUtility from '@/stores/hopUtility/peersUtility.js'
+import SpaceUtility from '@/stores/hopUtility/spaceContentUtil.js'
 
 export const accountStore = defineStore('account', {
   state: () => ({
     sendSocket: useSocketStore(),
+    storeCues: cuesStore(),
     storeAI: aiInterfaceStore(),
     storeLibrary: libraryStore(),
+    storeBentoBox: bentoboxStore(),
     utilPeers: new PeersUtility(),
+    utilSpacecontent: new SpaceUtility(),
     accountMenu: 'Sign-in',
     accountStatus: false,
     peerauth: false,
@@ -23,10 +29,27 @@ export const accountStore = defineStore('account', {
   }),
   actions: {
     processReply (received) {
-      if (received.action === 'hyperbee-pubkeys') {
-        this.publicKeysList = received.data
-        // ask for library
+      if (received.action === 'hop-verify') {
+        // set token for subsequent HOP messages
+        this.sendSocket.jwt = received.data.jwt
+        // reply is verified
+        this.peerauth = true
+        this.storeAI.startChat = false
+        this.accountStatus = false
+        this.accountMenu = 'account'
+        // get start public library
         this.storeLibrary.startLibrary()
+        // get starting account info.
+        let saveBentoBoxsetting = {}
+        saveBentoBoxsetting.type = 'bentobox'
+        saveBentoBoxsetting.reftype = 'chat-history'
+        saveBentoBoxsetting.action = 'start'
+        saveBentoBoxsetting.task = 'start'
+        saveBentoBoxsetting.data = ''
+        saveBentoBoxsetting.bbid = ''
+        this.storeAI.sendMessageHOP(saveBentoBoxsetting) 
+      } else if (received.action === 'hyperbee-pubkeys') {
+        this.publicKeysList = received.data
       } else if (received.action === 'drive-pubkeys') {
         this.publickeyDrive = received.data
       } else if (received.action === 'warm-peers') {
@@ -65,6 +88,34 @@ export const accountStore = defineStore('account', {
         shareInfo.type = 'network'
         shareInfo.action = 'share'
         shareInfo.task = 'peer-join'
+        shareInfo.reftype = 'null'
+        shareInfo.privacy = 'private'
+        shareInfo.data = shareContext
+        this.sendMessageHOP(shareInfo)
+      } else if (shareType === 'cue-space') {
+        // gather space context and prepare share data
+        // need utilty for each putling together
+        let spaceContent = {}
+        // get the cue contract spaceid NOTE
+        spaceContent.cuecontract = this.storeAI.liveBspace
+        spaceContent.n1 = this.utilSpacecontent.n1Match()
+        spaceContent.media = this.utilSpacecontent.mediaMatch(this.storeCues.mediaMatch[this.storeAI.liveBspace.spaceid])
+        spaceContent.research = this.utilSpacecontent.researchMatch(this.storeCues.researchPapers[this.storeAI.liveBspace.spaceid])
+        spaceContent.markers = this.utilSpacecontent.markerMatch(this.storeCues.markerMatch[this.storeAI.liveBspace.spaceid])
+        spaceContent.products = this.utilSpacecontent.productMatch(this.storeCues.productMatch[this.storeAI.liveBspace.spaceid])
+        let spaceDetails = {}
+        spaceDetails.name = 'cue-space'
+        spaceDetails.publickey = this.sharePubkey
+        spaceDetails.content = spaceContent
+        spaceDetails.spaceid = this.storeAI.liveBspace.spaceid
+        this.warmPeers = this.utilPeers.checkPeerMatch(this.warmPeers, spaceDetails)
+        let shareContext = {}
+        shareContext.publickey = spaceDetails.publickey
+        shareContext.data = spaceDetails
+        let shareInfo = {}
+        shareInfo.type = 'network'
+        shareInfo.action = 'share'
+        shareInfo.task = 'cue-space'
         shareInfo.reftype = 'null'
         shareInfo.privacy = 'private'
         shareInfo.data = shareContext

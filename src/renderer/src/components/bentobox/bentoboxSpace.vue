@@ -30,7 +30,7 @@
 <script setup>
 import VueResizable from 'vue-resizable'
 import BentoBox from  '@/components/bentobox/bentoBox.vue' 
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed} from 'vue'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { mapminiStore } from '@/stores/mapStore.js'
@@ -84,7 +84,7 @@ import { mapminiStore } from '@/stores/mapStore.js'
     updateBox.fit = fit.value
     updateBox.event = ''
     updateBox.dragSelector = dragSelector.value
-    storeBentobox.locationBbox[storeAI.liveBspace.spaceid][props.bboxid] = updateBox
+    storeBentobox.locationBbox[storeAI.liveBspace.cueid][props.bboxid] = updateBox
     storeMmap.actionDashBmove(updateBox)
   }
 
@@ -134,14 +134,14 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
   const removeBboxSpace = () => {
     // remove from spaceList and location
-    let currentSpaceBboxes = storeAI.bentoboxList[storeAI.liveBspace.spaceid]
+    let currentSpaceBboxes = storeAI.bentoboxList[storeAI.liveBspace.cueid]
     let updateBblist = []
     for (let bb of currentSpaceBboxes) {
       if (bb.bboxid !== props.bboxid) {
         updateBblist.push(bb)
       }
     }
-    storeAI.bentoboxList[storeAI.liveBspace.spaceid] = updateBblist
+    storeAI.bentoboxList[storeAI.liveBspace.cueid] = updateBblist
     // update miniMap of removal
     storeMmap.actionDashBRemove(props.bboxid)
   }
@@ -152,7 +152,7 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
   /* computed */
   const spaceLocation = computed(() => {
-    return storeBentobox.locationBbox[storeAI.liveBspace.spaceid][props.bboxid]
+    return storeBentobox.locationBbox[storeAI.liveBspace.cueid][props.bboxid]
   })
 
   const checkEmpty = computed((value) => {
@@ -307,6 +307,5 @@ import { mapminiStore } from '@/stores/mapStore.js'
   }
 
 }
-
 
 </style>
