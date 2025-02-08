@@ -19,6 +19,8 @@ export const accountStore = defineStore('account', {
     accountMenu: 'Sign-in',
     accountStatus: false,
     peerauth: false,
+    socketLive: false,
+    HOPFlow: false,
     networkInfo: {},
     warmPeers: [],
     publickeyDrive: [],
@@ -33,6 +35,7 @@ export const accountStore = defineStore('account', {
         // set token for subsequent HOP messages
         this.sendSocket.jwt = received.data.jwt
         // reply is verified
+        this.HOPFlow = true
         this.peerauth = true
         this.storeAI.startChat = false
         this.accountStatus = false

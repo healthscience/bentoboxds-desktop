@@ -36,6 +36,10 @@
         </div>
       </template>
       <template #connect>
+        <div id="connectivity">
+          <div id="connect-socket" v-if="connectNetworkstatus === true"></div>
+          <div id="connect-socket-loss" v-else="connectLoss === true"></div>
+        </div>
         <!-- <div id="network-status" v-if="peerauth === true">
           <div class="status-info">
             Connection Status: <div class="hon-square-status" v-bind:class="{ active: connectNetworkstatus === true && peerauth === true }"></div>
@@ -52,7 +56,9 @@
         <account-tabs v-if="storeAccount.peerauth === true"></account-tabs>
       </template>
       <template #footer>
-        BentoBoxDS
+        <div id="footer-self">
+          BentoBoxDS
+        </div>
       </template>
     </modal-auth>
   </Teleport>
@@ -63,14 +69,29 @@ import { ref, computed } from 'vue'
 import ModalAuth from '@/components/toolbars/account/authModal.vue'
 import AccountTabs from '@/components/toolbars/account/accountTabs.vue'
 
+import { useSocketStore } from '@/stores/socket.js'
 import { accountStore } from '@/stores/accountStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
+  const storeSocket = useSocketStore()
   const storeAccount = accountStore()
   const storeAI = aiInterfaceStore()
 
   let selfpwInput = ref('')
   let verifyFeedback = ref('')
+
+  /* computed */
+  const connectNetworkstatus = computed(() => {
+    return storeSocket.connection_ready
+  })
+
+  const connectLoss = computed(() => {
+    return storeSocket.connection_loss
+  })
+
+  const connectError = computed(() => {
+    return storeSocket.connection_error
+  })
 
   const closeAccount = () => {
     storeAccount.accountStatus = !storeAccount.accountStatus
@@ -130,6 +151,37 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   margin-top: 1em;
   color: red;
 }
+
+#connectivity {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  align-items: center;
+  height: 23vh;
+  margin: 2em;
+}
+
+#connect-socket {
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  background-color: lightgreen;
+}
+
+#connect-socket-loss {
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  background-color: rgb(244, 66, 66);
+}
+
+#footer-self {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  align-items: center;
+}
+
 @media (min-width: 1024px) {
 
   #account-modal-header {
@@ -155,7 +207,9 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   }
 
   #self-signin-form {
-    background-color: antiquewhite;
+    margin-top: 6em;
+    border-radius: 5%;
+    background-color: rgb(239, 241, 247);
     padding: 2em;
   }
 

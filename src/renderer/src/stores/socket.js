@@ -97,10 +97,12 @@ export const useSocketStore = defineStore({
     },    
     onSockerError (evt) {
       console.log('socket error')
+      this.connection_ready = false
       this.connection_error = true
       // this.autoReconnect()
     },
     onSocketClose (evt) {
+      this.connection_ready = false
       this.connection_loss = true
       // this.websocket.close()
       // this.autoReconnect()

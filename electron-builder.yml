@@ -1,5 +1,6 @@
 appId: com.bentoboxds.app
 productName: BentoBox-DS-Desktop
+buildVersion: 0.2.1
 directories:
   buildResources: build
 files:
@@ -21,7 +22,10 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  category: public.app-category.utilities
+  entitlements: ./entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
+  icon: ./build/icon.png
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
@@ -37,6 +41,7 @@ linux:
     - deb
   maintainer: bentboxds.org
   category: Utility
+  icon: ./build/icon.png
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false

@@ -39,8 +39,8 @@
 
 <style scoped>
 .modal-mask {
+  z-index: 299;
   position: fixed;
-  z-index: 99;
   top: 0;
   left: 0;
   width: 100%;
@@ -52,7 +52,6 @@
 }
 
 .modal-container {
-  z-index: 9;
   width: 92vw;
   height: 92vh;
   margin: auto;

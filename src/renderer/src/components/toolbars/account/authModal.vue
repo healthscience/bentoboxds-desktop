@@ -37,8 +37,8 @@ const props = defineProps({
 
 <style scoped>
 .modal-mask {
+  z-index: 299;
   position: fixed;
-  z-index: 25;
   top: 0;
   left: 0;
   width: 100%;
@@ -46,10 +46,11 @@ const props = defineProps({
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   transition: opacity 0.3s ease;
+  opacity: 1;
 }
 
 .modal-container {
-  width: 98vw;
+  width: 96vw;
   height: 98vh;
   margin: auto;
   padding: 20px 30px;

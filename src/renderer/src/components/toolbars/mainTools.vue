@@ -30,6 +30,11 @@
           <network-notify></network-notify>
         </div>
         <div class="bentobox-top">
+          <div id="hop-flow-holder" v-if="HOPFlow === true">
+            <img class="hop-flow" src="../.././assets/hoplogosmall.png" alt="cues">
+          </div>
+        </div>
+        <div class="bentobox-top">
           <nav>
             <RouterLink to="/help">{{ $t("message.help") }}</RouterLink>
           </nav>
@@ -44,6 +49,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import NetworkNotify from '@/components/toolbars/notification/networkNotify.vue'
 import mobileMenu from '@/components/toolbars/mobileNav.vue'
 import DropDown from '@/components/toolbars/dropDown.vue'
@@ -73,6 +79,11 @@ import { ref, onMounted } from 'vue'
   const selfAuth = () => {
     storeAccount.accountStatus = !storeAccount.accountStatus
   }
+
+  /* computed */
+  const HOPFlow = computed(() => {
+    return storeAccount.HOPFlow
+  })
 
 </script>
 
@@ -151,6 +162,17 @@ nav a:first-of-type {
   text-align: center;
 }
 
+#hop-flow-holder {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  margin-left: 1em;
+}
+
+.hop-flow {
+  height: 28px;
+}
+
 @media (min-width: 1024px) {
   .bentobox-browser {
     position: fixed;
@@ -164,7 +186,7 @@ nav a:first-of-type {
 
   header {
     display: grid;
-    grid-template-columns: 4fr 1fr 2fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 4fr 1fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
     border: 0px solid blue;
     width: 98vw;
     /*max-height: 10vh;*/
@@ -206,6 +228,7 @@ nav a:first-of-type {
   }
 
   .alpha-round {
+    width: 8rem;
     background-color: rgb(235, 135, 63);
     border-radius: 15px;
     justify-self: end;

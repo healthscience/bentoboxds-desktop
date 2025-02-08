@@ -23,16 +23,17 @@
         <div id="space-toolbar">
           <!--<div id="beebee-help"></div>-->
           <div id="cues-connector">
-            <button @click="cueConnect()" v-bind:class="{ active: cuesTools === true }">Cues</button>
+            <button class="space-agent" @click="cueConnect()" v-bind:class="{ active: cuesTools === true }">Cues</button>
           </div>
           <div id="decision-tools">
-            <button @click="addCueDecision()" v-bind:class="{ active: spaceDecision === true }">+ decision</button>
+            <button class="space-agent" @click="addCueDecision()" v-bind:class="{ active: spaceDecision === true }">+ decision</button>
+            <img class="cues-holitic-wheel" src="../.././assets/cues-holistic-icon.png" alt="cues" @click=cuesHolistic()>
           </div>
           <div id="add-context">
-            <button @click="contextAdd()" v-bind:class="{ active: contextTools === true }">+ content</button>
+            <button class="space-agent" @click="contextAdd()" v-bind:class="{ active: contextTools === true }">+ content</button>
           </div>
           <div id="share-network">
-            <button @click="shareSpace()" v-bind:class="{ active: shareTools === true }">+ share</button>
+            <button class="space-agent" @click="shareSpace()" v-bind:class="{ active: shareTools === true }">+ share</button>
           </div>
           <div id="space-bar">space bar</div>
           <div class="scale-item scalebuttons">
@@ -210,6 +211,12 @@ import { mapminiStore } from '@/stores/mapStore.js'
     }
   }
 
+  const cuesHolistic = () => {
+    console.log('holistic')
+    storeCues.liveCueContext = 'flake'
+    storeAI.bentoflakeState = !storeAI.bentoflakeState
+  }
+
   const addBentoN1 = () => {
     spaceN1setup.value = !spaceN1setup.value
     storeLibrary.libPeerview = !storeLibrary.libPeerview
@@ -301,7 +308,7 @@ import { mapminiStore } from '@/stores/mapStore.js'
 #space-toolbar {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 2fr 1fr;
-  background-color: antiquewhite;
+  background-color: rgb(217, 226, 245);
 }
 
 #cues-context-tools {
@@ -323,6 +330,17 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
 #bentospace-holder {
   border: 0px solid red;;
+}
+
+#decision-tools {
+  display: grid;
+  grid-template-columns: 4fr 1fr;
+  height: 32px;
+}
+
+.cues-holitic-wheel {
+  width: 28px;
+  height: 28px;
 }
 
 #bento-space {
@@ -348,6 +366,21 @@ import { mapminiStore } from '@/stores/mapStore.js'
   width: 40vw;
 }
 
+.btn-green {
+  display: inline-grid;
+  height: 28px;
+  margin-right: .4em;
+  background-color: #b8cde2;
+  color: #140d6b;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+} 
+
 /*  media bar  */
 #bento-media {
   position: absolute;
@@ -358,7 +391,7 @@ import { mapminiStore } from '@/stores/mapStore.js'
   border-left: 1px solid lightgrey;
   border-right: 1px solid lightgrey;
   padding: 1em;
-  background: rgb(176, 176, 204);
+  background: rgb(190, 190, 243);
   width: 300px;
   opacity: .8;
 }
@@ -376,6 +409,31 @@ import { mapminiStore } from '@/stores/mapStore.js'
   padding: 1em;
   background: rgb(176, 176, 204);
   opacity: .98;
+}
+
+.space-agent {
+  display: inline-grid;
+  height: 28px;
+  margin-right: .4em;
+  background-color: #b8cde2;
+  color: #140d6b;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.space-agent:hover {
+    background-color: #2a82e0;
+    transform: translateY(-2px);
+}
+
+.space-agent:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
 }
 
   @media (min-width: 1024px) {
