@@ -230,28 +230,63 @@ class HOP extends EventEmitter {
   */
   listenNetwork = function () {
     this.DataNetwork.on('peer-topeer', (data) => {
-      // route to beebee for text message back to peer & prep bentobox
-      this.BBRoute.liveBBAI.networkPeerdirect(data)
-      // return vis data, like from SafeFlow
-      this.SafeRoute.networkSFpeerdata(data)
+      if (data.display === 'html') {
+        // route to beebee for text message back to peer & prep bentobox
+        this.BBRoute.liveBBAI.networkPeerdirect(data)
+        // return vis data, like from SafeFlow
+        this.SafeRoute.networkSFpeerdata(data) 
+      } else if (data.display === 'safeflow') {
+        // return vis data, like from SafeFlow
+        this.SafeRoute.networkSFpeerdata(data) 
+      }
     })
 
     this.DataNetwork.on('peer-cuespace', (data) => {
       this.BBRoute.liveBBAI.networkPeerSpace(data)
     })
   
-    this.DataNetwork.on('peer-incoming', (data) => {
+    this.DataNetwork.on('peer-incoming-save', async (data) => {
+      // save direct to library account contract, when save that will inform beeebee in BentoboxDS
+      let libMessageout = {}
+      libMessageout.type = 'library'
+      libMessageout.action = 'account'
+      libMessageout.reftype = 'new-peer'
+      libMessageout.privacy = 'private'
+      libMessageout.task = 'PUT'
+      libMessageout.data = data
+      libMessageout.bbid = ''
+      await this.LibRoute.libManager.libraryManage(libMessageout)
+      /* let peerId = {}
+      peerId.type = 'network-notification'
+      peerId.action = 'warm-peer-connect'
+      peerId.data = data
+      this.sendSocketMessage(JSON.stringify(peerId)) */
+    })
+  
+    this.DataNetwork.on('peer-reconnect-topic', (data) => {
       let peerId = {}
       peerId.type = 'network-notification'
-      peerId.action = 'warm-peer-new'
+      peerId.action = 'warm-peer-topic'
       peerId.data = data
       this.sendSocketMessage(JSON.stringify(peerId))
     })
-  
+
+    this.DataNetwork.on('peer-topic-save', async (data) => {
+      let libMessageout = {}
+      libMessageout.type = 'library'
+      libMessageout.action = 'account'
+      libMessageout.reftype = 'new-peer-topic'
+      libMessageout.privacy = 'private'
+      libMessageout.task = 'UPDATE'
+      libMessageout.data = data
+      libMessageout.bbid = ''
+      await this.LibRoute.libManager.libraryManage(libMessageout)
+    })
+
     this.DataNetwork.on('beebee-publib-notification', (data) => {
       let peerId = {}
       peerId.type = 'network-notification'
-      peerId.action = 'network-publib-board'
+      peerId.action = 'network-library-n1'
       peerId.data = data
       this.sendSocketMessage(JSON.stringify(peerId))
     })
@@ -285,7 +320,7 @@ class HOP extends EventEmitter {
   *
   */
   //  = function (o) {
-    messageResponder = (o) => {
+    messageResponder = async (o) => {
     // console.log('message in')
     // console.log(o)
     let messageRoute = this.MessagesFlow.messageIn(o)
@@ -294,7 +329,7 @@ class HOP extends EventEmitter {
     } else if (messageRoute.type === 'safeflow') {
       this.SafeRoute.routeMessage(messageRoute)
     } else if (messageRoute.type === 'library') {
-      this.LibRoute.libManager.libraryManage(messageRoute)
+      await this.LibRoute.libManager.libraryManage(messageRoute)
       // this.LibRoute.libManager.libraryPath(messageRoute)
     } else if (messageRoute.type === 'bentobox') {
       this.LibRoute.libManager.bentoPath(messageRoute)

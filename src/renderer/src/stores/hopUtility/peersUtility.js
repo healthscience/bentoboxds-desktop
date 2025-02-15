@@ -24,18 +24,15 @@ class PeersUtility {
   *
   */
   checkPeerMatch = function (warmPeers, peerDetails) {
+    let peerMatch = {}
     if (warmPeers.length > 0) {
       for (let wp of warmPeers) {
-        if (wp.publickey === peerDetails.publickey) {
-          
-        } else {
-          warmPeers.push(peerDetails)
+        if (wp.key === peerDetails) {
+          peerMatch = wp
         }
       }
-    } else {
-      warmPeers.push(peerDetails)
     }
-    return warmPeers
+    return peerMatch
   }
 
 }

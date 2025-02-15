@@ -54,6 +54,19 @@ class LibraryRoute extends EventEmitter {
     this.libManager.on('libmessage', (data) => {
       this.bothSockets(data)
     })
+    // initial connection with warm peer
+    this.libManager.on('complete-warmpeer', (pubkey) => {
+      // pass on publick key of peer
+      this.liveHolepunch.warmPeerPrepare(pubkey, false)
+    })
+    // invite topic for future reconnect update
+    this.libManager.on('complete-topic-save', (data) => {
+      let peerTopic = {}
+      peerTopic.type = 'account'
+      peerTopic.action = 'peer-share-topic'
+      peerTopic.data = data
+      this.wsocket.send(JSON.stringify(peerTopic))
+    })
     // message for SafeFlow
     this.libManager.on('libsafeflow', (data) => {
       this.emit('safeflow-query', data)

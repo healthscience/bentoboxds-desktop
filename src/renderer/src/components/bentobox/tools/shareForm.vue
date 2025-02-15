@@ -12,8 +12,8 @@
     <div id="peers-available">
       <h3>Peers available</h3>
       <select class="share-peer-list" id="peer-options-select" v-model="peerPshare" @change="selectPeerShare()">
-        <option selected="" v-for="pp in peerWarmlist" :value="pp.publickey">
-          {{ pp.publickey }}
+        <option selected="" v-for="pp in peerWarmlist" :value="pp.key">
+          {{ pp.value.name }}
         </option>
       </select>
     </div>
@@ -37,12 +37,7 @@ import { accountStore } from '@/stores/accountStore.js'
   /* computed */
   const peerWarmlist = computed(() => {
     // warm peers filter to unique
-    const uniquePeers = storeAccount.warmPeers.filter((value, index, self) =>
-      index === self.findIndex((t) => (
-          t.publickey === value.publickey
-      ))
-    )
-    return uniquePeers
+    return storeAccount.warmPeers
   })
 
   /* methods */

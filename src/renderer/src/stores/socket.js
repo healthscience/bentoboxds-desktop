@@ -76,6 +76,7 @@ export const useSocketStore = defineStore({
       } else if (received.type == 'network-notification') {
         this.aiStore.processNotification(received)
       } else if (received.type == 'sf-networkdata') {
+        console.log('safe flow daa return?????????????')
         this.aiStore.processPeerData(received)
       } else if (received.type == 'sf-summary') {
         this.aiStore.processHOPsummary(received)

@@ -348,13 +348,15 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
     },
     processNotification (received) {
+      console.log('HOP noifcation data needs routing for diaply')
+      console.log(received)
       this.countNotifications++
       this.notifList.push(received)
       // add to chart part list (do now or on requrest?)
       if (received.action === 'chart') {
         let pairBB = {}
         let question = {}
-        question.bbid = received.bbid
+        question.bbid = received.data.bbid
         question.data = { active: true, text: received.action }
         pairBB.question = question
         let reply = {}
@@ -366,12 +368,64 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         this.historyPair[this.chatAttention].push(pairBB)
         this.beginChat = true
         this.chatBottom++
-      } else if (received.action === 'warm-peer-new') {
-        this.storeAcc.warmPeers.push(received.data)
-      } else if (received.action === 'network-publib-board') {
+      } else if (received.action === 'warm-peer-connect') {
+        // set via account store - just add to notify list here.
+      } else if (received.action === 'warm-peer-topic') {
+        // update list and make longterm true
+        let wpeerStatus = false
+        let existingPeer = {}
+        for (let peer of this.storeAcc.warmPeers) {
+          if (peer.key === received.data.publickey) {
+            wpeerStatus = true
+            existingPeer = peer
+          }
+        }
+        // check if first time or existing
+        if (wpeerStatus === true) {
+          // form structure for updating warm peer saved topic
+          let peerPair = {}
+          peerPair.publickey = existingPeer.key
+          peerPair.name = existingPeer.value.name
+          peerPair.longterm = existingPeer.value.longterm
+          peerPair.topic = received.data.data
+          peerPair.live = true
+          // for live session make true
+          this.storeAcc.updateTopicPeertoNetwork(peerPair)
+          peerPair.live = true
+          // update warm to live
+          let updateWarmPeerList = []
+          for (let wpeer of this.storeAcc.warmPeers) {
+            if (wpeer.key === existingPeer.key) {
+              updateWarmPeerList.push(existingPeer)
+            } else {
+              updateWarmPeerList.push(wpeer)
+            }
+          }
+          this.storeAcc.warmPeers = updateWarmPeerList
+        } else {
+          // need to update warm peer with topic for future discovery
+          let peerPair = {}
+          peerPair.publickey = received.data.publickey
+          peerPair.name = ''
+          peerPair.longterm = false
+          peerPair.topic = received.data.data
+          peerPair.live = false 
+          // send message to HOP to save relationship
+          let libMessageout = {}
+          libMessageout.type = 'library'
+          libMessageout.action = 'account'
+          libMessageout.reftype = 'new-peer'
+          libMessageout.privacy = 'private'
+          libMessageout.task = 'PUT'
+          libMessageout.data = peerPair
+          libMessageout.bbid = ''
+          this.sendSocket.send_message(libMessageout)
+        }
+      } else if (received.action === 'network-library-n1') {
         // create a notification accept public board and save?
       } else if (received.action === 'cue-space') {
         // populate space  check if cue needing setup then fill and notify
+        console.log('share cue space')
       }
     },
     preparePublicConfirm (item) {
@@ -426,10 +480,11 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
     },
     processPeerData (dataNetwork) {
-      let matchBBID = dataNetwork.hop.bbid
-      let hopDataChart = {}
-      hopDataChart.datasets = [ { data: dataNetwork.data.datasets[0].data } ]
-      hopDataChart.labels = dataNetwork.data.labels
+      console.log('data from network peer e.g chart bentobox idealy')
+      console.log(dataNetwork)
+      let matchBBID = dataNetwork.bbid
+      let hopDataChart = dataNetwork.data
+      // create a pair for chat display
       this.visData[matchBBID] = hopDataChart
       this.storeBentoBox.setChartstyle(matchBBID, 'line')
       this.expandBentobox[matchBBID] = false

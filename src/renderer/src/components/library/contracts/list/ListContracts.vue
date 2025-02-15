@@ -23,7 +23,7 @@
         </div>
         <div class="share-protocol-nxp" v-if="shareProtocol">
           <div class="share-board-summary">Share {{ shareBoardID.name }}</div>
-          <share-protocol :shareType="'publicboard'"></share-protocol>
+          <share-protocol :shareType="'n=1-experiment'"></share-protocol>
         </div>
       </div>
     </div>
