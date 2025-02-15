@@ -1,6 +1,7 @@
 'use strict'
 import log from 'electron-log'
 import path from 'path'
+
 log.info('HOP Live')
 let currentLocation = __dirname
 log.info(currentLocation)
@@ -19,7 +20,7 @@ log.info('HOP after fork')
 import { app, shell, protocol, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+// import iconImg from '../../public/logo-512x512.png'
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }])
@@ -32,15 +33,15 @@ function sleep (ms) {
 async function pause () {
 
  await sleep(3000)
- console.log('aferer 444 4 4 4 44  ')
+
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     show: true,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    autoHideMenuBar: false,
+    // ...(process.platform === 'linux' ? { icon } : path.join(__dirname, '../../build/icon-512x512.png')),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -50,6 +51,8 @@ function createWindow() {
       devTools: true
     }
   })
+
+  mainWindow.webContents.openDevTools()
 
   mainWindow.webContents.on('certificate-error', (event, url, error, certificate, callback) => {
     event.preventDefault()

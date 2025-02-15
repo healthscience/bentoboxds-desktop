@@ -4,6 +4,7 @@ buildVersion: 0.2.1
 directories:
   buildResources: build
 files:
+  - '!build/**/*'
   - '!**/.vscode/*'
   - '!src/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
@@ -22,10 +23,10 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  icon: build/icon.png
   category: public.app-category.utilities
   entitlements: ./entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
-  icon: ./build/icon.png
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
@@ -37,11 +38,9 @@ dmg:
 linux:
   target:
     - AppImage
-    - snap
-    - deb
   maintainer: bentboxds.org
   category: Utility
-  icon: ./build/icon.png
+  icon: build/icon.icon.png
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
