@@ -348,8 +348,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
     },
     processNotification (received) {
-      console.log('HOP noifcation data needs routing for diaply')
-      console.log(received)
       this.countNotifications++
       this.notifList.push(received)
       // add to chart part list (do now or on requrest?)
@@ -371,8 +369,10 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       } else if (received.action === 'warm-peer-connect') {
         // set via account store - just add to notify list here.
       } else if (received.action === 'warm-peer-topic') {
+        console.log('tpic recieved')
+        console.log(received.data)
         // update list and make longterm true
-        let wpeerStatus = false
+        /* let wpeerStatus = false
         let existingPeer = {}
         for (let peer of this.storeAcc.warmPeers) {
           if (peer.key === received.data.publickey) {
@@ -382,6 +382,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         }
         // check if first time or existing
         if (wpeerStatus === true) {
+          console.log('eesiting----')
+          console.log(existingPeer)
           // form structure for updating warm peer saved topic
           let peerPair = {}
           peerPair.publickey = existingPeer.key
@@ -390,8 +392,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
           peerPair.topic = received.data.data
           peerPair.live = true
           // for live session make true
-          this.storeAcc.updateTopicPeertoNetwork(peerPair)
-          peerPair.live = true
+          // this.storeAcc.updateTopicPeertoNetwork(peerPair)
+          existingPeer.value.live = true
           // update warm to live
           let updateWarmPeerList = []
           for (let wpeer of this.storeAcc.warmPeers) {
@@ -402,11 +404,13 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
             }
           }
           this.storeAcc.warmPeers = updateWarmPeerList
+          
         } else {
+          console.log('new pairing')
           // need to update warm peer with topic for future discovery
           let peerPair = {}
           peerPair.publickey = received.data.publickey
-          peerPair.name = ''
+          peerPair.name = 'newpeer'
           peerPair.longterm = false
           peerPair.topic = received.data.data
           peerPair.live = false 
@@ -421,6 +425,10 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
           libMessageout.bbid = ''
           this.sendSocket.send_message(libMessageout)
         }
+        */
+      } else if (received.action === 'warm-peer-topic') {
+        console.log('code name arrive match to list invite list and ask to save for long erm')
+        console.log(received.data)
       } else if (received.action === 'network-library-n1') {
         // create a notification accept public board and save?
       } else if (received.action === 'cue-space') {
@@ -429,6 +437,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
     },
     preparePublicConfirm (item) {
+      console.log('confrim accept n1 bentobox  may be part of space')
+      console.log(item)
       // produce a pair for the current chat
       let newBBID = '23232'
       let pairBB = {}
@@ -447,7 +457,16 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.chatBottom++
     },
     prepareCuespace (notItem) {
-      let cueContract = notItem.data.data.content.cuecontract
+      // have any bentoboxn1 been sent?
+      console.log('prepare cue space notifiction')
+      console.log(notItem)
+      if (notItem.data.content.bbn1.publicN1contracts.length > 0) {
+        console.log('yes bbn1 to prapre for this space, repare confirm chat message')
+        for (let bbn1 of notItem.data.content.bbn1.publicN1contracts) {
+          this.preparePublicConfirm({ action: 'network-library-n1', data: bbn1 })          
+        }
+      }
+      let cueContract = notItem.data.content.cuecontract
       let notCuespace = ''
       this.beebeeContext = 'chatspace'
       this.bentospaceState = !this.bentospaceState
@@ -465,23 +484,21 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
       this.storeBentoBox.spaceList = spaceLiveList
       // now setup N=1 media, research, markers, products
-      let contentTypes = Object.keys(notItem.data.data.content)
+      let contentTypes = Object.keys(notItem.data.content)
       for (let spcont of contentTypes) {
         // media, research etc.
         if (spcont === 'media') {
-          this.storeBentoBox.prepareMediaSpace(notItem.data.data.content[spcont])
+          this.storeBentoBox.prepareMediaSpace(notItem.data.content[spcont])
         } else if (spcont === 'research') {
-          this.storeBentoBox.prepareResearchSpace(notItem.data.data.content[spcont])
+          this.storeBentoBox.prepareResearchSpace(notItem.data.content[spcont])
         } else if (spcont === 'markers') {
-          this.storeBentoBox.prepareMarkerSpace(notItem.data.data.content[spcont])
+          this.storeBentoBox.prepareMarkerSpace(notItem.data.content[spcont])
         } else if (spcont === 'products') {
-          this.storeBentoBox.prepareProductSpace(notItem.data.data.content[spcont])
+          this.storeBentoBox.prepareProductSpace(notItem.data.content[spcont])
         }
       }
     },
     processPeerData (dataNetwork) {
-      console.log('data from network peer e.g chart bentobox idealy')
-      console.log(dataNetwork)
       let matchBBID = dataNetwork.bbid
       let hopDataChart = dataNetwork.data
       // create a pair for chat display

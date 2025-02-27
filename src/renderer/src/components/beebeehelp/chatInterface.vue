@@ -18,7 +18,7 @@
                 <button @click="viewSaveExperiment(chati.question.bbid, chati.reply.data)">View experiment</button>
               </div>
               <div v-if="chati.reply.type === 'network-library-n1'">
-                {{ chati.reply.data.text.boardname }}<button @click="publibLibAdd(chati.reply.data.text)"> yes add this board to public library</button>
+                {{ chati.reply.data.text.boardname }}<button @click="publibLibAdd(chati.reply.data.text)"> yes add this Cue space to public library</button>
               </div>
               <div v-if="chati.reply.type === 'hopquery'">
                 <span>Datatype: {{ chati.data.library.text }} for month {{ chati.data.time.words.day }} day {{ chati.data.time.words.month }}</span>---

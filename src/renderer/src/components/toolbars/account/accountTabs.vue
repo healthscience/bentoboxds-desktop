@@ -27,6 +27,12 @@
         >
           Wallet
         </div>
+        <div class="grid-component-tab">
+          Disconnect
+          <div id="disconnect-signout">
+            <button id="disconnect-button" @click="disconnectHOP">Disconnect and signout</button>
+          </div>
+        </div>
         <div class="spacer-component-tab"></div>
       </div>
       <div id="list-content">{{ listContext }}
@@ -49,6 +55,11 @@ import { ref } from 'vue'
 import PeerList from '@/components/toolbars/account/tabs/peerList.vue'
 import DatastoreList from '@/components/toolbars/account/tabs/datastoreList.vue'
 import AiagentsList from '@/components/toolbars/account/tabs/aiagentsList.vue'
+import { accountStore } from '@/stores/accountStore.js'
+import { aiInterfaceStore } from '@/stores/aiInterface.js'
+
+const storeAccount = accountStore()
+const storeAI = aiInterfaceStore()
 
 let peerActive = ref(false)
 let dsActive = ref(false)
@@ -56,7 +67,7 @@ let aiActive = ref(false)
 let walletActive = ref(false)
 let listContext = ref('peers')
 
-
+/*  methods  */
   const selectTab = (ls) => {
     if (ls === 'peers') {
       peerActive.value = !peerActive.value
@@ -68,6 +79,16 @@ let listContext = ref('peers')
       walletActive.value = !walletActive.value
     }
     listContext = ls
+  }
+
+  const disconnectHOP= () => {
+    // close HOP and websockt
+    let disconnectHOP = {}
+    disconnectHOP.type = 'close'
+    storeAccount.sendMessageHOP(disconnectHOP)
+    storeAccount.accountStatus = false
+    storeAccount.accountMenu = 'Sign-in'
+    storeAI.clearData()
   }
 
 </script>

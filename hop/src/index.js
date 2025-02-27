@@ -100,11 +100,6 @@ class HOP extends EventEmitter {
       this.LibRoute.setWebsocket(ws)
       this.SafeRoute.setWebsocket(ws)
       this.BBRoute.setWebsocket(ws)
-      // this.socketCount++
-      // console.log('peer connected websocket')
-      // console.log(wsServer.clients)
-      // wsServer.clients.forEach(element => console.log(Object.keys(element)))
-      // console.log(wsServer.clients.size)
       this.wsocket.id = uuidv4()
 
       this.wsocket.on('message', (msg) => {
@@ -256,14 +251,9 @@ class HOP extends EventEmitter {
       libMessageout.data = data
       libMessageout.bbid = ''
       await this.LibRoute.libManager.libraryManage(libMessageout)
-      /* let peerId = {}
-      peerId.type = 'network-notification'
-      peerId.action = 'warm-peer-connect'
-      peerId.data = data
-      this.sendSocketMessage(JSON.stringify(peerId)) */
     })
   
-    this.DataNetwork.on('peer-reconnect-topic', (data) => {
+    this.DataNetwork.on('peer-reconnect-topic-notify', (data) => {
       let peerId = {}
       peerId.type = 'network-notification'
       peerId.action = 'warm-peer-topic'
@@ -272,6 +262,19 @@ class HOP extends EventEmitter {
     })
 
     this.DataNetwork.on('peer-topic-save', async (data) => {
+      console.log('topic 11111111')
+      let libMessageout = {}
+      libMessageout.type = 'library'
+      libMessageout.action = 'account'
+      libMessageout.reftype = 'new-peer-topic'
+      libMessageout.privacy = 'private'
+      libMessageout.task = 'PUT'
+      libMessageout.data = data
+      libMessageout.bbid = ''
+      await this.LibRoute.libManager.libraryManage(libMessageout)
+    })
+
+    this.DataNetwork.on('peer-topic-update', async (data) => {
       let libMessageout = {}
       libMessageout.type = 'library'
       libMessageout.action = 'account'
@@ -283,10 +286,38 @@ class HOP extends EventEmitter {
       await this.LibRoute.libManager.libraryManage(libMessageout)
     })
 
+    this.DataNetwork.on('peer-codename-update', async (data) => {
+      let libMessageout = {}
+      libMessageout.type = 'library'
+      libMessageout.action = 'account'
+      libMessageout.reftype = 'update-peer-name'
+      libMessageout.privacy = 'private'
+      libMessageout.task = 'UPDATE'
+      libMessageout.data = data
+      libMessageout.bbid = ''
+      await this.LibRoute.libManager.libraryManage(libMessageout)
+    })
+
     this.DataNetwork.on('beebee-publib-notification', (data) => {
       let peerId = {}
       peerId.type = 'network-notification'
       peerId.action = 'network-library-n1'
+      peerId.data = data
+      this.sendSocketMessage(JSON.stringify(peerId))
+    })
+
+    this.DataNetwork.on('peer-live-notify', (data) => {
+      let peerNotify = {}
+      peerNotify.type = 'account'
+      peerNotify.action = 'network-peer-live'
+      peerNotify.data = data
+      this.sendSocketMessage(JSON.stringify(peerNotify))
+    })
+
+    this.DataNetwork.on('invite-live-peer', (data) => {
+      let peerId = {}
+      peerId.type = 'account'
+      peerId.action = 'invite-live-accepted'
       peerId.data = data
       this.sendSocketMessage(JSON.stringify(peerId))
     })

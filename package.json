@@ -1,7 +1,7 @@
 {
   "name": "bentoboxds",
   "description": "sovereign data that shapes health",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "author": "aboynejames",
   "private": true,
   "main": "./out/main/index.js",

@@ -274,7 +274,7 @@ export const bentoboxStore = defineStore('bentostore', {
         if (this.storeLibrary.publicLibrary.referenceContracts !== undefined) {
           this.libraryCheck = true
           // expand cues via library
-          this.storeLibrary.preparePublicCues(message.data)
+          // this.storeLibrary.preparePublicCues(message.data)
         } else {
           this.storeCues.waitingCues = message.data
         }

@@ -36,8 +36,6 @@ class SpaceContentutil {
   *
   */
   mediaMatch = function (content) {
-    console.log('media')
-    console.log(content)
     let mediaContent = content
     return mediaContent
   }

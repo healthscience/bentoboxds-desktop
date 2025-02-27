@@ -124,14 +124,7 @@ const selectedTimeFormat = ref('timeseries')
   })
 
   const peerWarmlist = computed(() => {
-    // warm peers filter to unique
-    let peerUnqiue = []
-    const uniquePeers = storeAccount.warmPeers.filter((value, index, self) =>
-      index === self.findIndex((t) => (
-          t.publickey === value.publickey
-      ))
-    )
-    return uniquePeers
+    return storeAccount.warmPeers
   })
 
   /* methods */

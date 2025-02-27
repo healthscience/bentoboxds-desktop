@@ -1,7 +1,7 @@
 <template>
   <Transition name="modal">
-    <div v-if="show" class="modal-mask">
-      <div class="modal-container">
+    <div v-if="show" class="modal-mask" @click="emit('close')">
+      <div class="modal-container" @click.stop>
         <div class="modal-header">
           <slot name="header"></slot>
         </div>
@@ -33,6 +33,9 @@
 const props = defineProps({
   show: Boolean
 })
+
+const emit = defineEmits(['close'])
+
 </script>
 
 <style scoped>

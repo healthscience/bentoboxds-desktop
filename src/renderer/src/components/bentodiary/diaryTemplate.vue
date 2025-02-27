@@ -14,7 +14,7 @@
           >
             Close
           </button>
-          <h3>BentoDiary</h3>
+          <h3>BentoDiary COMING SOON</h3>
           <div id="return-modal-close" @click="closeBentoDiary">return</div>
         </div>
       </template>

@@ -2,22 +2,20 @@
 import log from 'electron-log'
 import path from 'path'
 
-log.info('HOP Live')
 let currentLocation = __dirname
-log.info(currentLocation)
 let removeLocation = currentLocation.slice(0, -18)
 let tempLocation = removeLocation //  + 'resources'
-log.info(path.join(tempLocation, '/hop/src/index.js'))
 
 import { fork } from 'child_process';
+log.info(tempLocation)
+log.info('after first------')
 // const child = spawn('node', [(path.join(tempLocation, '/hop/src/index.js'))])
 fork(path.join(tempLocation, '/hop/src/index.js'))
-log.info('HOP after fork')
 
 // const { execSync } = require('child_process')
 // execSync('sleep 2') // block process for 1 second.
 
-import { app, shell, protocol, BrowserWindow } from 'electron'
+import { app, shell, protocol, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 // import iconImg from '../../public/logo-512x512.png'
@@ -26,7 +24,6 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }])
 
 function sleep (ms) {
-    log.info('sleeeeeeeping')
     return new Promise(resolve => setTimeout(resolve, ms))
 }
     
@@ -99,6 +96,26 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
+
+ipcMain.on('message-from-vue', (event, arg) => {
+  // console.log('message-from-vue')
+  console.log(arg); // Print the message from Vue
+  // restart HOP
+  let currentLocation = __dirname
+  let removeLocation = currentLocation.slice(0, -18)
+  let tempLocation = removeLocation //  + 'resources'
+  log.info('templocation calle dform ipcmain')
+  log.info(tempLocation)
+  // const child = spawn('node', [(path.join(tempLocation, '/hop/src/index.js'))])
+  let pathJoin = path.join(tempLocation, '/hop/src/index.js')
+  log.info('path info joine')
+  log.info(pathJoin)
+  fork(path.join(tempLocation, '/hop/src/index.js'))
+  log.info('after fokr')
+  // You can also send a response back to Vue
+  event.reply('message-from-main', 'Message received in main process');
+})
+
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

@@ -30,9 +30,9 @@
               {{ verifyFeedback }}
             </div>
           </div>
-          <div v-else id="disconnect-signout">
+          <!--<div v-else id="disconnect-signout">
             <button id="disconnect-button" @click="disconnectHOP">Disconnect and signout</button>
-          </div>
+          </div>-->
         </div>
       </template>
       <template #tabs>
@@ -42,6 +42,7 @@
         <div id="connectivity">
           <div id="connect-socket" v-if="connectNetworkstatus === true"></div>
           <div id="connect-socket-loss" v-else="connectLoss === true"></div>
+          <div id="connect-socket-loss" v-if="connectLoss === true"><button @click="reconnectSocket()">Reconnect to HOP</button></div>
         </div>
         <!-- <div id="network-status" v-if="peerauth === true">
           <div class="status-info">
@@ -115,6 +116,16 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     } else {
       verifyFeedback.value = 'password incorrect, try again please.'
     }
+  }
+  
+  const reconnectSocket = () => {
+    console.log('restart socket try')
+    window.electron.send('message-from-vue', 'Hello from Vue!')
+    storeSocket.connection_loss = false
+    storeSocket.connection_error = false
+    setTimeout(() => {
+        storeSocket.init_chat()
+    }, 4000)
   }
 
   const disconnectHOP= () => {

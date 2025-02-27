@@ -54,7 +54,9 @@ import NetworkNotify from '@/components/toolbars/notification/networkNotify.vue'
 import mobileMenu from '@/components/toolbars/mobileNav.vue'
 import DropDown from '@/components/toolbars/dropDown.vue'
 import AccountBox from '@/components/toolbars/account/selfAuth.vue'
+import { useSocketStore } from '@/stores/socket.js'
 
+const storeWebsocket = useSocketStore()
 import { accountStore } from '@/stores/accountStore.js'
 
 import { ref, onMounted } from 'vue'
@@ -78,6 +80,8 @@ import { ref, onMounted } from 'vue'
 
   const selfAuth = () => {
     storeAccount.accountStatus = !storeAccount.accountStatus
+    // storeWebsocket.connection_loss = false
+    storeWebsocket.connection_error = false
   }
 
   /* computed */

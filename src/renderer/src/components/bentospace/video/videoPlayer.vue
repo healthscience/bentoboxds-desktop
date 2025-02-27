@@ -53,7 +53,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
         matchMed = med
       }
     }
-    console.log(matchMed)
     return matchMed
   })
 

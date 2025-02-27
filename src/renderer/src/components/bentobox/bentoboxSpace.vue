@@ -65,6 +65,32 @@ import { mapminiStore } from '@/stores/mapStore.js'
   const dragSelector = ref('#bb-toolbar, .drag-container-2')
   let timerPress = ref(0)
 
+  /* computed */
+  const spaceLocation = computed(() => {
+    return storeBentobox.locationBbox[storeAI.liveBspace.cueid][props.bboxid]
+  })
+
+  const checkEmpty = computed((value) => {
+    return typeof value !== "number" ? 0 : value;
+  })
+
+  /* data flow work */
+    // const dataValues = ref([2, 4, 7])
+  /* const dataValues = computed(() => {
+    return storeAI.tempNumberData[props.bboxid]
+  })
+
+  const dataLabel = computed(() => {
+    return storeAI.tempLabelData[props.bboxid]
+  }) */
+
+  const chartData = computed(() => {
+    return storeAI.visData[props.bboxid]
+    /* {
+      // labels: dataLabel.value, // [ 'January', 'February', 'March' ],
+      // datasets: [ { data: dataValues.value } ]
+    } */
+   })
 
   /* methods */
   const updateBoxLocation = (location) => {
@@ -149,33 +175,6 @@ import { mapminiStore } from '@/stores/mapStore.js'
   const expandModules = () => {
     modulesShow.value = !modulesShow.value
   }
-
-  /* computed */
-  const spaceLocation = computed(() => {
-    return storeBentobox.locationBbox[storeAI.liveBspace.cueid][props.bboxid]
-  })
-
-  const checkEmpty = computed((value) => {
-    return typeof value !== "number" ? 0 : value;
-  })
-
-  /* data flow work */
-    // const dataValues = ref([2, 4, 7])
-  /* const dataValues = computed(() => {
-    return storeAI.tempNumberData[props.bboxid]
-  })
-
-  const dataLabel = computed(() => {
-    return storeAI.tempLabelData[props.bboxid]
-  }) */
-
-  const chartData = computed(() => {
-    return storeAI.visData[props.bboxid]
-    /* {
-      // labels: dataLabel.value, // [ 'January', 'February', 'March' ],
-      // datasets: [ { data: dataValues.value } ]
-    } */
-   })
 
      /*
   * predict future

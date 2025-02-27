@@ -23,15 +23,12 @@ import { accountStore } from '@/stores/accountStore.js'
 
   /* computed */
   const peerConnections = computed(() => {
-    // console.log('social peer change')
-    // console.log(storeAccount.warmPeers)
     return storeAccount.warmPeers
   })
 
   /* watch */
   watch(() => storeAccount.warmPeers, (newPeers, existingPeers) => {
     updatePeerRelationships(newPeers)
-    console.log('warmpere e update')
   },
    { deep: true }
   )
@@ -55,10 +52,13 @@ import { accountStore } from '@/stores/accountStore.js'
       let peerCount = 1
       socialGraph.addNode("1", { label: "me", x: 0, y: 0, size: 20, color: "blue" })
       for (let pg of updatePeers) {
-        socialGraph.addNode(pg.key, { label: pg.value.name, x: peerCount, y: peerCount, size: 20, color: "red" })
+        socialGraph.addNode(pg.key, { label: pg.value.name, x: "1", y: peerCount, size: 20, color: "red" })
         socialGraph.addEdge("1", pg.key, { size: 5, color: "purple" })
         peerCount++
       }
+    } else if (updatePeers.length == 0) {
+      socialGraph.clear()
+      socialGraph.addNode("1", { label: "me", x: 0, y: 0, size: 20, color: "blue" })
     }
   }
 

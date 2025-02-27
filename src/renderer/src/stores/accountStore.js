@@ -6,6 +6,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
 import { bentoboxStore } from "@/stores/bentoboxStore.js"
 import PeersUtility from '@/stores/hopUtility/peersUtility.js'
 import SpaceUtility from '@/stores/hopUtility/spaceContentUtil.js'
+import { matchedRouteKey } from 'vue-router'
 
 export const accountStore = defineStore('account', {
   state: () => ({
@@ -23,6 +24,8 @@ export const accountStore = defineStore('account', {
     HOPFlow: false,
     networkInfo: {},
     warmPeers: [],
+    inviteListGenerated: [],
+    pendingInvites: [],
     invitedPeers: [],
     beebeeAccountFeedback: '',
     publickeyDrive: [],
@@ -65,12 +68,18 @@ export const accountStore = defineStore('account', {
         this.checkPeerStatus(received.data.data)
       } else if (received.action === 'peer-share-topic') {
         this.updateTopicSetter(received.data)
+      } else if (received.action === 'invite-live-accepted') {
+        this.updatePeerlive(received.data)
+      } else if (received.action === 'network-peer-name') {
+        this.updatePeerName(received.data)
       } else if (received.action === 'complete-topic-save') {
       } else if (received.action === 'peer-share-fail') {
         // ask peer if want to save and try again?
         this.setNotifyFailConnection(received.data)
       } else if (received.action === 'peer-history') {
         this.warmPeers = received.data
+      } else if (received.action === 'network-peer-live') {
+        this.updateWarmPeerLive(received.data)
       }
     },
     addPeertoNetwork (peer) {
@@ -85,18 +94,6 @@ export const accountStore = defineStore('account', {
       // keep tabs of invite details
       this.invitedPeers.push(peer)
       this.sendMessageHOP(shareInfo)
-
-
-      // if not save details (timed accept?  TODO)
-      /* let libMessageout = {}
-      libMessageout.type = 'library'
-      libMessageout.action = 'account'
-      libMessageout.reftype = 'new-peer'
-      libMessageout.privacy = 'private'
-      libMessageout.task = 'PUT'
-      libMessageout.data = peer
-      libMessageout.bbid = ''
-      this.sendSocket.send_message(libMessageout)*/
     },
     updateTopicSetter (update) {
       let updatePeerList = []
@@ -108,10 +105,21 @@ export const accountStore = defineStore('account', {
         }
       }
       this.warmPeers = updatePeerList
+      // remove from pending list
+      let updatePendList = []
+      for (let pendP of this.pendingInvites) {
+        let splitInvite = pendP.publickey.split('-')
+        if(splitInvite[1] === update.key) {
+          // remove
+        } else {
+          updatePendList.push(pendP)
+        }
+      }
+      this.pendingInvites = updatePendList
     },
     updateTopicPeertoNetwork (update) {
       // update warmpeer item to at drop
-      let updateWarmPeers = []
+      /* let updateWarmPeers = []
       for (let wpeer of this.warmPeers) {
         if (wpeer.key === update.publickey) {
           wpeer.value.live = update.live
@@ -120,8 +128,37 @@ export const accountStore = defineStore('account', {
         } else {
           updateWarmPeers.push(wpeer)
         }
+      } */
+      // this.warmPeers = updateWarmPeers
+    },
+    updatePeerName (update) {
+      console.log('peer name match now back live ist with name ')
+      console.log(update)
+      let updateNameList = []
+      for (let wpeer of this.warmPeers) {
+        if (wpeer.key === update.key) {
+          let peerOrg = wpeer
+          peerOrg.value.name = update.value.name
+          updateNameList.push(peerOrg)
+        } else {
+          updateNameList.push(wpeer)
+        }
       }
-      this.warmPeers = updateWarmPeers
+      this.warmPeers = updateNameList  
+    },
+    updatePeerlive (update) {
+      let updateNameList = []
+      for (let wpeer of this.warmPeers) {
+        if (wpeer.key === update.data.publickey) {
+          let peerOrg = wpeer
+          peerOrg.value.matchted = true
+          peerOrg.value.live = true
+          updateNameList.push(peerOrg)
+        } else {
+          updateNameList.push(wpeer)
+        }
+      }
+      this.warmPeers = updateNameList
     },
     checkPeerStatus (peer) {
       // brand new peer first time or update save for topic
@@ -134,7 +171,7 @@ export const accountStore = defineStore('account', {
       if (Object.keys(warmMatch).length === 0) {
         this.warmPeers.push(peer)
       } else {
-        console.log('update live stust true already stt')
+        console.log('update live stust true already set')
       }
       // set notification
       let peerConnectNot = {}
@@ -143,8 +180,20 @@ export const accountStore = defineStore('account', {
       peerConnectNot.data = {}
       this.storeAI.processNotification(peerConnectNot)
     },
+    updateWarmPeerLive (peerIn) {
+      // update warm peer set status to live connection
+      let livePeerList = []
+      for (let wpeer of this.warmPeers) {
+        if (wpeer.key === peerIn.publickey) {
+          wpeer.value.live = true
+          livePeerList.push(wpeer)
+        } else {
+          livePeerList.push(wpeer)
+        }
+      }
+      this.warmPeers = livePeerList
+    },
     shareProtocol (boxid, shareType) {
-      console.log('shareProtocol', boxid, shareType)
       // existing peer relationshiop? or first time
       let existingMatch = this.utilPeers.checkPeerMatch(this.warmPeers, this.sharePubkey)
       let existingPeer = false
@@ -178,7 +227,6 @@ export const accountStore = defineStore('account', {
           } else if (shareType === 'cue-space') {
             this.prepareSpaceShareDirect(boxid)
           } else if (shareType === 'n=1-experiment') {
-            console.log('share n1')
             this.prepareN1ShareDirect(boxid)
           }
         }
@@ -192,6 +240,16 @@ export const accountStore = defineStore('account', {
 
         }
       }
+    },
+    shareCodename (peerInvite) {
+      let shareInfo = {}
+      shareInfo.type = 'network'
+      shareInfo.action = 'share'
+      shareInfo.task = 'peer-share-codename'
+      shareInfo.reftype = 'null'
+      shareInfo.privacy = 'private'
+      shareInfo.data = peerInvite
+      this.sendMessageHOP(shareInfo)
     },
     processAgentStatus (data) {
       for (let agent of this.agentList) {
@@ -263,7 +321,6 @@ export const accountStore = defineStore('account', {
       shareInfo.reftype = 'null'
       shareInfo.privacy = 'private'
       shareInfo.data = shareContext
-      console.log(shareInfo)
       this.sendMessageHOP(shareInfo)
     },
     prepareSpaceShareDirect (boxid) {
@@ -272,17 +329,25 @@ export const accountStore = defineStore('account', {
       let spaceContent = {}
       // get the cue contract spaceid NOTE
       spaceContent.cuecontract = this.storeAI.liveBspace
-      spaceContent.n1 = this.utilSpacecontent.n1Match()
+      // what bentobox N1 are active in this cue space?
+      let publicLibrary = ''
+      for (let hbee of this.publicKeysList) {
+        if (hbee.store === 'publiclibrary') {
+          publicLibrary = hbee.pubkey
+        }
+      }
+      spaceContent.bbn1 = this.utilPeers.n1Match(this.sharePubkey, publicLibrary, this.storeAI.liveBspace.cueid, this.storeAI.bentoboxList[this.storeAI.liveBspace.cueid], this.storeLibrary.peerLibrary.experiment, this.storeBentoBox.locationBbox[this.storeAI.liveBspace.cueid])
       spaceContent.media = this.utilSpacecontent.mediaMatch(this.storeCues.mediaMatch[this.storeAI.liveBspace.cueid])
       spaceContent.research = this.utilSpacecontent.researchMatch(this.storeCues.researchPapers[this.storeAI.liveBspace.cueid])
       spaceContent.markers = this.utilSpacecontent.markerMatch(this.storeCues.markerMatch[this.storeAI.liveBspace.cueid])
       spaceContent.products = this.utilSpacecontent.productMatch(this.storeCues.productMatch[this.storeAI.liveBspace.cueid])
       let spaceDetails = {}
       spaceDetails.name = 'private-cue-space'
+      spaceDetails.type = 'private-cue-space'
       spaceDetails.publickey = this.sharePubkey
       spaceDetails.content = spaceContent
       spaceDetails.cueid = this.storeAI.liveBspace.cueid
-      this.warmPeers = this.utilPeers.checkPeerMatch(this.warmPeers, spaceDetails)
+      // this.warmPeers = this.utilPeers.checkPeerMatch(this.warmPeers, spaceDetails)
       let shareContext = {}
       shareContext.type = 'private-cue-space'
       shareContext.display = 'space'
@@ -295,7 +360,6 @@ export const accountStore = defineStore('account', {
       shareInfo.reftype = 'null'
       shareInfo.privacy = 'private'
       shareInfo.data = shareContext
-      console.log(shareInfo)
       this.sendMessageHOP(shareInfo)
     },
     prepareN1ShareDirect () {
@@ -313,7 +377,7 @@ export const accountStore = defineStore('account', {
       peerDetails.datastores = publicLibrary
       peerDetails.boardID = this.shareBoardNXP.id
       peerDetails.boardname = this.shareBoardNXP.name
-      this.warmPeers = this.utilPeers.checkPeerMatch(this.warmPeers, peerDetails)
+      // this.warmPeers = this.utilPeers.checkPeerMatch(this.warmPeers, peerDetails)
       // now build public library info to be share (replicated)
       let shareContext = {}
       shareContext.type = 'public-n1-experiment'
@@ -327,7 +391,7 @@ export const accountStore = defineStore('account', {
       shareInfo.reftype = 'null'
       shareInfo.privacy = 'public'
       shareInfo.data = shareContext
-      console.log(shareInfo)
+      // console.log(shareInfo)
       this.sendMessageHOP(shareInfo)
     },
     sendMessageHOP (message) {
