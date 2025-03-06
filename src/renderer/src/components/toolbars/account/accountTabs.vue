@@ -4,25 +4,25 @@
       <div id="tabs-component">
         <div class="spacer-component-tab"></div>
         <div
-          class="grid-component-tab" v-bind:class="{ active: peerActive }"
+          class="grid-component-tab" v-bind:class="{ active: activeTab === 'peers' }"
           v-on:click="selectTab('peers')"
         >
           Peers
         </div>
         <div
-          class="grid-component-tab" v-bind:class="{ active: dsActive }"
+          class="grid-component-tab" v-bind:class="{ active: activeTab === 'datastores' }"
           v-on:click="selectTab('datastores')"
         >
           Datastores
         </div>
         <div
-          class="grid-component-tab" v-bind:class="{ active: aiActive}"
+          class="grid-component-tab" v-bind:class="{ active: activeTab === 'aiagents' }"
           v-on:click="selectTab('aiagents')"
         >
           AI
         </div>
         <div
-          class="grid-component-tab" v-bind:class="{ active: walletActive }"
+          class="grid-component-tab" v-bind:class="{ active: activeTab === 'wallets' }"
           v-on:click="selectTab('wallets')"
         >
           Wallet
@@ -35,15 +35,15 @@
         </div>
         <div class="spacer-component-tab"></div>
       </div>
-      <div id="list-content">{{ listContext }}
-        <peer-list v-if="listContext === 'peers'"></peer-list>
+      <div id="list-content">{{ activeTab }}
+        <peer-list v-if="activeTab === 'peers'"></peer-list>
         <div class="list-space" id="ai-list" v-if="listContext === 'ai'">
           <div id="ai-peers">
           </div>
         </div>
-        <datastore-list v-if="listContext === 'datastores'"></datastore-list>
-        <aiagents-list v-if="listContext === 'aiagents'"></aiagents-list>
-        <div class="list-space" id="wallet-list" v-if="listContext === 'wallets'">
+        <datastore-list v-if="activeTab === 'datastores'"></datastore-list>
+        <aiagents-list v-if="activeTab === 'aiagents'"></aiagents-list>
+        <div class="list-space" id="wallet-list" v-if="activeTab === 'wallets'">
         </div>
       </div>
     </div>
@@ -66,19 +66,19 @@ let dsActive = ref(false)
 let aiActive = ref(false)
 let walletActive = ref(false)
 let listContext = ref('peers')
+let activeTab = ref('peers')
 
 /*  methods  */
   const selectTab = (ls) => {
     if (ls === 'peers') {
-      peerActive.value = !peerActive.value
+      activeTab.value = 'peers'
     } else if (ls === 'datastores') {
-      dsActive.value = !dsActive.value
+      activeTab.value = 'datastores'
     } else if (ls === 'aiagents') {
-      aiActive.value = !aiActive.value
+      activeTab.value = 'aiagents'
     } else if (ls === 'wallets') {
-      walletActive.value = !walletActive.value
+      activeTab.value = 'wallets'
     }
-    listContext = ls
   }
 
   const disconnectHOP= () => {

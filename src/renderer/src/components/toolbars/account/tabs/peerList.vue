@@ -37,6 +37,7 @@
             <div class="gen-crypt-code" id="pubkey-session-live">{{ genInvite.publickey }}</div>
             <div class="gen-crypt-code name-as-code">{{ genInvite.codename }}</div>
             <button class="gen-crypt-code" id="button-copy-invite" type="button" @click="copyGenInvite(genInvite.codename)">Copy invite</button>
+            <div v-if="copiedMessage" class="copied-message">Copied to clipboard</div>
             <button class="gen-crypt-code" id="button-remove-invite" type="button" @click="removeInvite(genInvite.codename)">remove</button>
           </div>
         </div>
@@ -48,7 +49,7 @@
         <div v-if="addWarm === true" id="add-warm-peer">
           <input v-model="newPeername" placeholder="name">
           <input v-model="newPeerPubKey" placeholder="public key">
-          <button type="button" class="btn" @click="sendInviteWarmpeer()">Send invite</button>
+          <button type="button" class="btn" @click="sendInviteWarmpeer()">add invite</button>
         </div>
         <div id="beebee-message-feedback">
           {{ beebeeMessage }}
@@ -128,6 +129,7 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
   let peerName = ref('')
   let randomName = ref('')
   let inviteGenCode = ref('')
+  let copiedMessage = ref(false)
 
 
   /* computed */
@@ -152,7 +154,7 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
     addWarm.value = !addWarm.value
   }
 
-  const generateInvite = () => {
+  const generateInvite = async () => {
     if (peerName.value.length > 0) {
       // genInvite.value = !genInvite.value
       const byteBuffer = nameTo32Bytes(peerName.value)
@@ -165,7 +167,13 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
       // Encode the binary string to Base64
       const base64String = btoa(binaryString)
       randomName.value = base64String
-      let inviteBundle = { name: peerName.value, publickey: storeAccount.networkInfo.publickey, codename: base64String, matched: false }
+      // turn into a 256hash
+      // Example usage
+      let inviteHash = ''
+       await sha256Make(base64String).then(hash => {
+        inviteHash = hash
+      })
+      let inviteBundle = { name: peerName.value, publickey: storeAccount.networkInfo.publickey, codename: inviteHash, matched: false }
       storeAccount.inviteListGenerated.push(inviteBundle)
       // HOP needs to keep track of codename
       storeAccount.shareCodename(inviteBundle)
@@ -196,6 +204,19 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
     return byteBuffer
   }
 
+  const sha256Make = async (message) => {
+    // Encode the message as a Uint8Array
+    const msgBuffer = new TextEncoder().encode(message)
+    // Hash the message
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer)
+    
+    // Convert the hash to a byte array
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    // Convert bytes to hex string
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    return hashHex
+  }
+
   const copyGenInvite = (codename) => {
     // loop over invite list and match to code name
     let copyInvite = {}
@@ -204,8 +225,12 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
         copyInvite = invite
       }
     }
-    inviteGenCode.value = 'hop-' + copyInvite.publickey + '-' + copyInvite.codename
+    inviteGenCode.value = 'hop:' + copyInvite.publickey + copyInvite.codename
     navigator.clipboard.writeText(inviteGenCode.value)
+    copiedMessage.value = true
+    setTimeout(() => {
+      copiedMessage.value = false
+    }, 2000)
   }
   
   const removeInvite = (codename) => {
@@ -218,11 +243,6 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
     storeAccount.inviteListGenerated = updateInvite
   }
   const nameTo32Bytes = (name) => {
-    /*const buffer = new Uint8Array(32) // Create a 32-byte buffer
-    for (let i = 0; i < 32; i++) {
-        buffer[i] = i < name.length ? name.charCodeAt(i) : 0 // Fill with char codes or pad with 0
-    }
-    return buffer; // Return the 32-byte buffer*/
     // just random no need to encode name (privacy leak issue)
     const buffer = new Uint8Array(32) // Create a 32-byte buffer
     window.crypto.getRandomValues(buffer); // Fill with random values
@@ -282,6 +302,19 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
 .raw-share-live {
   display: grid-inline;
   height: 3em;
+}
+
+.copied-message {
+  display: fixed;
+  background-color: rgb(188, 187, 233);
+  transition: opacity 1s ease;
+  opacity: 1;
+  border-radius: 5%;
+  padding: .2em;
+}
+
+.copied-message[style*="display: none"] {
+  opacity: 0;
 }
 
 #network-keys {
@@ -351,6 +384,7 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
 }
 
 #button-copy-invite {
+  background-color: white;
   height: 24px;
 }
 

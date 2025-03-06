@@ -12,7 +12,7 @@
         <div class="beebee-reply" v-bind:class="{ networkactive: chati.reply.network === true }">
           <span class="right-time">{{ chati.reply.time }}</span>
           <div class="reply-text-chart">
-            <div class="right-chat">
+            <div class="right-chat" v-if="chati.reply.type !== undefined">
               {{ chati.reply.type }} {{ chati.reply.action }}
               <div v-if="chati.reply.type === 'experiment' && chati.reply.data">
                 <button @click="viewSaveExperiment(chati.question.bbid, chati.reply.data)">View experiment</button>
@@ -343,8 +343,10 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
 #chat-interface {
   display: grid;
-  height: 100%;
+  height: 75vh;
   width: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 #natlang-ai {
@@ -384,13 +386,12 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
 .beebee-reply {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 4fr 1fr;
   background-color: #d8d7e2;
-  width: 96%;
+  width: 90%;
   border-radius: 25px;
   margin-top: .5em;
-  margin-left: 8%;
-  opacity: 90%;
+  margin-left: 40px;
 }
 
 .right-chat {

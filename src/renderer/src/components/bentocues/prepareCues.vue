@@ -4,9 +4,22 @@
     Cues available:
   </div>
   <div id="minimise-cues" v-if="minCues === true">
+    <!-- a to z and filter -->
+     <div id="filter-cues">
+      <div class="filter-alphabet" v-for="letter of alaphabestLetters">
+        <button class="filter-letter" @click="filterCuesLetter(letter)" v-bind:class="{ active: liveLetter === letter }">{{ letter }}</button>
+      </div>
+     </div>
     <div id="saved-cues" v-if="cueConext === 'cueall' && cuesNetworkList.length > 0">
-      <div class="network-cues" v-for="ncue of cuesNetworkList" :value="ncue">
-        <button class="cue-item" @click="viewCue(ncue.key, ncue)">{{ ncue.value.concept.name }}</button>
+      <div id="no-filter" v-if="liveLetter === ''">
+        <div class="network-cues" v-for="ncue of cuesNetworkList" :value="ncue">
+          <button class="cue-item" @click="viewCue(ncue.key, ncue)">{{ ncue.value.concept.name }}</button>
+       </div>
+      </div>
+      <div v-else>
+        <div class="network-cues" v-for="ncue of filteredCues" :value="ncue">
+          <button class="cue-item" @click="viewCue(ncue.key, ncue)">{{ ncue.value.concept.name }}</button>
+       </div>
       </div>
     </div>
     <div v-else-if="cueConext === 'space'" id="cue-space">
@@ -67,6 +80,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   const storeBentobox = bentoboxStore()
 
   let cueSelectrel = ref(false)
+  let liveLetter = ref('')
 
   /* cumputed */
   const cueConext = computed(() => {
@@ -90,7 +104,19 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   })
 
   const cuesNetworkList = computed(() => {
-    return storeCues.cuesList
+    // sort into alphabetical order
+    const contracts = storeCues.cuesList
+    // Sort the contracts by name in ascending order
+    const sortedContracts = contracts.sort((a, b) => {
+      if (a.value.concept.name < b.value.concept.name) return -1
+      if (a.value.concept.name > b.value.concept.name) return 1
+      return 0
+    })
+    return sortedContracts
+  })
+
+  const filteredCues = computed(() => {
+    return storeCues.cuesListFilter
   })
 
   const markerContext = computed(() => {
@@ -101,11 +127,24 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     return storeCues.activeDougnnutData
   })
 
+  const alaphabestLetters = computed(() => {
+    let alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('')
+    return alphabet
+  })
 
   /* methods */
   const gaiaSyncStart = () => {
     // inform library to prepare gaia datatype contracts
     storeCues.prepareGaia()
+  }
+
+  const filterCuesLetter = (letter) => {
+    if (letter === liveLetter.value) {
+      letter = ''
+    }
+    liveLetter.value = letter
+    // filter cues by first letter
+    storeCues.cuesListFilter = storeCues.cuesList.filter(cue => cue.value.concept.name.toLowerCase().charAt(0) === letter.toLowerCase())
   }
 
   const viewCue = (cueKey, cueR) => {
@@ -222,7 +261,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 }
 
 .network-cues{
-  display: inline-block;
+  display: inline-grid;
   margin-top: 1em;
   margin-right: .8em;
 }
@@ -232,7 +271,25 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 }
 
 #saved-cues {
+  height: 300px;
+  width: 100%;
+  overflow-y: auto;
   margin: 2em;
+  border: 1px solid rgb(143, 142, 187);
+  padding: .6em;
+}
+
+.cue-item {
+  display: inline-grid;
+  width: 100%;
+}
+
+.filter-alphabet {
+  display: inline-grid;
+}
+
+.filter-letter {
+  margin-left: .4em;
 }
 
 #cue-bentobox {
@@ -268,8 +325,19 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   margin-bottom: .5em;
 }
 
-@media (min-width: 1024px) {
+.active {
+  background-color: rgb(119, 106, 238);
+}
 
+@media (min-width: 1024px) {
+  #saved-cues {
+    height: 300px;
+    width: 100%;
+    overflow-y: auto;
+    margin: 2em;
+    border: 1px solid rgb(143, 142, 187);
+    padding: .6em;
+  }
 
 }
 

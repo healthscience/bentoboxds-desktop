@@ -242,6 +242,7 @@ export const accountStore = defineStore('account', {
       }
     },
     shareCodename (peerInvite) {
+      console.log(peerInvite)
       let shareInfo = {}
       shareInfo.type = 'network'
       shareInfo.action = 'share'
@@ -321,6 +322,8 @@ export const accountStore = defineStore('account', {
       shareInfo.reftype = 'null'
       shareInfo.privacy = 'private'
       shareInfo.data = shareContext
+      console.log('share chart -----------')
+      console.log(shareInfo)
       this.sendMessageHOP(shareInfo)
     },
     prepareSpaceShareDirect (boxid) {

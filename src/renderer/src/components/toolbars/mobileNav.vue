@@ -21,7 +21,11 @@
 import { ref} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DropDown from '@/components/toolbars/dropDown.vue'
+import { useSocketStore } from '@/stores/socket.js'
+import { accountStore } from '@/stores/accountStore.js'
 
+const storeWebsocket = useSocketStore()
+  const storeAccount = accountStore()
 
   const router = useRouter()
   const route = useRoute()
@@ -49,6 +53,9 @@ import DropDown from '@/components/toolbars/dropDown.vue'
       selectMenuBB()
     } else if(m === 'language') {
       langActive.value = !langActive.value
+    } else if(m === 'signin') {
+      storeAccount.accountStatus = !storeAccount.accountStatus
+      storeWebsocket.connection_error = false
     } else {
       selectMenuBB()
     }

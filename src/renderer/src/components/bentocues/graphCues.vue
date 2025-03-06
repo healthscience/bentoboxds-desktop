@@ -3,7 +3,7 @@
     <modal-cues :show="bentoGraphStatus" @close="closeBentoGraph">
       Cues
       <template #header>
-        <div id="cues-modal-header">
+        <div id="graph-modal-header">
           <button
             type="button"
             class="btn-green"
@@ -150,6 +150,26 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     height: 500px;
   }
 
+  #graph-modal-header {
+    display: grid;
+    grid-template-columns: 1fr 8fr 1fr;
+  }
+
+  .btn-green {
+    display: inline-grid;
+    height: 28px;
+    margin-right: .4em;
+    background-color: #b8cde2;
+    color: #140d6b;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
   @media (min-width: 1024px) {
 
     #bento-graph {
@@ -175,6 +195,25 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
       margin-left: 2em;
     }
 
+    #graph-modal-header {
+      display: grid;
+      grid-template-columns: 1fr 8fr 1fr;
+    }
+
+    .btn-green {
+      display: inline-grid;
+      height: 28px;
+      margin-right: .4em;
+      background-color: #b8cde2;
+      color: #140d6b;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 
   }
 

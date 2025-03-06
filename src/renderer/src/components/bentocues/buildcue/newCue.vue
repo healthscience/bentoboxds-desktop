@@ -35,58 +35,8 @@
           <pie-chartcues v-if="cuesNew.labels.length > 0" :cueType="'new'" :chartData="cuesNew" :options="{}" @segmentClick="cueSelectAdd"></pie-chartcues>
         </div>
       </div>
-        <!--<div id="sub-wheel" v-if="subNewSeg === true">
-          sub segment
-          <div id="sub-cue-space">
-            Cue segment: {{ subSegLabel }}
-            <div id="build-datatype">
-              <select class="select-dt-library" id="dt-library-list" v-model="datatypeCueSub" @change="selectDatatypeCSub()">
-                <option selected="" v-for="dtc in referenceDataTypes" :value="dtc">
-                  {{ dtc.value.concept.name }}
-                </option>
-              </select>
-              <button id="new-datatype" @click="newDatatypeaddsub()">new</button>
-              <div id="new-datatype-contribute" v-if="newDatatypesub === true">
-                <new-datatype></new-datatype>
-                <button id="new-datatype-button" @click="contributeDatatype()">Add datatype to library</button>
-              </div>
-              <ColorPicker v-model:pureColor="pureColor" format="hex" shape="square" />
-              <button id="cue-add-sub" type="submit" @click="cueAddSub()">
-                + cue
-              </button>
-            </div>
-            <div id="doughnut-sub-add">
-              <pie-chartcues v-if="cuesNewSub.labels.length > 0" :cueType="'new'" :chartData="cuesNewSub" :options="{}" @segmentClick="cueSelectAddSub"></pie-chartcues>
-            </div>
-          </div>
-        </div>
-      </div>-->
-      <!--<div id="name-cue-wheel">
-        OPTI JUV MED
-      </div>
-      <div id="addMarker">
-        <button @click="addSubCue()">Add sub cue</button>
-        <button @click="addSegMarker()">Add marker</button>
-        <div id="attach-marker" v-if="cueMarkerSelect === true">
-          <form id="marker-cue-form" @submit.prevent="cueAttachMarker()">
-            <label for="cuemarker"></label>
-            <input type="input" id="cuemarker" name="cuemarker" placeholder="marker name" v-model="cueMarker" autofocus>
-          </form>
-          <button id="cue-add-marker" type="submit" @click="cueAttachMarker()">
-            Attach marker
-          </button>
-          <div id="select-marker-list">
-            <select class="select-model-save" id="bbox-model-save" v-model="markerSelected" @change="attachMarker()">
-            <option selected="" v-for="ctest in cueMarkerTest" :value="ctest.test">
-              {{ ctest.test }}
-              </option>
-            </select>
-            <button id="select-market-cue" @click="attachMarker()"> + marker</button>
-          </div>
-        </div>
-      </div>-->
       <div id="save-cues-network">
-        <button id="save-cues-library" @click="saveCue()">Contribute cue</button>
+        <button id="save-cues-library" @click.prevent="saveCue()">Contribute cue</button>
       </div>
     </div>
   </div>
@@ -114,9 +64,6 @@ import { cuesStore } from '@/stores/cuesStore.js'
   let newDatatypesub = ref(false)
   let cueSegment = ref('')
   let pureColor = ref('')
-  let cueMarkerSelect = ref(false)
-  let cueMarker = ref('')
-  let markerSelected = ref('')
   let cuesNew = ref({ labels: [], datasets: [] })
   let cuesNewSub = ref({ labels: [], datasets: [] })
   let subNewSeg = ref(false)
@@ -124,7 +71,15 @@ import { cuesStore } from '@/stores/cuesStore.js'
 
   /*  computed  */
   const referenceDataTypes = computed(() => {
-    return storeLibrary.publicLibrary.referenceContracts['datatype']
+    // sort into alphabetical order
+    const contracts = storeLibrary.publicLibrary.referenceContracts['datatype']
+    // Sort the contracts by name in ascending order
+    const sortedContracts = contracts.sort((a, b) => {
+      if (a.value.concept.name < b.value.concept.name) return -1
+      if (a.value.concept.name > b.value.concept.name) return 1
+      return 0
+    })
+    return sortedContracts
   })
 
   /* methods */
@@ -151,9 +106,8 @@ import { cuesStore } from '@/stores/cuesStore.js'
   }
 
   const saveCue = () => {
-    // did the new cue com from the space menu create button?
+    // did the new cue come from the space menu create button?
     if (storeAI.historyList === 'space') {
-      console.log('yes')
       // close the cues tools
       storeAI.bentocuesState = false
     }
@@ -162,6 +116,10 @@ import { cuesStore } from '@/stores/cuesStore.js'
     cueHolder.contract = datatypeCue.value // ask LLM to prepare ref contract next release tiny LLM
     cueHolder.color = pureColor.value
     storeCues.prepareCueContract(cueHolder)
+    // reset the form
+    cueName.value = ''
+    datatypeCue.value = {}
+    pureColor.value = ''
   }
 
 

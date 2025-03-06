@@ -45,6 +45,7 @@ export const cuesStore = defineStore('cues', {
     cueContext: 'cueall',
     cueKnowledge: 'concept',
     cuesFlakeList: [],
+    cuesListFilter: [],
     cuesFlakeCount: 0,
     glueRelActive: '',
     minCuesStatus: true,

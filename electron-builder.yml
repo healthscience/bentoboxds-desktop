@@ -1,6 +1,6 @@
 appId: com.bentoboxds.app
 productName: BentoBox-DS-Desktop
-buildVersion: 0.2.1
+buildVersion: 0.2.5
 directories:
   buildResources: build
 files:
@@ -36,11 +36,11 @@ mac:
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
+  icon: build/icon-512x512.png
   target:
     - AppImage
   maintainer: bentboxds.org
   category: Utility
-  icon: build/icon.icon.png
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false

@@ -3,7 +3,7 @@
     <modal-cues :show="bentoFlakeStatus" @close="closeBentoFlake">
       Cues
       <template #header>
-        <div id="cues-modal-header">
+        <div id="flake-modal-header">
           <button
             type="button"
             class="btn-green"
@@ -101,7 +101,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import BeebeeAi from '@/components/beebeehelp/spaceChat.vue'
-import ModalCues from '@/components/bentocues/cuesModal.vue'
+import ModalCues from '@/components/bentocues/flakeModal.vue'
 import CuesPrepared from '@/components/bentocues/prepareCues.vue'
 import { cuesStore } from '@/stores/cuesStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
@@ -354,6 +354,26 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
 }
 
+#flake-modal-header {
+  display: grid;
+  grid-template-columns: 1fr 8fr 1fr;
+}
+
+.btn-green {
+  display: inline-grid;
+  height: 28px;
+  margin-right: .4em;
+  background-color: #b8cde2;
+  color: #140d6b;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
   @media (min-width: 1024px) {
 
     #bento-flake {
@@ -527,6 +547,25 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
       shape-outside: repeating-linear-gradient(     
       #0000 0 calc(var(--f) - 3px),
       #000  0 var(--f));
+    }
+    #flake-modal-header {
+      display: grid;
+      grid-template-columns: 1fr 8fr 1fr;
+    }
+
+    .btn-green {
+      display: inline-grid;
+      height: 28px;
+      margin-right: .4em;
+      background-color: #b8cde2;
+      color: #140d6b;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
 

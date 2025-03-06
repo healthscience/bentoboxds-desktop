@@ -47,7 +47,7 @@
             <!-- clone cue -->
             <clone-cue v-if="cueAction === 'clone'"></clone-cue>
           </div>
-          <div id="filter-cues">
+          <!--<div id="filter-cues">
             <header>Filters</header>
             <div id="slider-holder">
               <div class="container" style="margin-left: 0px">
@@ -86,7 +86,7 @@
                 <br>
               </div>
             </div>
-          </div>
+          </div>-->
         </div>
       </template>
       <template #footer>
@@ -239,7 +239,8 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     #bento-cues {
       display: grid;
       grid-template-columns: 3fr 1fr;
-      border: 1px solid green;
+      border: 1px solid rgb(145, 138, 184);
+      border-radius: 1%;
     }
 
     .cue-select-btn {

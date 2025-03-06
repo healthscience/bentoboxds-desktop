@@ -1,7 +1,7 @@
 <template>
   <Transition name="modal">
-    <div v-if="show" class="modal-mask">
-      <div class="modal-container">
+    <div v-if="show" class="modal-mask" @click="emit('close')">
+      <div class="modal-container" @click.stop>
         <div class="modal-header">
           <slot name="header">default header</slot>
         </div>
@@ -33,6 +33,8 @@
     show: Boolean
   })
 
+  const emit = defineEmits(['close'])
+
   /* computed */
 
 </script>
@@ -45,7 +47,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(82, 84, 171, 0.4); /* #5254ab; */
   display: flex;
   transition: opacity 0.3s ease;
   opacity: 1;

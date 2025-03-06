@@ -55,7 +55,7 @@ const exposeAPIs = () => {
       ...electronAPI, // Existing Electron API
       send: (channel, data) => ipcRenderer.send(channel, data),
       receive: (channel, func) => ipcRenderer.on(channel, (event, ...args) => {
-          console.log(`Received message dfdfddd from channel "${channel}":`, ...args); // Log the received message
+          console.log(`Received message from beebee "${channel}":`, ...args) // Log the received message
           func(...args);
       })
   });
@@ -67,5 +67,5 @@ try {
       exposeAPIs(); // Call the function to expose APIs
   }
 } catch (error) {
-  console.error('Failed to expose Electron APIs:', error);
+  console.error('Failed to expose Electron APIs:', error)
 }
