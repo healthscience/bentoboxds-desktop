@@ -1,7 +1,7 @@
 <template>
   <Transition name="modal">
-    <div v-if="show" class="modal-mask">
-      <div class="modal-container">
+    <div v-if="show" class="modal-mask"@click="emit('close')">
+      <div class="modal-container" @click.stop>
         <div class="modal-header">
           <slot name="header">default header</slot>
         </div>
@@ -26,34 +26,43 @@
 const props = defineProps({
   show: Boolean
 })
+
+const emit = defineEmits(['close'])
+
 </script>
 
 <style scoped>
-.modal-mask {
-  position: fixed;
-  width: 94vw;
-  height: 100%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(0, 0, 0, 0.5);
-  transition: opacity 0.3s ease;
-  z-index: 201;
-}
+  .modal-mask {
+    position: fixed;
+    z-index: 1299;
+    top: 0;
+    right: 0;
+    width: 33%;
+    height: 98%;
+    background-color: rgba(82, 84, 171, 0.4); /* #5254ab; */
+    display: flex;
+    transition: opacity 0.3s ease;
+    opacity: 1;
+  }
 
-.modal-container {
-  display: grid;
-  width: 67vw;
-  min-height: 60vh;
-  height: 100%;
-  margin: auto;
-  padding: 20px 30px;
-  background-color: #fff;
-  border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
-  transition: all 0.3s ease;
-  overflow-y: scroll;
-}
+  .modal-container {
+    display: grid;
+    justify-content: end;
+    width: 99vw;
+    height: 92vh;
+    margin: auto;
+    padding: 10px 10px;
+    background: white;
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+    transition: all 0.3s ease;
+    overflow: scroll;
+    background-color: #e5e5f7;
+    opacity: 1;
+    background-image:  linear-gradient(30deg, #d9dbf1 12%, transparent 12.5%, transparent 87%, #d9dbf1 87.5%, #d9dbf1), linear-gradient(150deg, #d9dbf1 12%, transparent 12.5%, transparent 87%, #d9dbf1 87.5%, #d9dbf1), linear-gradient(30deg, #d9dbf1 12%, transparent 12.5%, transparent 87%, #d9dbf1 87.5%, #d9dbf1), linear-gradient(150deg, #d9dbf1 12%, transparent 12.5%, transparent 87%, #d9dbf1 87.5%, #d9dbf1), linear-gradient(60deg, #d9dbf177 25%, transparent 25.5%, transparent 75%, #d9dbf177 75%, #d9dbf177), linear-gradient(60deg, #d9dbf177 25%, transparent 25.5%, transparent 75%, #d9dbf177 75%, #d9dbf177);
+    background-size: 20px 35px;
+    background-position: 0 0, 0 0, 10px 18px, 10px 18px, 0 0, 10px 18px;
+  }
 
 .modal-header h3 {
   margin-top: 0;

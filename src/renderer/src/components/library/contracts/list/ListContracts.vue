@@ -15,7 +15,12 @@
               {{ entry[col] }}
             </div>
             <div v-else class="action-options">
-              <button type="button" class="constract-action" @click="actionBoard(entry, entry[col])">{{ entry[col] }}</button>
+              <button type="button" class="constract-action" @click="actionExpBoard(entry, entry[col])">{{ entry[col] }}</button>
+              <div class="display-options" v-if="addOptions === true">
+                <button class="space-add" @click="addSpace(entry)">Space</button>
+                <button class="chat-add" @click="addChat(entry)">Chat</button>
+                <spaces-list v-if="shareSelect" :bboxid="entry.id"></spaces-list>
+              </div>
               <div class="constract-action share-action" v-if="props.privacy === 'public'"><a href="#" @click="sharePubExp(entry)">share</a></div>
               <div class="constract-action"><a class="remove-warn" href="#" @click="removeExp(entry)">remove</a></div>
             </div>
@@ -32,6 +37,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import SpacesList from '@/components/bentobox/tools/share/spacesList.vue'
 import ShareProtocol from '@/components/bentobox/tools/shareForm.vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
@@ -43,6 +49,8 @@ import { accountStore } from '@/stores/accountStore.js'
 
   const shareProtocol = ref(false)
   let shareBoardID = ref({})
+  let addOptions = ref(false)
+  let shareSelect = ref(false)
 
   const props = defineProps({
     experiments: Array,
@@ -50,17 +58,28 @@ import { accountStore } from '@/stores/accountStore.js'
     privacy: String
   })
 
+  /* methods */
   const sortBy = (key) => {
     this.sortKey = key
     this.sortOrders[key] = this.sortOrders[key] * -1
   }
 
-  const actionBoard = (board, actionType) => {
-    if (actionType === 'View') {
-      storeLibrary.prepareLibraryViewMessage(board, 'networkexperiment')
-      storeAI.dataBoxStatus = true
-      // this.$store.dispatch('actionHOPoutState', board)
-      // this.$store.dispatch('actionDashboardState', board)
+  const addSpace = (entry) => {
+    shareSelect.value = !shareSelect.value
+    storeLibrary.prepareLibrarySpaceMessage(entry, 'networkexperiment')
+    storeAI.dataBoxStatus = true
+  }
+
+  const addChat = (entry) => {
+    shareSelect.value = !shareSelect.value
+    storeLibrary.prepareLibraryChatMessage(entry, 'networkexperiment')
+    storeAI.dataBoxStatus = true
+  }
+
+  const actionExpBoard = (board, actionType) => {
+    if (actionType === 'Add-to') {
+      // display option to space or chat
+      addOptions.value = !addOptions.value
     } else if (actionType === 'Join') {
       storeLibrary.joinSelected = board
       storeLibrary.joinNXP = true
@@ -80,7 +99,6 @@ import { accountStore } from '@/stores/accountStore.js'
   }
 
   const removeExp = (exp) => {
-    console.log(exp)
     storeLibrary.removeExpModContract(exp.id, props.privacy)
     if (props.privacy === 'private') {
       let index = storeLibrary.peerExperimentList.data.indexOf(exp.id)

@@ -62,7 +62,6 @@
 </template>
 
 <script setup>
-import hashObject from 'object-hash'
 import { cuesStore } from '@/stores/cuesStore.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
@@ -73,7 +72,6 @@ import { ref, computed, onMounted } from 'vue'
   const storeBentobox = bentoboxStore()
 
   let saveSpace = ref(false)
-  let newSpacename = ref('')
   let glueTarget = ref({})
   let glueName = ref('')
   let historyCues = ref(false)
@@ -187,6 +185,14 @@ import { ref, computed, onMounted } from 'vue'
   }
 
   const bentoSpaceOpen = (spaceID, context) => {
+    // prepare chat for space
+    let newChatItem = {}
+    newChatItem.name = spaceID.name
+    newChatItem.chatid = spaceID.cueid
+    newChatItem.active = true
+    //setup chat history holder
+    storeAI.setupChatHistory(newChatItem)
+    storeAI.chatAttention = spaceID.cueid
     // temp  if history cue the make stucture for space
     if (context === 'history') {
       storeAI.liveBspace = {

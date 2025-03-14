@@ -26,11 +26,13 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
       { name: 'Lungs-left', cueid: 'c9bb966242109ae21f9d8ce289d9272ea72aa17e', coords: { x: 120, y: 180, width: 50, height: 50 } },
       { name: 'Liver', cueid: '77e188e3647df3d63a1ab5cff9cf88d491f81c89', coords: { x: 120, y: 302, width: 80, height: 50 } },
       { name: 'Kidney-right', cueid: 'd088619e69211f9246cb01406e10c209dc83de50', coords: { x: 210, y: 300, width: 30, height: 50 } },
-      { name: 'Brain', cueid: 'f944e1fcf72e59b1f6159bea347402cd4490c211', coords: { x: 146, y: 10, width: 70, height: 40 } },
+      { name: 'Brain', cueid: 'f944e1fcf72e59b1f6159bea347402cd4490c211', coords: { x: 146, y: 10, width: 70, height: 30 } },
       { name: 'Circulation', cueid: '296ce0efc66045c5842707d4652186e440f2fc21', coords: { x: 280, y: 330, width: 40, height: 60 } },
       { name: 'Large intestine', cueid: 'e1e2dd4471981d2fae620525f4dab22824c7bfac', coords: { x: 164, y: 370, width: 50, height: 50 } },
       { name: 'Skeleton', cueid: '88107b7b9891d8afe586c96658955e40effadbe7', coords: { x: 44, y: 320, width: 50, height: 70 } },
-      { name: 'Joints', cueid: '9411b6d422ccd2766eb303a834ae8bf0caa85bcc', coords: { x: 124, y: 630, width: 50, height: 50 } }
+      { name: 'Joints', cueid: '9411b6d422ccd2766eb303a834ae8bf0caa85bcc', coords: { x: 124, y: 630, width: 50, height: 50 } },
+      { name: 'Eye-right', cueid: '48654b856be3d1e8f5149335999d879658d9d1b1', coords: { x: 190, y: 42, width: 20, height: 20 } },
+      { name: 'Eye-left', cueid: '48654b856be3d1e8f5149335999d879658d9d1b1', coords: { x: 146, y: 42, width: 20, height: 20 } }
     ])
   let organName = ref('')
   const currentOrgan = ref(null)
@@ -179,6 +181,14 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   }
 
   const bentoSpaceOpen = (cueInfo) => {
+    // prepare chat for space
+    let newChatItem = {}
+    newChatItem.name = cueInfo.name
+    newChatItem.chatid = cueInfo.cueid
+    newChatItem.active = true
+    //setup chat history holder
+    storeAI.setupChatHistory(newChatItem)
+    storeAI.chatAttention = cueInfo.cueid
     storeCues.cueContext = 'space'
     storeAI.beebeeContext = 'chatspace'
     storeAI.bentospaceState = true
@@ -198,6 +208,8 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     // prepare cue wheel context
     let cueContract = storeCues.cueUtil.cueMatch(cueInfo.cueid, storeCues.cuesList)
     prepareCue(cueInfo.cueid, cueInfo.cueid, cueContract)
+    // close the body diagram
+    storeAI.bodyDiagramShow = false
   }
 
   const prepareCue = (spaceID, cueKey, cueR) => {

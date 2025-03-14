@@ -12,6 +12,7 @@ import { Info } from 'luxon'
 */
 // import EventEmitter from 'events'
 import hashObject from 'object-hash'
+import { DateTime, Interval } from 'luxon'
 
 class ChatspaceUtility {
 
@@ -25,15 +26,11 @@ class ChatspaceUtility {
   *
   *
   */
-  prepareChatQandA = function (inputBB, prompt) {
-    console.log('perep chat q and a for space')
-    console.log(inputBB)
-    console.log(prompt)
+  prepareChatQandA = function (chatIN, cueID) {
     let chatFeed = {}
-    let boxID = inputBB
-    let pairBB = {}
-    let question = this.prepareQuestion(boxID, inputBB.text)
-    let reply = this.prepareReply(prompt.name)
+    let boxID = cueID.cueid
+    let question = this.prepareQuestion(boxID, chatIN.text, cueID.name)
+    let reply = this.prepareReplyTemplate(chatIN.name)
     chatFeed.question = question
     chatFeed.reply = reply
     return chatFeed
@@ -44,11 +41,25 @@ class ChatspaceUtility {
   * @method prepareQuestion
   *
   */
-  prepareQuestion = function (boxid, questionIn) {
+  prepareQuestion = function (boxid, questionIn, context) {
     let question = {}
-    question.data = { active: true, text: questionIn, date: new Date() }
-    question.bbid = boxid
+    question = { active: true, text: questionIn, context: context, date: new Date() }
     return question
+  }
+
+  /**
+  * Prepare the reply template
+  * @method prepareReplyTemplate
+  *
+  */
+  prepareReplyTemplate = function (context) {
+    // compile the repy
+    let stampDate = new Date()
+    let reply = {}
+    reply.time = DateTime.fromJSDate(stampDate).toFormat('hh:mm a')
+    reply.type = ''
+    reply.data = { text: ''}
+    return reply
   }
 
   /**
@@ -58,8 +69,9 @@ class ChatspaceUtility {
   */
   prepareReply = function (context) {
     // compile the repy
+    let stampDate = new Date()
     let reply = {}
-    reply.time = new Date()
+    reply.time = DateTime.fromJSDate(stampDate).toFormat('hh:mm a')
     reply.type = 'feedback'
     reply.data = { text: context + ' --- no data for this network experiment'}
     return reply

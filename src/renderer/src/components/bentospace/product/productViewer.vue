@@ -41,12 +41,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
     bsproduct: String
   })
 
-  /* methods */
-  const addCueDecision = () => {
-    spaceDecision.value = !spaceDecision.value
-    // storeAI.decisionDoughnutCue = !storeAI.decisionDoughnutCue
-  }
-
   /* computed */
   const productInfo = computed(() => {
     let productMatch = {}
@@ -57,6 +51,17 @@ import { libraryStore } from '@/stores/libraryStore.js'
     }
     return productMatch
   })
+
+  /* methods */
+  const addCueDecision = () => {
+    spaceDecision.value = !spaceDecision.value
+    // storeAI.decisionDoughnutCue = !storeAI.decisionDoughnutCue
+  }
+
+  const viewSourceproduct = (paper) => {
+    // visit source in new tab
+    window.open(paper, '_blank')
+  }
 </script>
 
 <style scoped>

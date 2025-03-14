@@ -23,13 +23,7 @@
         <button class="space-button" @click="clickAddbentoSpace(props.bboxid)">
           + space
         </button>
-        <div id="spaces-list" v-if="shareSelect">
-          <select class="select-space-save" id="space-options-save" v-model="spaceSave" @change="selectBentoSpace()">
-            <option selected="" v-for="sp in spaceList" :value="sp.key">
-              {{ sp.value.concept.name }}
-            </option>
-          </select>
-        </div>
+        <spaces-list v-if="shareSelect" :bboxid="props.bboxid"></spaces-list>
       </div>
       <div class="bb-bar-main">
         <button @click="clickShareSpace(props.bboxid)" v-bind:class="{ active: shareForm}">
@@ -69,6 +63,7 @@
 
 <script setup>
 import BbTools from '@/components/bentobox/tools/vistoolBar.vue'
+import SpacesList from '@/components/bentobox/tools/share/spacesList.vue'
 import ShareProtocol from '@/components/bentobox/tools/shareForm.vue'
 import { ref, computed } from 'vue'
 import { cuesStore } from '@/stores/cuesStore.js'
@@ -86,8 +81,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
   let shareSelect = ref(false)
   const shareForm = ref(false)
   let libSum = ref(false)
-  let spaceSave = ref('')
-  let peerPshare = ref('')
   let besearchList = ref([
     { key: 'bsc-1111111', name: '24 hours' },
     { key: 'bsc-2222222', name: '7 days' },
@@ -123,10 +116,6 @@ const selectedTimeFormat = ref('timeseries')
     return storeAI.expandBentobox[props.bboxid]    
   })
 
-  const peerWarmlist = computed(() => {
-    return storeAccount.warmPeers
-  })
-
   /* methods */
   const besearchCycle = () => {
     // display cycle option
@@ -149,9 +138,13 @@ const selectedTimeFormat = ref('timeseries')
   }
 
   const clickSummaryLib = (boxid) => {
-      libSum.value = !libSum.value
-      storeAI.prepareLibrarySummary(boxid)
-    }
+    libSum.value = !libSum.value
+    storeAI.prepareLibrarySummary(boxid)
+  }
+
+  const clickShareSpace = (boxid) => {
+    shareForm.value = !shareForm.value
+  }
 
   const clickAddbentoSpace = (boxid) => {
     // show the space list
@@ -159,46 +152,8 @@ const selectedTimeFormat = ref('timeseries')
     storeAI.prepareLibrarySummary(boxid)
   }
 
-  const clickSummaryLibSilent = (boxid) => {
-      storeAI.prepareLibrarySummary(boxid)
-    }
-
-  const selectBentoSpace = () => {
-    console.log('select bento space')
-    console.log(spaceSave.value)
-    console.log(storeAI.bentoboxList)
-    console.log(props.bboxid)
-    console.log(expLibrarySummary.value.key[0])
-    let bidPair = { bboxid: props.bboxid, contract: expLibrarySummary.value.key[0]}
-    // check object set in list
-    if (storeAI.bentoboxList[spaceSave.value] === undefined) {
-      storeAI.bentoboxList[spaceSave.value] = []
-    }
-    if (storeBentobox.locationBbox[spaceSave.value] === undefined) {
-      storeBentobox.locationBbox[spaceSave.value] = []
-    }
-    storeAI.bentoboxList[spaceSave.value].push(bidPair)
-    clickAddbentoSpace(props.bboxid)
-    // add location default if not already set?
-    storeBentobox.setLocationBbox(spaceSave.value, props.bboxid)
-    spaceSave.value = 0
-  }
-
-  const clickShareSpace = (boxid) => {
-    shareForm.value = !shareForm.value
-  }
-
-  const chartSelect = () => {
-  }
-
-  const selectPeerShare = () => {
-    storeAccount.sharePubkey = peerPshare.value 
-  }
-
   /*  computed */
-  const spaceList = computed(() => {
-    return storeCues.cuesList
-  })
+
 
   /*
   * library summary
@@ -211,11 +166,12 @@ const selectedTimeFormat = ref('timeseries')
       NXPcontract.key = Object.keys(storeAI?.boxLibSummary[props.bboxid].data)
       let modKeys = []
       for (let mod of storeAI.boxLibSummary[props.bboxid].data.modules) { // [NXPcontract.key].modules) {
-        modKeys.push(mod.key)
+        if (mod !== undefined) {
+          modKeys.push(mod.key)
+        }
       }
       NXPcontract.modules = modKeys
       return NXPcontract
-      // return Object.keys(storeAI.boxLibSummary.data)
     }
   })
 
@@ -332,19 +288,6 @@ const selectedTimeFormat = ref('timeseries')
 
   .space-button {
     width: 100px;
-  }
-  
-  #spaces-list {
-    display: grid;
-    position: relative;
-    /*top: 0;
-    left: -109px;
-    border: 0px solid red; */
-    z-index: 52;
-  }
-
-  .elect-space-save {
-    z-index: 44;
   }
 
   #bentobox-cell {

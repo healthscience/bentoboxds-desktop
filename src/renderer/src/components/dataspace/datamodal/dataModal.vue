@@ -1,7 +1,7 @@
 <template>
   <Transition name="modal">
-    <div v-if="show" class="modal-mask">
-      <div class="modal-container">
+    <div v-if="show" class="modal-mask" @click="emit('close')">
+      <div class="modal-container" @click.stop>
         <div class="modal-header">
           <slot name="header">default header</slot>
         </div>
@@ -28,32 +28,35 @@
 const props = defineProps({
   show: Boolean
 })
+
+const emit = defineEmits(['close'])
+
 </script>
 
 <style scoped>
 .modal-mask {
   position: fixed;
-  z-index: 125;
+  z-index: 599;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  margin-top: .8em;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(82, 84, 171, 0.4); /* #5254ab; */
   display: flex;
   transition: opacity 0.3s ease;
+  opacity: 1;
 }
 
 .modal-container {
-  width: 94vw;
-  height: 98vh;
+  width: 92vw;
+  height: 92vh;
   margin: auto;
   padding: 20px 30px;
-  background-color: #fff;
+  background: white;
   border-radius: 2px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
   transition: all 0.3s ease;
-  overflow-y: scroll;
+  overflow: scroll;
 }
 
 .modal-header h3 {

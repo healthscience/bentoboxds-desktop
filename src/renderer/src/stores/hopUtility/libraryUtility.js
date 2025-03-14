@@ -121,7 +121,7 @@ class LibraryUtility { //  extends EventEmitter {
         }
       }
       if (question2 !== 'none') {
-        gridDatapeer = { id: peerExpModules.exp.key, name: question2, description: '--', time: Infinity, dapps: 'Yes', device: 'Yes', action: 'View' }
+        gridDatapeer = { id: peerExpModules.exp.key, name: question2, description: '--', time: Infinity, dapps: 'Yes', device: 'Yes', action: 'Add-to' }
       }
     }
     return gridDatapeer
@@ -209,15 +209,17 @@ class LibraryUtility { //  extends EventEmitter {
   moduleExtractSettings = function (modulesList) {
     let modSettings = {}
     for (let mod of modulesList) {
-      if (mod.value.style === 'compute') {
-        // modSettings.xaxis = ['time'] // mod.value.info.settings.xaxis
-        // modSettings.yaxis = mod.value.info.settings.yaxis
-        // modSettings.category = mod.value.info.settings.category
-        modSettings.devices = mod.value.info.settings.devices
-      } else if (mod.value.style === 'packaging') {
-        modSettings.xaxis = ['time'] // mod.value.info.settings.xaxis
-        modSettings.yaxis = mod.value.info.value.concept.tablestructure
-        modSettings.category = mod.value.info.value.concept.category
+      if (mod !== undefined) {
+        if (mod.value.style === 'compute') {
+          // modSettings.xaxis = ['time'] // mod.value.info.settings.xaxis
+          // modSettings.yaxis = mod.value.info.settings.yaxis
+          // modSettings.category = mod.value.info.settings.category
+          modSettings.devices = mod.value.info.settings.devices
+        } else if (mod.value.style === 'packaging') {
+          modSettings.xaxis = ['time'] // mod.value.info.settings.xaxis
+          modSettings.yaxis = mod.value.info.value.concept.tablestructure
+          modSettings.category = mod.value.info.value.concept.category
+        }
       }
     }
     return modSettings

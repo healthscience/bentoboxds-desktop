@@ -71,7 +71,8 @@ export const bentoboxStore = defineStore('bentostore', {
     researchMedia: {},
     markerMedia: {},
     productMedia: {},
-    libraryCheck: false
+    libraryCheck: false,
+    agentModelDefault: {}
   }),
   actions: {
     // since we rely on `this`, we cannot use an arrow function
@@ -91,8 +92,6 @@ export const bentoboxStore = defineStore('bentostore', {
       this.locY = loc.y
     },
     processReply (message) {
-      // console.log('start')
-      // console.log(message)
       // prepare chat menu and pairs
       if (message.reftype.trim() === 'chat-history') {
         if (message.action.trim() === 'start') {
@@ -106,6 +105,7 @@ export const bentoboxStore = defineStore('bentostore', {
             if (cm?.value?.pair) {
               // is setting for chat or space?
               if ('space' in cm.value !== true ) {
+                // chat dialogue
                 this.storeAI.historyPair[cm.key] = cm.value.pair
                 // toolbars
                 this.boxtoolsShow[cm.key] = false
@@ -149,6 +149,7 @@ export const bentoboxStore = defineStore('bentostore', {
                   pairCount++
                 }
               } else {
+                // console.log('space  no longer needed')
                 // BENTOSPACES setup on start
                 // add to menu list  no duplicate and TODO set one as active
                 if (this.spaceList[0].cueid !== cm.value.space.cueid) {
@@ -252,7 +253,7 @@ export const bentoboxStore = defineStore('bentostore', {
             saveBentoBoxsetting.data = saveData
             saveBentoBoxsetting.bbid = ''
             this.storeAI.sendMessageHOP(saveBentoBoxsetting)
-            // this.storeAI.prepareBentoBoxSave(saveBentoBoxsetting)
+            // this.storeAI.prepareChatBentoBoxSave(saveBentoBoxsetting)
           }
           /* if (this.chatList.length !== 0) {
             this.chatList.push({ name:'latest', chatid:'0123456543210', active: true })
@@ -264,11 +265,40 @@ export const bentoboxStore = defineStore('bentostore', {
           this.storeAI.setupChatHistory(this.chatList[0])
           this.historyActive = true
         } else if (message.action.trim() === 'save') {
-          console.log('saved feedback')
+          // console.log('saved feedback')
+        }
+      } else if (message.reftype.trim() === 'agent-history') {
+        this.storeAI.agentModelDefault = message.data
+        // look for onstart model and ass beebee to start via HOP
+        let onstartModel = {}
+        if (this.storeAI.agentModelDefault.length > 0) {
+          for (let agent of this.storeAI.agentModelDefault) {
+            if (agent.value.computational.onstart === true) {
+              onstartModel = agent
+            }
+          }
+          if (Object.keys(onstartModel).length > 0) {
+            this.storeAI.modelLoading = true
+            this.storeAI.sendModelControl(onstartModel.value.computational, 'learn-agent-start')
+          }
         }
       } else if (message.reftype.trim() === 'spaces-history') {
-        // console.log('spaces-history')
-        // console.log(message.data)
+        // loop through saved spaces bentobox and their location in space
+        for (let space of message.data) {
+          this.storeAI.bentoboxList[space.key] = space.value.bboxlist
+          if (this.locationBbox[space.key] !== undefined) {
+            for (let bboxloc of space.value.location) {
+              this.locationBbox[space.key][bboxloc.bboxid] = bboxloc.location
+            }
+          } else {
+            this.locationBbox[space.key] = {}
+            if (space.value.location !== undefined) {
+              for (let bboxloc of space.value.location) {
+                this.locationBbox[space.key][bboxloc.bboxid] = bboxloc.location
+              }
+            }
+          }
+        }
       } else if (message.reftype.trim() === 'cues-history') {
         if (this.storeLibrary.publicLibrary.referenceContracts !== undefined) {
           this.libraryCheck = true
@@ -329,9 +359,6 @@ export const bentoboxStore = defineStore('bentostore', {
       }
     },
     prepareMarkerSpace (mData) {
-      // console.log('marke spa history')
-      // console.log(mData)
-      // console.log('save space struecure')
       // list of active markers
       this.storeCues.markerList = mData
       let markerBoxList = []

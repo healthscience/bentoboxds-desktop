@@ -32,10 +32,7 @@ const storeAI = aiInterfaceStore()
 const storeBentobox = bentoboxStore()
 
 let saveChat = ref(false)
-let saveSpace = ref(false)
 let newChatname = ref('')
-let newSpacename = ref('')
-
 
 const historyActive = computed(() => {
   return storeBentobox.historyActive
@@ -115,7 +112,7 @@ const saveChatHistory = (chat) => {
   saveBentoBoxsetting.task = 'save'
   saveBentoBoxsetting.data = chat
   saveBentoBoxsetting.bbid = ''
-  storeAI.prepareBentoBoxSave(saveBentoBoxsetting)
+  storeAI.prepareChatBentoBoxSave(saveBentoBoxsetting)
 }
 
 const deleteChatHistory = (chat) => {

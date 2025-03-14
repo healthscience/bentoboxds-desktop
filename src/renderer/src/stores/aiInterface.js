@@ -33,10 +33,13 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     chatBottom: 0,
     beebeeContext: 'chat',
     decisionDoughnutCue: false,
+    agentList: [{name: 'cale-evolution', active: false, loading: false, onstart: false }],
+    llmModelsList: [],
     oracleData: { type: 'oracle', action: 'decision', elements: [{ label: 'muscle mass', datasets: { backgroundColor: '#01923c', data: 30 }}, { label: 'brain', datasets: { backgroundColor: '#71923c', data: 30 }}], concerns: [{ label: 'kidneys', datasets: { backgroundColor: '#b90e28', data: 30 }}, { label: 'pee more', datasets: { backgroundColor: '#e62643', data: 30 }}]},
     askQuestion: {
       text: ''
     },
+    bodyDiagramShow: false,
     inputAskHistory: [],
     statusCALE:
     {
@@ -99,7 +102,10 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     boxModelUpdate: {},
     computeModuleLast: {},
     bentobesearchState: false,
-    cueAction: 'cues'
+    cueAction: 'cues',
+    agentStatus: false,
+    modelLoading: false,
+    previousLLM: {}
   }),
   actions: {
     sendMessageHOP (message) {
@@ -203,11 +209,13 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         }
       } else if (this.beebeeContext === 'chatspace') {
         let spaceChatPrep = this.liveChatspaceUtil.prepareChatQandA(this.askQuestion, this.liveBspace)
-        // check if array set
-        if (this.chatSpacePair[this.liveBspace.cueid] === undefined) {
-          this.chatSpacePair[this.liveBspace.cueid] = []
+        // check pair has been setup
+        if (this.historyPair[this.liveBspace.cueid] === undefined) {
+          this.historyPair[this.liveBspace.cueid] = []
         }
-        this.chatSpacePair[this.liveBspace.cueid].push(spaceChatPrep)
+        this.historyPair[this.liveBspace.cueid].push(spaceChatPrep)
+        // send to HOP and route to Agents required to reply
+        this.actionAgentQuestion(spaceChatPrep.question)
         this.askQuestion.text = ''
       } else if (this.beebeeContext === 'graph') {
       } else if (this.beebeeContext === 'cues-decision') {
@@ -229,6 +237,18 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.helpchatHistory.push(aiMessageout)
       this.askQuestion.text = ''
       this.qcount++      
+    },
+    actionAgentQuestion (question) {
+      let hashQuestion = hashObject(question)
+      let aiMessageout = {}
+      aiMessageout.type = 'bbai'
+      aiMessageout.reftype = 'ignore'
+      aiMessageout.action = 'question'
+      aiMessageout.data = question
+      aiMessageout.bbid = hashQuestion
+      this.sendSocket.send_message(aiMessageout)
+      this.helpchatHistory.push(aiMessageout)
+      this.qcount++
     },
     actionHelpAskInput () {
       // match question
@@ -270,15 +290,17 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       } else if (received.type === 'hop-learn') {
         if (received.action === 'cale-evolution') {
           if (received.task === 'begin') {
-            this.storeAcc.processAgentStatus(received.data)
+            this.processAgentStatus(received.data)
           } else if (received.task === 'closed') {
-            this.storeAcc.processAgentStatus(received.data)
+            this.processAgentStatus(received.data)
           }
         } else if (received.action === 'cale-gpt4all') {
           if (received.task === 'begin') {
-            this.storeAcc.processAgentStatus(received.data)
+            this.processAgentStatus(received.data)
           } else if (received.task === 'closed') {
-            this.storeAcc.processAgentStatus(received.data)
+            this.processAgentStatus(received.data)
+          } else if (received.task === 'models') {
+            this.llmModelsList = received.data
           }
         }
       } else if (received.action === 'hop-learn-feedback') {
@@ -347,6 +369,31 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         }
       }
     },
+    processAgentStatus (data) {
+      // upload agent model status
+      let updateModelActive = []
+      for (let agentM of this.agentModelDefault) {
+        if (agentM.value.computational.model === data.model) {
+          agentM.value.computational.active = true
+          updateModelActive.push(agentM)
+        } else {
+          updateModelActive.push(agentM)
+        }
+      }
+      this.agentModelDefault = updateModelActive
+      this.agentStatus = true
+      this.modelLoading = false
+      /*for (let agent of this.agentList) {
+        if (agent.name === data.name) {
+          if (data.status === 'loaded') {
+            agent.active = true
+            agent.loading = false
+          } else if (data.status === 'closed') {
+            agent.active = false
+          }
+        }
+      }*/
+    },
     processNotification (received) {
       this.countNotifications++
       this.notifList.push(received)
@@ -369,8 +416,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       } else if (received.action === 'warm-peer-connect') {
         // set via account store - just add to notify list here.
       } else if (received.action === 'warm-peer-topic') {
-        console.log('tpic recieved')
-        console.log(received.data)
         // update list and make longterm true
         /* let wpeerStatus = false
         let existingPeer = {}
@@ -427,8 +472,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         }
         */
       } else if (received.action === 'warm-peer-topic') {
-        console.log('code name arrive match to list invite list and ask to save for long erm')
-        console.log(received.data)
       } else if (received.action === 'network-library-n1') {
         // create a notification accept public board and save?
       } else if (received.action === 'cue-space') {
@@ -437,8 +480,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
     },
     preparePublicConfirm (item) {
-      console.log('confrim accept n1 bentobox  may be part of space')
-      console.log(item)
       // produce a pair for the current chat
       let newBBID = '23232'
       let pairBB = {}
@@ -458,12 +499,12 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     },
     prepareCuespace (notItem) {
       // have any bentoboxn1 been sent?
-      console.log('prepare cue space notifiction')
-      console.log(notItem)
-      if (notItem.data.content.bbn1.publicN1contracts.length > 0) {
-        console.log('yes bbn1 to prapre for this space, repare confirm chat message')
-        for (let bbn1 of notItem.data.content.bbn1.publicN1contracts) {
-          this.preparePublicConfirm({ action: 'network-library-n1', data: bbn1 })          
+      // check if n1 with cue space
+      if (notItem.data.content.bbn1.publicN1contracts !== undefined) {
+        if (notItem.data.content.bbn1.publicN1contracts.length > 0) {
+          for (let bbn1 of notItem.data.content.bbn1.publicN1contracts) {
+            this.preparePublicConfirm({ action: 'network-library-n1', data: bbn1 })          
+          }
         }
       }
       let cueContract = notItem.data.content.cuecontract
@@ -516,8 +557,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.hopSummary.push({ HOPid: HOPshell, summary: dataSummary })
     },
     processHOPdata (dataHOP) {
-      // console.log('process IN HOP Data')
-      // console.log(dataHOP)
       // match input id to bbid
       // is the data for past or future or no data
       if (dataHOP.data.data === 'none') {
@@ -642,7 +681,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.storeBentoBox.openDataSettings[boxid] = extractedOD
       return true
     },
-    prepareBentoBoxSave (message) {
+    prepareChatBentoBoxSave (message) {
       let settingsData = this.historyPair[message.data.chatid]
       let bbidPerChat = []
       // loop over data to match to visualisation alread prepared.  (note. or HOPQuery to re-create via HOP)
@@ -698,17 +737,13 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
       // cues
       // media
-      let mediaidPerspace = this.storeBentoBox.videoMedia[message.data.cueid]
-      // console.log(mediaidPerspace)
+      // let mediaidPerspace = this.storeBentoBox.videoMedia[message.data.cueid]
       // research
-      let researchidPerspace = this.storeBentoBox.researchMedia[message.data.cueid]
-      // console.log(researchidPerspace)
+      // let researchidPerspace = this.storeBentoBox.researchMedia[message.data.cueid]
       // markers
-      let markeridPerspace = this.storeBentoBox.markerMedia[message.data.cueid]
-      // console.log(markeridPerspace)
+      // let markeridPerspace = this.storeBentoBox.markerMedia[message.data.cueid]
       // products
-      let productidPerspace = this.storeBentoBox.ProductMedia[message.data.cueid]
-      // console.log(productidPerspace)
+      // let productidPerspace = this.storeBentoBox.ProductMedia[message.data.cueid]
     },
     prepareAI (message) {
       // need to build DML structure, proof of work hash
@@ -721,7 +756,54 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         message.data = nxpContract.data
         this.sendMessageHOP(message)
       }
+    },
+    prepareModelContract (modelInfo) {
+      // structure inputs for cue contract
+      modelInfo.active = true
+      const modelContract = {}
+      modelContract.type = 'library'
+      modelContract.action = 'model'
+      modelContract.reftype = 'new-model'
+      modelContract.task = 'PUT'
+      modelContract.privacy = 'public'
+      let modelHolder = {}
+      let concept = {}
+      concept.agent = modelInfo.agent
+      concept.name = modelInfo.name
+      concept.model = modelInfo.model
+      concept.description = modelInfo.description
+      modelHolder.concept = concept
+      modelHolder.computational = modelInfo
+      modelContract.data = modelHolder
+      this.sendMessageHOP(modelContract)
+      // if previous model, update to onstart false, active false
+      if (this.previousLLM?.first === true) {
+      } else {
+        this.prepareUpdateModelContract(this.previousLLM, false, false)
+      }
+    },
+    prepareUpdateModelContract (modelInfo, active, onstart) {
 
+      // structure inputs for cue contract
+      modelInfo.value.computational.active = active
+      modelInfo.value.computational.onstart = onstart
+      const modelContract = {}
+      modelContract.type = 'library'
+      modelContract.action = 'model'
+      modelContract.reftype = 'new-model'
+      modelContract.task = 'UPDATE'
+      modelContract.privacy = 'public'
+      modelContract.data = modelInfo
+      this.sendMessageHOP(modelContract)
+    },
+    sendModelControl (modelInfo, action) {
+      let learnMessage = {}
+      learnMessage.type = 'bbai'
+      learnMessage.reftype = 'ignore'
+      learnMessage.action = action
+      learnMessage.data = { agent: modelInfo.agent, model: modelInfo.model}
+      learnMessage.bbid = ''
+      this.sendMessageHOP(learnMessage)
     }
   }
 })

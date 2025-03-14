@@ -19,7 +19,7 @@
           class="grid-component-tab" v-bind:class="{ active: activeTab === 'aiagents' }"
           v-on:click="selectTab('aiagents')"
         >
-          AI
+          AI Agents
         </div>
         <div
           class="grid-component-tab" v-bind:class="{ active: activeTab === 'wallets' }"
@@ -61,10 +61,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 const storeAccount = accountStore()
 const storeAI = aiInterfaceStore()
 
-let peerActive = ref(false)
-let dsActive = ref(false)
-let aiActive = ref(false)
-let walletActive = ref(false)
 let listContext = ref('peers')
 let activeTab = ref('peers')
 
@@ -113,7 +109,7 @@ let activeTab = ref('peers')
 }
 
 .grid-component-tab.active {
- background-color: lightgrey;
+ background-color: rgb(240, 242, 243);
 }
 
 .is-disabled {

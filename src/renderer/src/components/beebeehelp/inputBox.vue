@@ -1,36 +1,87 @@
 <template>
   <div id="ai-interaction">
-    <form id="ask-ai-form" @submit.prevent="storeAI.submitAsk()">
-      <label for="askname"></label><!--  v-on:keyup="storeAI.actionNatlangIn($event)" -->
-      <input type="text-area" id="askinput" name="ainame" placeholder="Ask the health oracle anything." v-model="storeAI.askQuestion.text" autofocus>
-    </form>
-    <button id="natlang-ask" type="submit" v-if="beebeeAIStatus.active === true" @click="storeAI.submitAsk">
-      BeeBee
-    </button>
+    <div id="input-tools">
+      <form id="ask-ai-form" @submit.prevent="storeAI.submitAsk()">
+        <label for="askname"></label><!--  v-on:keyup="storeAI.actionNatlangIn($event)" -->
+        <textarea rows="14" cols="10" wrap="soft" id="askinput" name="ainame" placeholder="Ask the health oracle anything." v-model="storeAI.askQuestion.text" autofocus>
+        </textarea>
+      </form>
+      <button id="natlang-ask" type="submit" v-if="beebeeAIStatus.active === true" @click="storeAI.submitAsk">
+        BeeBee
+      </button>
+      <div id="agent-tools">
+        <div id="agent-status" v-bind:class="{ active: agentStatus }" @mouseover="showAgents" @mouseleave="hideAgents">@a</div>
+        <div id="agent-list" v-if="modelLoadingStatus === false && agentsActive === true">
+          LLM is active
+        </div>
+        <div id="loading-agent" class="blink_me" v-if="modelLoadingStatus === true">
+          Loading
+        </div>
+      </div>
+    </div>
+    <div id="tool-agents">
+      <div id="tools-list">
+          <div class="tool-type" @click="toolAgent('upload')">@upload</div>
+          <div class="tool-type" @click="toolAgent('library')">@library</div>
+      </div>
+    </div>
     <data-box v-if="dataBoxStatus === true"></data-box>
   </div>
 </template>
 
 <script setup>
 import DataBox from '@/components/dataspace/dataBox.vue'
+import { libraryStore } from '@/stores/libraryStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
+  const storeLibrary = libraryStore()
   const storeAI = aiInterfaceStore()
 
   const props = defineProps({
-    prompt: Object
+    prompt: Object,
+    chatcontext: String
    })
+
+   let agentsActive = ref(false)
 
   /* computed */
   const beebeeAIStatus = computed(() => {
     return storeAI.helpchatAsk
   })
 
+  const modelLoadingStatus = computed(() => {
+    return storeAI.modelLoading
+  })
+  const agentStatus = computed(() => { 
+    return storeAI.agentStatus
+  })
+
   // a computed ref
   const dataBoxStatus = computed(() => {
     return storeAI.dataBoxStatus
   })
+
+  /* methods */
+  const showAgents = () => {
+    agentsActive.value = true
+  }
+
+  const hideAgents = () => {
+    agentsActive.value = false
+  }
+
+  const toolAgent = (tool) => {
+    if (tool === 'upload') {
+      storeAI.dataBoxStatus = true
+      storeLibrary.uploadStatus = true
+      storeLibrary.libraryStatus = false
+    } else if (tool === 'library') {
+      storeAI.dataBoxStatus = true
+      storeAI.uploadStatus = false
+      storeLibrary.libraryStatus = true
+    }
+  }
 
 </script>
 
@@ -41,20 +92,82 @@ import { computed } from 'vue'
   grid-template-columns: 1fr;
 }
 
+#input-tools {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
 #askinput {
   font-size: 1.2em;
   height:4em;
   width: 100%;
 }
 
+#tool-agents {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+#tools-list {
+  justify-self: end;
+  margin-right: 1em;
+  color: rgb(125, 137, 204);
+}
+
+.tool-type {
+  display: inline-block;
+  margin-right: 1em;
+  cursor: pointer;
+}
+
 #natlang-ask {
   height: 60px;
+}
+
+#agent-status {
+  color: lightgray;
+}
+
+#agent-status.active {
+  color: rgb(113, 172, 114);
+}
+
+.blink_me {
+  animation: blinker 2s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
 }
 
 @media (min-width: 1024px) {
   #ai-interaction {
     display: grid;
-    grid-template-columns: 6fr 1fr
+    grid-template-columns: 1fr;
+  }
+
+  #input-tools {
+    display: grid;
+    grid-template-columns: 8fr 1fr 1fr;
+  }
+
+  #tool-agents {
+    display: grid;
+    grid-template-columns: 8fr 1fr 1fr;
+  }
+
+  #tools-list {
+    justify-self: end;
+    margin-right: 1em;
+    color:  rgb(125, 137, 204);
+  }
+
+  .tool-type {
+    display: inline-block;
+    margin-right: 1em;
+    cursor: pointer;
   }
 
   #askinput {
@@ -68,6 +181,28 @@ import { computed } from 'vue'
   #natlang-ask {
     height: auto;
   }
+
+  #agent-status {
+    margin-left: .6em;
+    color: lightgray;
+  }
+
+  #agent-status.active {
+    color: rgb(113, 172, 114);
+    font-weight: bold;
+  }
+
+  .blink_me {
+    margin-left: .6em;
+    animation: blinker 2s linear infinite;
+  }
+
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
+  }
+
 }
 
 </style>

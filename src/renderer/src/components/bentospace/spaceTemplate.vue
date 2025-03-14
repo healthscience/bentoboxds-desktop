@@ -13,7 +13,10 @@
           >
             Close
           </button>
-          <h3>BentoSpace # {{ storeAI.liveBspace.name }} - {{ storeAI.liveBspace.cueid }} </h3>
+          <div id="cue-space-header">
+            <div id="space-cue-title">BentoSpace # {{ storeAI.liveBspace.name }}</div>
+            <div id="space-cueid"> - {{ storeAI.liveBspace.cueid }}</div>
+          </div>
           <div id="return-modal-close" @click="closeBentoSpace">return</div>
         </div>
       </template>
@@ -131,7 +134,7 @@
 import { ref, computed } from 'vue'
 import ModalSpace from '@/components/bentospace/spaceModal.vue'
 import CuesPrepared from '@/components/bentocues/prepareCues.vue'
-import LibraryexpView from '@/components/dataspace/libraryNXPView.vue'
+import LibraryexpView from '@/components/dataspace/experimentNXPView.vue'
 import NewnxpView from '@/components/dataspace/newnxpView.vue'
 import BentoBoxspace from '@/components/bentobox/bentoboxSpace.vue'
 import MediaSpace from '@/components/bentospace/video/mediaSpace.vue'
@@ -186,7 +189,6 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
   /* methods */
   const setShowBeeBee = () => {
-    // beebeeSpace.value = !beebeeSpace.value
     storeAI.bentochatState = !storeAI.bentochatState
   }
 
@@ -196,6 +198,34 @@ import { mapminiStore } from '@/stores/mapStore.js'
     storeCues.cueContext = 'cueall'
     // save the current layout on close
     storeBentobox.saveLayoutSpace(storeAI.liveBspace.cueid)
+    // save the latest on close
+    saveSpaceHistory(storeAI.liveBspace)
+    // save the latest chat on close
+    saveChatHistory(storeAI.liveBspace)
+    // close the chat
+    storeAI.bentochatState = false
+  }
+
+  const saveSpaceHistory = (space) => {
+    let saveBentoBoxsetting = {}
+    saveBentoBoxsetting.type = 'bentobox'
+    saveBentoBoxsetting.reftype = 'space-history'
+    saveBentoBoxsetting.action = 'save'
+    saveBentoBoxsetting.task = 'save'
+    saveBentoBoxsetting.data = space
+    saveBentoBoxsetting.bbid = ''
+    storeAI.prepareSpaceSave(saveBentoBoxsetting)
+  }
+
+  const saveChatHistory = (chat) => {
+    let saveBentoBoxsetting = {}
+    saveBentoBoxsetting.type = 'bentobox'
+    saveBentoBoxsetting.reftype = 'chat-history'
+    saveBentoBoxsetting.action = 'save'
+    saveBentoBoxsetting.task = 'save'
+    saveBentoBoxsetting.data = { chatid: chat.cueid, name: chat.name, active: false }
+    saveBentoBoxsetting.bbid = ''
+    storeAI.prepareChatBentoBoxSave(saveBentoBoxsetting)
   }
 
   const setzoomScale = (change) => {
@@ -212,7 +242,6 @@ import { mapminiStore } from '@/stores/mapStore.js'
   }
 
   const cuesHolistic = () => {
-    console.log('holistic')
     storeCues.liveCueContext = 'flake'
     storeAI.bentoflakeState = !storeAI.bentoflakeState
   }
@@ -243,8 +272,9 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
   const openLibrary = () => {
     // need to set context to library
+    spaceN1setup.value = !spaceN1setup.value
     storeLibrary.inContext = 'space'
-    storeAI.dataBoxStatus = true
+    // storeAI.dataBoxStatus = true
     storeAI.uploadStatus = false
     storeLibrary.libraryStatus = true
     storeLibrary.libPeerview = true
@@ -303,6 +333,21 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
 .active {
   background-color: rgb(113, 172, 114);
+}
+
+#cue-space-header {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+}
+
+#space-cue-title {
+  color: darkblue;
+  font-weight: bold;
+}
+
+#space-cueid {
+  color: #5254ab;
+  font-size: .8em;
 }
 
 #space-toolbar {
@@ -380,6 +425,12 @@ import { mapminiStore } from '@/stores/mapStore.js'
   transition: background-color 0.3s ease, transform 0.3s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 } 
+
+/* n1 */
+#n1-tools {
+  width: 60vw;
+  border: 1px solid lightgray;
+}
 
 /*  media bar  */
 #bento-media {
@@ -485,7 +536,7 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
   .scale-item {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 2fr 1fr;
     justify-self: end;
   }
 
@@ -501,6 +552,12 @@ import { mapminiStore } from '@/stores/mapStore.js'
     border: 2px solid green;
     height: 1px;
     width: 1px;
+  }
+
+  /* n1 */
+  #n1-tools {
+    width: 60vw;
+    border: 1px solid lightgray;
   }
 
   /*  media bar  */
@@ -546,6 +603,10 @@ import { mapminiStore } from '@/stores/mapStore.js'
     padding: 1em;
     background: rgb(176, 176, 204);
     opacity: .98;
+  }
+
+  .active {
+    background-color: rgb(113, 172, 114);
   }
 
 }

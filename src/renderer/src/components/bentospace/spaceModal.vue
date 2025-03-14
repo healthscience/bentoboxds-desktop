@@ -50,7 +50,7 @@ const emit = defineEmits(['close'])
   width: 92vw;
   height: 92vh;
   margin: auto;
-  padding: 20px 30px;
+  padding: 6px 30px;
   background: white;
   border-radius: 2px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
@@ -58,7 +58,7 @@ const emit = defineEmits(['close'])
   overflow: scroll;
 }
 
-.modal-header h3 {
+.modal-header h2 {
   margin-top: 0;
   color: #42b983;
 }

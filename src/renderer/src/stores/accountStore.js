@@ -31,8 +31,7 @@ export const accountStore = defineStore('account', {
     publickeyDrive: [],
     publicKeysList: [],
     sharePubkey: '',
-    shareBoardNXP: {},
-    agentList: [{ name: 'cale-gpt4all', active: false, loading: false }, {name: 'cale-evolution', active: false, loading: false }]
+    shareBoardNXP: {}
   }),
   actions: {
     processReply (received) {
@@ -132,8 +131,6 @@ export const accountStore = defineStore('account', {
       // this.warmPeers = updateWarmPeers
     },
     updatePeerName (update) {
-      console.log('peer name match now back live ist with name ')
-      console.log(update)
       let updateNameList = []
       for (let wpeer of this.warmPeers) {
         if (wpeer.key === update.key) {
@@ -251,18 +248,6 @@ export const accountStore = defineStore('account', {
       shareInfo.privacy = 'private'
       shareInfo.data = peerInvite
       this.sendMessageHOP(shareInfo)
-    },
-    processAgentStatus (data) {
-      for (let agent of this.agentList) {
-        if (agent.name === data.name) {
-          if (data.status === 'loaded') {
-            agent.active = true
-            agent.loading = false
-          } else if (data.status === 'closed') {
-            agent.active = false
-          }
-        }
-      }
     },
     setNotifyFailConnection (data) {
       this.beebeeAccountFeedback = 'Connecting taking a long time or has failed with' + data.publickey

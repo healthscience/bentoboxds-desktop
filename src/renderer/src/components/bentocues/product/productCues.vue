@@ -18,10 +18,10 @@
   </div>
   <div id="product-paper-list" v-if="productMatch?.length > 0">
     <div id="product-paper-select" v-for="product in productMatch" :value="product.prodid">
-      <button class="product-paper-item" @click="viewproduct(product.value.concept.product)">
+      <button class="product-paper-item" @click="viewproduct(product.key)">
         {{ product.value.concept.product }}
       </button>
-      <button class="product-paper-source" @click="viewSourceproduct(product.value.concept.product)">
+      <button class="product-paper-source" @click="viewSourceproduct(product.value.concept.ecomm)">
         View source
       </button>
     </div>

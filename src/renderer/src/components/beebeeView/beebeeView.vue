@@ -72,8 +72,12 @@ import { computed } from 'vue'
   const storeLibrary = libraryStore()
 
   let agentActive = ref('')
-  let bodyDiagramShow = ref(false)
   let viewLibrary = ref(false)
+
+  /* computed */
+  const bodyDiagramShow = computed(() => {
+    return storeAI.bodyDiagramShow
+  })
 
   const bentoGraphStatus = computed(() => {
     return storeAI.bentographState
@@ -111,7 +115,7 @@ import { computed } from 'vue'
   }
 
   const viewBody = () => {
-    bodyDiagramShow.value = !bodyDiagramShow.value
+    storeAI.bodyDiagramShow = !storeAI.bodyDiagramShow
   }
 
   const openLibrary = () => {
@@ -160,7 +164,7 @@ import { computed } from 'vue'
   grid-template-columns: 1fr;
 }
 
-.active3 {
+.active {
   background-color: rgb(128, 170, 115);
 }
 

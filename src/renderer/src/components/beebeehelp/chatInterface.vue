@@ -2,7 +2,7 @@
   <div id="chat-interface">
     <!-- Natural Language Chat -->
     <div id="natlang-ai">
-      <welcome-beebee></welcome-beebee>
+      <welcome-beebee v-if="storeAI.beebeeContext !== 'chatspace'"></welcome-beebee>
       <div id="conversation" v-if="beginChat === true"  v-for="chati in chatPairs">
         <div class="peer-ask">
           <img class="left-chat-peer" src="../.././assets/peerlogo.png" alt="Avatar">
@@ -13,12 +13,12 @@
           <span class="right-time">{{ chati.reply.time }}</span>
           <div class="reply-text-chart">
             <div class="right-chat" v-if="chati.reply.type !== undefined">
-              {{ chati.reply.type }} {{ chati.reply.action }}
+              {{ chati.reply.action }}
               <div v-if="chati.reply.type === 'experiment' && chati.reply.data">
                 <button @click="viewSaveExperiment(chati.question.bbid, chati.reply.data)">View experiment</button>
               </div>
               <div v-if="chati.reply.type === 'network-library-n1'">
-                {{ chati.reply.data.text.boardname }}<button @click="publibLibAdd(chati.reply.data.text)"> yes add this Cue space to public library</button>
+                {{ chati?.reply?.data?.text?.boardname }}<button @click="publibLibAdd(chati.reply.data.text)"> yes add this Cue space to public library</button>
               </div>
               <div v-if="chati.reply.type === 'hopquery'">
                 <span>Datatype: {{ chati.data.library.text }} for month {{ chati.data.time.words.day }} day {{ chati.data.time.words.month }}</span>---
@@ -104,7 +104,7 @@
                 </div>
               </div>
               <div v-else-if="chati.reply.type === 'upload'">
-                {{ chati.reply.data.text }}
+                {{ chati?.reply?.data?.text }}
                 <button id="upload-button" @click="uploadButton">Click to upload file</button>
               </div>
               <div v-else-if="chati.reply.type === 'library-peerlibrary'">
@@ -119,8 +119,12 @@
                 </div>
               </div>
             </div>
-            <div id="beebee-chartspace" v-if="storeAI.beebeeChatLog[chati?.question?.bbid] === true">
-              <!--the slimed down bentobox to chart and bring in tools as needed-->
+            <div id="beebee-chartspace" v-if="storeAI.beebeeChatLog[chati?.question?.bbid] === true && storeAI.visData[chati.reply.bbid].datasets[0]?.data !== undefined">passs
+              <!--the slimed down bentobox to chart and bring in tools as needed  storeAI.beebeeChatLog[chati?.question] !== undefined &&  -->
+              <bento-box :bboxid="chati?.question?.bbid"></bento-box>
+            </div>
+            <div  v-else-if="chati?.reply?.data?.text !== undefined && chati?.reply?.data?.text.length > 0">
+              {{ chati?.reply?.data?.text }}
               <bento-box :bboxid="chati?.question?.bbid"></bento-box>
             </div>
           </div>
@@ -132,7 +136,7 @@
       <!--<div id="buttommove"></div>-->
       <div id="buttommove" ref="targetId" >{{ updateBottom  }}</div>
     </div>
-    <div class="chat-input">
+    <div class="chat-input" v-if="storeAI.beebeeContext !== 'chatspace'">
       <input-box></input-box>
     </div>
   </div>
@@ -377,6 +381,11 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
 .right-chat-beebee {
   width: 50px;
+}
+
+.right-time {
+  color: blue;
+  font-size: 0.8em;
 }
 
 .left-chat {

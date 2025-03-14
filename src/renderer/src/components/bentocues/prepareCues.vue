@@ -186,6 +186,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
       active: false,
       expand: true
     }
+    storeAI.chatAttention = storeCues.activeCue
     storeBentobox.spaceList.push(storeCues.activeCue)
     storeCues.cogGlueSpace(storeCues.activeCue)
   }

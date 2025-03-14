@@ -58,7 +58,7 @@ export const libraryStore = defineStore('librarystore', {
       name: '',
       description: '',
       wiki: '',
-      rdf: '',
+      rdf: 'https://dbpedia.org/page/',
       measurement: '',
       datatypeType: ''
     },
@@ -241,7 +241,6 @@ export const libraryStore = defineStore('librarystore', {
       messageHOP.privacy = 'public'
       messageHOP.task = 'PUT'
       messageHOP.data = message
-      console.log(messageHOP)
       this.sendSocket.send_message(messageHOP)
     },
     processReply (message, questionStart) {
@@ -383,6 +382,24 @@ export const libraryStore = defineStore('librarystore', {
           }
           this.storeCues.cuesList = updateCueList
         }
+      } else if (message.action === 'model-contract') {
+        // first time save for update?
+        if (message.task === 'save-complete') {
+          this.storeAI.agentModelDefault.push(message.data.data)
+          this.storeAI.modelLoading = true
+          this.storeAI.sendModelControl(message.data.data.value.computational, 'learn-agent-start')
+        } else if (message.task === 'update-complete') {
+          // loop through and update array list
+          let updateModelList = []
+          for (let model of this.storeAI.agentModelDefault) {
+            if (model.key === message.data.key) {
+              updateModelList.push(message.data)
+            } else {
+              updateModelList.push(model)
+            }
+          }
+          this.storeAI.agentModelDefault = updateModelList
+        }
       } else if (message.action === 'media-contract') {
         let mediaContract = message.data.data
         this.storeCues.mediaMatch[mediaContract.value.concept.cueid].push(mediaContract)
@@ -463,23 +480,6 @@ export const libraryStore = defineStore('librarystore', {
         this.peerLedger = message.data
       }
     },
-    prepareExperimentSettings (bboxid) {
-      // let NXPcontract = storeLibrary.prepareExperimentSummary(props.bboxid)
-      // let NXPcontract = this.storeAI.boxLibSummary[bboxid].data
-      // let key = Object.keys(this.storeAI.boxLibSummary[bboxid].data)
-      // let modulesContracts = NXPcontract[key].modules
-      // let extractedSettings = this.utilLibrary.moduleExtractSettings(modulesContracts)
-      // console.log('textract setings----------------')
-      // console.log(extractedSettings)
-      // NXPcontract.modules = this.utilLibrary.boxLibrarySummary(modules)
-      // temp test
-      let datatypeContext = {}
-      datatypeContext.xaxis = ['time']
-      datatypeContext.yaxis = [11, 22, 33]
-      datatypeContext.category = [22, 22, 22]
-      this.storeBentoBox.openDataSettings[bboxid] = datatypeContext
-      // this.openDataSettings[bboxid] = extractedSettings
-    },
     prepareJoinNXPMessage (genContract, setControls, settingsInfo) {
       // let updateJoinSettings = this.utilLibrary.updateSettings(genContract, settings)
       setControls.opendata = settingsInfo
@@ -496,7 +496,11 @@ export const libraryStore = defineStore('librarystore', {
       libMessageout.bbid = 'lib' + genContract.value.exp.key
       this.sendSocket.send_message(libMessageout)
     },
-    prepareLibraryViewMessage (contract, action) {
+    prepareLibrarySpaceMessage (contract, action) {
+      // make bbid the hash of the private contract?
+
+    },
+    prepareLibraryChatMessage (contract, action) {
       // create a bbid
       let boxID = {}
       boxID.contract = contract
@@ -571,7 +575,6 @@ export const libraryStore = defineStore('librarystore', {
       libMessage.privacy = 'public'
       libMessage.data = message
       libMessage.bbid = ''
-      // this.sendMessageHOP(aiMessageout)
       this.sendSocket.send_message(libMessage)
     },
     prepPublicNXPlist () {

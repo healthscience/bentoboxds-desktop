@@ -35,7 +35,6 @@
 </template>
 
 <script setup>
-import BentoBox from '@/components/bentobox/bentoBox.vue'
 import BoxTools from '@/components/bentobox/tools/boxTools.vue'
 import BentoboxFocus from '@/components/bentobox/bentoboxFocus.vue'
 import barChart from '@/components/visualisation/charts/barChart.vue'
@@ -46,10 +45,44 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
-  const futureStatus = ref(true)
 
   const props = defineProps({
     bboxid: String
+  })
+
+  /* computed */
+  const chartData = computed(() => {
+    return storeAI.visData[props.bboxid]
+    /* {
+      // labels: dataLabel.value, // [ 'January', 'February', 'March' ],
+      // datasets: [ { data: dataValues.value } ]
+    } */
+   })
+
+  /*
+  * predict future
+  */
+  const predictFuture = () => {
+    storeAI.prepareFuture(props.bboxid)
+  }
+
+  const futureBox = computed(() => {
+    return storeAI.activeFuture[props.bboxid]
+  })
+
+  const futuredataValues = computed(() => {
+    return storeAI.futureNumberData[props.bboxid]
+  })
+
+  const futuredataLabel = computed(() => {
+    return storeAI.futureLabelData[props.bboxid]
+  })
+
+  const chartfutureData = computed(() => {
+    return {
+      labels: futuredataLabel.value,
+      datasets: [ { label: 'datatype', data: futuredataValues.value } ]
+    }
   })
 
   const eHandler = (data) => {
@@ -97,40 +130,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   const dataLabel = computed(() => {
     return storeAI.tempLabelData[props.bboxid]
   }) */
-
-  const chartData = computed(() => {
-    return storeAI.visData[props.bboxid]
-    /* {
-      // labels: dataLabel.value, // [ 'January', 'February', 'March' ],
-      // datasets: [ { data: dataValues.value } ]
-    } */
-   })
-
-  /*
-  * predict future
-  */
-  const predictFuture = () => {
-    storeAI.prepareFuture(props.bboxid)
-  }
-
-  const futureBox = computed(() => {
-    return storeAI.activeFuture[props.bboxid]
-  })
-
-  const futuredataValues = computed(() => {
-    return storeAI.futureNumberData[props.bboxid]
-  })
-
-  const futuredataLabel = computed(() => {
-    return storeAI.futureLabelData[props.bboxid]
-  })
-
-  const chartfutureData = computed(() => {
-    return {
-      labels: futuredataLabel.value,
-      datasets: [ { label: 'datatype', data: futuredataValues.value } ]
-    }
-  })
     
 </script>
 

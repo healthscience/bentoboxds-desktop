@@ -58,7 +58,7 @@
       </template>
       <template #footer>
         <div id="footer-self">
-          BentoBoxDS - v0.2.5 HOP v0.3.7
+          BentoBoxDS - v0.2.6 HOP v0.4.0
         </div>
       </template>
     </modal-auth>
@@ -117,10 +117,9 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
       verifyFeedback.value = 'password incorrect, try again please.'
     }
   }
-  
+
   const reconnectSocket = () => {
-    console.log('restart socket try')
-    window.electron.send('message-from-vue', 'Hello from Vue!')
+    window.electron.send('message-from-vue', 'Hello from BentoBoxDS')
     storeSocket.connection_loss = false
     storeSocket.connection_error = false
     setTimeout(() => {

@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body">ddddd
+  <Teleport to="body">
     <!-- use the modal component, pass in the prop -->
     <modal-data :show="dataBoxStatus" @close="closedataBox">
       <template #header>
@@ -58,7 +58,7 @@ import RestUpload from '@/components/dataspace/upload/restUpload.vue'
 import CsvPreview from '@/components/dataspace/upload/csvPreview.vue'
 import ImagePreview from '@/components/dataspace/upload/imagePreview.vue'
 import NetworkLibrary from '@/components/library/index.vue'
-import LibraryexpView from '@/components/dataspace/libraryNXPView.vue'
+import LibraryexpView from '@/components/dataspace/experimentNXPView.vue'
 import NewnxpView from '@/components/dataspace/newnxpView.vue'
 import JoinnxpView from '@/components/library/contracts/join/joinnxpView.vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
@@ -68,17 +68,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
   const storeLibrary = libraryStore()
-  const showModal = ref(true)
-  
-  let libAction = ref('libraryexplorer')
-  let dataBoardStatus = ref(
-    {
-      libraryexplorer: true,
-      libraryupload: false,
-      libraryexperiments: false,
-      newexperiment: false
-     }
-  )
 
   const uploadStatus = computed(() => {
     return storeLibrary.uploadStatus

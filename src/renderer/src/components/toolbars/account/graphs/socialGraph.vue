@@ -39,7 +39,9 @@ import { accountStore } from '@/stores/accountStore.js'
    socialGraph = new Graph()
    // add peers (test)
     let peerGraph = document.getElementById("graph-container")
-    const sigmaInstance = new Sigma(socialGraph, peerGraph)
+    const sigmaInstance = new Sigma(socialGraph, peerGraph, {
+      allowInvalidContainer: true
+    })
     // take know peer connection and chart, then watcher will pick up others
     // put peer account at center of graph
     socialGraph.addNode("1", { label: "me", x: 0, y: 0, size: 20, color: "blue" })

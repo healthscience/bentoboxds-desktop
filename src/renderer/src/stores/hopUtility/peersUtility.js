@@ -42,33 +42,38 @@ class PeersUtility {
   *
   */
   n1Match = function (sharePubkey, keyPublibary, cueID, bboxes, peerLibrary, layoutBBoxes) {
+    console.log('no1 match')
+    console.log(bboxes)
     let peerBBMatch = {}
-
     let publicN1contracts = []
-    // match private nxp to genesis public contract
-    for (let bbox of bboxes) {
-     for (let n1contract of peerLibrary) {
-        if (bbox.contract = n1contract.key) {
-          let peerDetails = {}
-          peerDetails.name = 'peer'
-          peerDetails.type = 'public-n1-experiment'
-          peerDetails.publickey = sharePubkey
-          peerDetails.datastores = keyPublibary
-          peerDetails.boardID =  n1contract.value.genesis
-          peerDetails.boardname =  n1contract.value.name
-          publicN1contracts.push(peerDetails)
+    if (bboxes !== undefined) {
+      // match private nxp to genesis public contract
+      for (let bbox of bboxes) {
+      for (let n1contract of peerLibrary) {
+          if (bbox.contract = n1contract.key) {
+            let peerDetails = {}
+            peerDetails.name = 'peer'
+            peerDetails.type = 'public-n1-experiment'
+            peerDetails.publickey = sharePubkey
+            peerDetails.datastores = keyPublibary
+            peerDetails.boardID =  n1contract.value.genesis
+            peerDetails.boardname =  n1contract.value.name
+            publicN1contracts.push(peerDetails)
+          }
         }
       }
-    }
-    // layout of boxes
-    let bboxLayout = []
-    for (let bboxsp of bboxes) {
-      bboxLayout.push({ bboxid: bboxsp.bboxid, layout: layoutBBoxes[bboxsp.bboxid] })       
-    }
+      // layout of boxes
+      let bboxLayout = []
+      for (let bboxsp of bboxes) {
+        bboxLayout.push({ bboxid: bboxsp.bboxid, layout: layoutBBoxes[bboxsp.bboxid] })       
+      }
 
-    peerBBMatch.publicN1contracts = publicN1contracts
-    peerBBMatch.bLayout = bboxLayout
-    return peerBBMatch
+      peerBBMatch.publicN1contracts = publicN1contracts
+      peerBBMatch.bLayout = bboxLayout
+      return peerBBMatch
+    } else {
+      return peerBBMatch
+    }
   }
 
   /**

@@ -19,10 +19,11 @@
       </template>
       <template #body>
         <div id="chatspace-conversation">
-          <conversation-messages></conversation-messages>
+          <beebee-chat></beebee-chat>
+          <!--<conversation-messages></conversation-messages>-->
         </div>
         <div class="chat-input">
-          <input-box></input-box>
+          <input-box :chatcontext="'cuespace'"></input-box>
         </div>
       </template>
       <template #footer>
@@ -32,7 +33,8 @@
 </template>
 
 <script setup>
-import ConversationMessages from '@/components/beebeehelp/conversationFlow.vue'
+import BeebeeChat from '@/components/beebeehelp/chatInterface.vue'
+// import ConversationMessages from '@/components/beebeehelp/conversationFlow.vue'
 import ModalChat from '@/components/beebeehelp/chatModal.vue' 
 import inputBox from '@/components/beebeehelp/inputBox.vue'
 import { ref, computed } from 'vue'
@@ -76,10 +78,39 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   text-align: right;
 }
 
+.chat-input {
+  position: fixed;
+  bottom: 26px;
+}
+
 @media (min-width: 1024px) {
 
+  #chatspace-modal-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    z-index: 1299;
+  }
 
+  .btn-green {
+    display: inline;
+    width: 120px;
+    height: 30px;
+  }
 
+  #spacechat {
+    display: inline;
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+
+  #return-modal-close {
+    text-align: right;
+  }
+
+  .chat-input {
+    position: fixed;
+    bottom: 26px;
+  }
 }
 
 </style>

@@ -50,16 +50,16 @@ class HOP extends EventEmitter {
   * @method startPtoPnetwork
   *
   */
-  startPtoPnetwork = function () {
+  startPtoPnetwork = async function  () {
     this.LibRoute = new LibraryRoute(this.DataNetwork)
     this.SafeRoute = new SfRoute(this.DataNetwork)
     this.DmlRoute = new DmlRoute(this.DataNetwork)
     this.BBRoute = new BBRoute(this.LibRoute)
-    this.listenNetwork()
-    this.listenBeebee()
-    this.listenLibrary()
-    this.listenLibrarySF()
-    this.listenSF()
+    await this.listenNetwork()
+    await this.listenBeebee()
+    await this.listenLibrary()
+    await this.listenLibrarySF()
+    await this.listenSF()
     this.hopConnect()
   }
 
@@ -102,7 +102,7 @@ class HOP extends EventEmitter {
       this.BBRoute.setWebsocket(ws)
       this.wsocket.id = uuidv4()
 
-      this.wsocket.on('message', (msg) => {
+      this.wsocket.on('message', async (msg) => {
         const o = JSON.parse(msg)
         // check keys / pw and startup HOP if all secure
         if (o.type.trim() === 'hop-auth') {
@@ -113,7 +113,7 @@ class HOP extends EventEmitter {
           if (o.type.trim() === 'close') {
             this.closeHOP()
           } else {
-          this.messageResponder(o)
+            await this.messageResponder(o)
           }
         }
       })
@@ -223,7 +223,7 @@ class HOP extends EventEmitter {
   * @method listenNetwork
   *
   */
-  listenNetwork = function () {
+  listenNetwork = async function () {
     this.DataNetwork.on('peer-topeer', (data) => {
       if (data.display === 'html') {
         // route to beebee for text message back to peer & prep bentobox
@@ -342,6 +342,8 @@ class HOP extends EventEmitter {
     authMessage.action = 'hop-verify'
     authMessage.data = { auth: true, jwt: this.hoptoken }
     this.sendSocketMessage(JSON.stringify(authMessage)) */
+    // auth verified -- get AI agent options
+    this.BBRoute.liveBBAI.hopLearn.openOrchestra()
   }
 
   /**
@@ -351,11 +353,9 @@ class HOP extends EventEmitter {
   */
   //  = function (o) {
     messageResponder = async (o) => {
-    // console.log('message in')
-    // console.log(o)
     let messageRoute = this.MessagesFlow.messageIn(o)
     if (messageRoute.type === 'bbai-reply') {
-      this.BBRoute.bbAIpath(messageRoute)
+      await this.BBRoute.bbAIpath(messageRoute)
     } else if (messageRoute.type === 'safeflow') {
       this.SafeRoute.routeMessage(messageRoute)
     } else if (messageRoute.type === 'library') {
