@@ -3,7 +3,7 @@
     <div class="bentospace">
       <div class="beebee-home">
         <!--<beebee-chat></beebee-chat>-->
-        <div id="mission-statement">Sovereign Intelligences that shapes health</div>
+        <div id="mission-statement">Sovereign Intelligences shape health</div>
         <img class="hop-flow" src="../.././assets/hoplogosmall.png" alt="cues">
       </div>
       <beebee-welcome></beebee-welcome>
@@ -14,7 +14,6 @@
 
 <script setup>
 import BeebeeWelcome from '@/components/welcome/welcomeMessage.vue'
-import BeebeeChat from '@/components/beebeehelp/inputBox.vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 // import { ref } from 'vue'
 const storeAI = aiInterfaceStore()

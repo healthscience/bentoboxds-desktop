@@ -97,8 +97,8 @@
               <button @click="copyKey(peer.key)">copy</button>            
             </div>
           <!--if longterm show button to reconnect or (TODO remove)-->
-          <div class="peer-action" v-if="peer?.longterm === true">
-            <button @click="directConnectPeer(peer)">reconnect</button>
+          <div class="peer-action" v-if="peer?.value?.longterm === true">
+            <button @click="directConnectPeer(peer)">recon</button>
           </div>
           <div class="peer-action">
             <button @click="editPeer(peer.key)">edit</button>
@@ -253,8 +253,8 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
     // send to HOP to save
     // temp
     let peerPair = {}
-    peerPair.publickey = newPeerPubKey.value
-    peerPair.name = newPeername.value
+    peerPair.publickey = newPeerPubKey.value.trim()
+    peerPair.name = newPeername.value.trim()
     peerPair.longterm = true
     peerPair.topic = ''
     peerPair.settopic = false
@@ -269,6 +269,7 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
 
   const directConnectPeer = (peer) => {
     // direct peer connect again
+    storeAccount.retryPeertoNetwork(peer)
   }
 
   const removePeer = (peer) => {
@@ -455,6 +456,7 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
 
 .peer-action {
   display: inline-grid;
+  margin-left: .4em;
 }
 
 @media (min-width: 1024px) {

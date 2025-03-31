@@ -40,7 +40,7 @@
           </nav>
         </div>
         <div class="bentobox-top">
-          <div class="bb-align" @click="selfAuth">{{ storeAccount.accountMenu }}</div>
+          <div id="self-auth-connect" class="bb-align" @click="selfAuth">{{ storeAccount.accountMenu }}</div>
         </div>
       </header>
     </div>
@@ -94,6 +94,7 @@ const storeWebsocket = useSocketStore()
   display: grid;
   grid-template-columns: 1fr;
   width: 90vw;
+  height: 12px;
   border: 0px solid rgb(183, 30, 210);
   background-color: white;
 }

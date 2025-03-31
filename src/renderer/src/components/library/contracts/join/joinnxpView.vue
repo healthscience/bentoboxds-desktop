@@ -128,7 +128,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
   const querySourceDataDevices = (moduleCont) => {
     // is manual or query data source?
-    console.log(moduleCont)
     if (moduleCont.concept.path === 'csv') {
       storeLibrary.devicesJoin.push(moduleCont.concept.device)
     } else if (moduleCont.concept.path === 'sqlite') {
@@ -160,7 +159,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
       // where to return too?  space chat library
       if (storeLibrary.inContext === 'space') {
         // close and return to space
-        console.log('close and return to space')
         // add bentobox to space
         let boxid = 'hash of somthing TODO'
         selectBentoSpace()
@@ -174,9 +172,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
   }
 
   const selectBentoSpace = () => {
-    console.log('JOINselect bentobox to add to space space')
-    console.log(storeAI.bentoboxList)
-    // console.log(expLibrarySummary.value.key[0])
     // needs a new box if joining for first time
     let boxID = 'genesis-123579'
     let nxpContract = {}

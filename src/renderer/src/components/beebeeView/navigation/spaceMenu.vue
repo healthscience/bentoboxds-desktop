@@ -12,7 +12,7 @@
         </button>
       </form>-->
     </div>
-    <div id="cues-holder" @click="showHistoryCues()" v-bind:class="{ active: historyCues }">
+    <div id="cues-history" @click="showHistoryCues()" v-bind:class="{ active: historyCues }">
       History
     </div>
     <div class="history-list" v-for="sis in spaceListHistory">

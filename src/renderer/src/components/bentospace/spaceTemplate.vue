@@ -16,6 +16,7 @@
           <div id="cue-space-header">
             <div id="space-cue-title">BentoSpace # {{ storeAI.liveBspace.name }}</div>
             <div id="space-cueid"> - {{ storeAI.liveBspace.cueid }}</div>
+            <div id="space-shared-cueid"> - {{ storeAI.sharePeer[storeAI.liveBspace.cueid] }}</div>
           </div>
           <div id="return-modal-close" @click="closeBentoSpace">return</div>
         </div>
@@ -350,6 +351,13 @@ import { mapminiStore } from '@/stores/mapStore.js'
   font-size: .8em;
 }
 
+/* shared cue from network */
+#space-shared-cueid {
+  color: #5254ab;
+  font-size: .8em;
+  background-color: #a6d697;
+}
+
 #space-toolbar {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 2fr 1fr;
@@ -428,7 +436,7 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
 /* n1 */
 #n1-tools {
-  width: 60vw;
+  width: 20vw;
   border: 1px solid lightgray;
 }
 
@@ -556,8 +564,15 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
   /* n1 */
   #n1-tools {
-    width: 60vw;
-    border: 1px solid lightgray;
+    width: 20vw;
+    border: 0px solid lightgray;
+  }
+
+  #bento-n1 {
+    position: absolute;
+    z-index: 33;
+    width: 80vw;
+    border: 0px solid lightgray;
   }
 
   /*  media bar  */

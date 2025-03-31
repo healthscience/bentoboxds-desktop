@@ -5,7 +5,7 @@
 
 <script setup>
 import ToolbarMain from '@/components/toolbars/mainTools.vue'
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
 import { useSocketStore } from '@/stores/socket.js'
 
   const storeWebsocket = useSocketStore()

@@ -21,7 +21,7 @@
     </div>
     <div id="tool-agents">
       <div id="tools-list">
-          <div class="tool-type" @click="toolAgent('upload')">@upload</div>
+          <div id="upload-link" class="tool-type" @click="toolAgent('upload')">@upload</div>
           <div class="tool-type" @click="toolAgent('library')">@library</div>
       </div>
     </div>

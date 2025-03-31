@@ -1,29 +1,33 @@
 <template>
-  <div id="connection-lists">
+  <div id="connection-account">
     <div id="peer-social-network">
       <div id="tabs-component">
         <div class="spacer-component-tab"></div>
         <div
+          id="peers-tab"
           class="grid-component-tab" v-bind:class="{ active: activeTab === 'peers' }"
-          v-on:click="selectTab('peers')"
+          @click="selectTab('peers')"
         >
           Peers
         </div>
         <div
+          id="datastores-tab"
           class="grid-component-tab" v-bind:class="{ active: activeTab === 'datastores' }"
-          v-on:click="selectTab('datastores')"
+          @click="selectTab('datastores')"
         >
           Datastores
         </div>
         <div
+          id="aiagents-tab"
           class="grid-component-tab" v-bind:class="{ active: activeTab === 'aiagents' }"
-          v-on:click="selectTab('aiagents')"
+          @click="selectTab('aiagents')"
         >
           AI Agents
         </div>
         <div
+          id="wallets-tab"
           class="grid-component-tab" v-bind:class="{ active: activeTab === 'wallets' }"
-          v-on:click="selectTab('wallets')"
+          @click="selectTab('wallets')"
         >
           Wallet
         </div>
@@ -90,10 +94,12 @@ let activeTab = ref('peers')
 </script>
 
 <style scoped>
-#connection-lists {
+#connection-account {
+  position: relative;
   display: block;
-  height: auto;
+  height: 98vh;
 }
+
 #tabs-component {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr 2fr;
@@ -166,6 +172,12 @@ let activeTab = ref('peers')
 }
 
 @media (min-width: 1024px) {
+
+  #connection-account {
+    position: relative;
+    display: grid;
+    height: 98vh;
+  }
 
 }
 

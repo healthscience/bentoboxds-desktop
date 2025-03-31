@@ -36,8 +36,8 @@ import { accountStore } from '@/stores/accountStore.js'
 
   /* computed */
   const peerWarmlist = computed(() => {
-    // warm peers filter to unique
-    return storeAccount.warmPeers
+    // warm peers filter to unique & live
+    return storeAccount.warmPeers.filter(p => p.value.live === true)
   })
 
   /* methods */

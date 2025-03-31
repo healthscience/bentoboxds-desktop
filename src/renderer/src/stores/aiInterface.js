@@ -98,6 +98,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     bentoboxList: { '91919191': [] },
     countNotifications: 0,
     notifList: [],
+    sharePeer: {},
     boxLibSummary: {},
     boxModelUpdate: {},
     computeModuleLast: {},
@@ -105,6 +106,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     cueAction: 'cues',
     agentStatus: false,
     modelLoading: false,
+    agentModelDefault: {},
     previousLLM: {}
   }),
   actions: {
@@ -399,15 +401,17 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.notifList.push(received)
       // add to chart part list (do now or on requrest?)
       if (received.action === 'chart') {
+        // match peer to name or public key
+        let peerMatch = this.storeAcc.warmPeers.find(peer => peer.key === received.data.publickey)
         let pairBB = {}
         let question = {}
-        question.bbid = received.data.bbid
+        question.bbid = received.data.data.bbid
         question.data = { active: true, text: received.action }
         pairBB.question = question
         let reply = {}
         reply.time = new Date()
         reply.type = received.action
-        reply.data = { text: received.text }
+        reply.data = { text: received.text + ' ' + peerMatch.value.name }
         reply.network = true
         pairBB.reply = reply
         this.historyPair[this.chatAttention].push(pairBB)
@@ -480,17 +484,19 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
     },
     preparePublicConfirm (item) {
+      // match to peerid  name
+      let matchPeername = this.storeAcc.warmPeers.find(peer => peer.key === item.data.publickey)
       // produce a pair for the current chat
       let newBBID = '23232'
       let pairBB = {}
       let question = {}
       question.bbid = newBBID 
-      question.data = { active: true, text: 'Please confirm adding board to public library' }
+      question.data = { active: true, text: 'Please confirm adding board to public library sent by ' + matchPeername.value.name }
       pairBB.question = question
       let reply = {}
       reply.time = new Date()
       reply.type = item.action
-      reply.data = { text: item.data }
+      reply.data = { text: item.data.data }
       reply.network = true
       pairBB.reply = reply
       this.historyPair[this.chatAttention].push(pairBB)
@@ -498,16 +504,20 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       this.chatBottom++
     },
     prepareCuespace (notItem) {
+      // notify peer that this cue content came from a shared peer
+      // match name to publickey
+      let matchPeername = this.storeAcc.warmPeers.find(peer => peer.key === notItem.data.publickey)
+      this.sharePeer[notItem.data.data.content.cuecontract.spaceid] = matchPeername.value.name
       // have any bentoboxn1 been sent?
       // check if n1 with cue space
-      if (notItem.data.content.bbn1.publicN1contracts !== undefined) {
-        if (notItem.data.content.bbn1.publicN1contracts.length > 0) {
-          for (let bbn1 of notItem.data.content.bbn1.publicN1contracts) {
+      if (notItem.data.data.content.bbn1.publicN1contracts !== undefined) {
+        if (notItem.data.data.content.bbn1.publicN1contracts.length > 0) {
+          for (let bbn1 of notItem.data.data.content.bbn1.publicN1contracts) {
             this.preparePublicConfirm({ action: 'network-library-n1', data: bbn1 })          
           }
         }
       }
-      let cueContract = notItem.data.content.cuecontract
+      let cueContract = notItem.data.data.content.cuecontract
       let notCuespace = ''
       this.beebeeContext = 'chatspace'
       this.bentospaceState = !this.bentospaceState
@@ -525,17 +535,17 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
       this.storeBentoBox.spaceList = spaceLiveList
       // now setup N=1 media, research, markers, products
-      let contentTypes = Object.keys(notItem.data.content)
+      let contentTypes = Object.keys(notItem.data.data.content)
       for (let spcont of contentTypes) {
         // media, research etc.
         if (spcont === 'media') {
-          this.storeBentoBox.prepareMediaSpace(notItem.data.content[spcont])
+          this.storeBentoBox.prepareMediaSpace(notItem.data.data.content[spcont])
         } else if (spcont === 'research') {
-          this.storeBentoBox.prepareResearchSpace(notItem.data.content[spcont])
+          this.storeBentoBox.prepareResearchSpace(notItem.data.data.content[spcont])
         } else if (spcont === 'markers') {
-          this.storeBentoBox.prepareMarkerSpace(notItem.data.content[spcont])
+          this.storeBentoBox.prepareMarkerSpace(notItem.data.data.content[spcont])
         } else if (spcont === 'products') {
-          this.storeBentoBox.prepareProductSpace(notItem.data.content[spcont])
+          this.storeBentoBox.prepareProductSpace(notItem.data.data.content[spcont])
         }
       }
     },
@@ -659,7 +669,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
             this.boxLibSummary[boxid] = hi.summary
 
           } else {
-            this.boxLibSummary[boxid] = hi.summary.summary
+            this.boxLibSummary[boxid] = hi.summary.summary.summary.summary.summary.summary
           }
         }
       }
@@ -686,10 +696,14 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       let bbidPerChat = []
       // loop over data to match to visualisation alread prepared.  (note. or HOPQuery to re-create via HOP)
       let visDataperChat = [] // this.visData[]
-      for (let bbi of settingsData) {
-        bbidPerChat.push(bbi.reply.bbid)
-        let visD = this.visData[bbi.reply.bbid]
-        visDataperChat.push(visD)
+      if (settingsData !== undefined) {
+        for (let bbi of settingsData) {
+          bbidPerChat.push(bbi.reply.bbid)
+          let visD = this.visData[bbi.reply.bbid]
+          visDataperChat.push(visD)
+        }
+      } else {
+        settingsData = []
       }
       // save HOP summary info ie. HOPquery
       let hopQuery = []

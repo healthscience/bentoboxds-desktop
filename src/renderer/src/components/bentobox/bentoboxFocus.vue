@@ -58,9 +58,21 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
 <style scoped>
 
+#space-modal-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
 
 #return-modal-close {
-  text-align: right;
+  justify-content: right;
+}
+
+#focus-bentobox {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  height: 100%;
+  width: 100%;
 }
 
   @media (min-width: 1024px) {
@@ -78,9 +90,9 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
       position: relative;
       display: grid;
       grid-template-columns: 1fr;
+      height: 100%;
+      width: 100%;
     }
-
-
   }
 
 </style>

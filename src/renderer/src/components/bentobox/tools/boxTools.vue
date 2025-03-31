@@ -36,7 +36,7 @@
         </button>
       </div>
       <div class="bb-bar-main" v-if="expandFocus !== true">
-        <button @click="clickExpandBentobox(props.bboxid)">
+        <button id="expand-bentobox" @click="clickExpandBentobox(props.bboxid)">
          expand
         </button>
       </div>

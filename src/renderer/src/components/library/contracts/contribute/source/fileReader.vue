@@ -93,7 +93,6 @@
 
 <script setup>
 import SourceModal from '@/components/library/contracts/contribute/source/sourceModal.vue'
-import axios from 'axios'
 
 import {ref, computed } from 'vue'
 import { libraryStore } from '@/stores/libraryStore.js'

@@ -3,7 +3,7 @@
     <div id="connection-warn" v-if="storeWebsocket.connection_error === true">
       Thank you for using BentoBoxDS.
     </div>
-    <div id="connection-warn" v-if="storeWebsocket.connection_loss === true">
+    <div id="connection-warn-loss" v-if="storeWebsocket.connection_loss === true">
       Feedback is appreciated.
     </div>
   </div>
@@ -44,6 +44,12 @@ const storeWebsocket = useSocketStore()
   padding: .6em;
 }
 
+#connection-warn-loss {
+  border: 1px solid rgb(69, 69, 177);
+  z-index: 999;
+  padding: .6em;
+}
+
   @media (min-width: 1024px) {
 
     #connection-notify {
@@ -63,6 +69,12 @@ const storeWebsocket = useSocketStore()
       height: 120px;
       border: 1px solid rgb(111, 132, 228);
       z-index: 999;
+    }
+
+    #connection-warn-loss {
+      border: 1px solid rgb(69, 69, 177);
+      z-index: 999;
+      padding: .6em;
     }
   }
 </style>

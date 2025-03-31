@@ -67,6 +67,8 @@ export const accountStore = defineStore('account', {
         this.checkPeerStatus(received.data.data)
       } else if (received.action === 'peer-share-topic') {
         this.updateTopicSetter(received.data)
+      } else if (received.action === 'network-peer-disconnect') {
+        this.updatePeerDisconnect(received.data)
       } else if (received.action === 'invite-live-accepted') {
         this.updatePeerlive(received.data)
       } else if (received.action === 'network-peer-name') {
@@ -92,6 +94,17 @@ export const accountStore = defineStore('account', {
       shareInfo.data = peer
       // keep tabs of invite details
       this.invitedPeers.push(peer)
+      this.sendMessageHOP(shareInfo)
+    },
+    retryPeertoNetwork (peer) {
+      // try to see if other peer is live on network
+      let shareInfo = {}
+      shareInfo.type = 'network'
+      shareInfo.action = 'retry'
+      shareInfo.task = 'peer-retry-connect'
+      shareInfo.reftype = 'null'
+      shareInfo.privacy = 'private'
+      shareInfo.data = peer
       this.sendMessageHOP(shareInfo)
     },
     updateTopicSetter (update) {
@@ -150,6 +163,20 @@ export const accountStore = defineStore('account', {
           let peerOrg = wpeer
           peerOrg.value.matchted = true
           peerOrg.value.live = true
+          updateNameList.push(peerOrg)
+        } else {
+          updateNameList.push(wpeer)
+        }
+      }
+      this.warmPeers = updateNameList
+    },
+    updatePeerDisconnect (update) {
+      let updateNameList = []
+      for (let wpeer of this.warmPeers) {
+        if (wpeer.key === update.publickey) {
+          let peerOrg = wpeer
+          peerOrg.value.matchted = true
+          peerOrg.value.live = false
           updateNameList.push(peerOrg)
         } else {
           updateNameList.push(wpeer)

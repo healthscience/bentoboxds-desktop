@@ -34,7 +34,7 @@ async function pause () {
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 1400,
+    width: 1200,
     height: 900,
     show: true,
     autoHideMenuBar: false,
@@ -45,7 +45,7 @@ function createWindow() {
       nodeIntegration: true,
       webSecurity: false,
       allowRunningInsecureContent: true,
-      devTools: true
+      devTools: false
     }
   })
 

@@ -225,11 +225,13 @@ class HOP extends EventEmitter {
   */
   listenNetwork = async function () {
     this.DataNetwork.on('peer-topeer', (data) => {
-      if (data.display === 'html') {
+      console.log('notif network peer chart')
+      console.log(data)
+      if (data.data.display === 'html') {
         // route to beebee for text message back to peer & prep bentobox
         this.BBRoute.liveBBAI.networkPeerdirect(data)
         // return vis data, like from SafeFlow
-        this.SafeRoute.networkSFpeerdata(data) 
+        this.SafeRoute.networkSFpeerdata(data.data) 
       } else if (data.display === 'safeflow') {
         // return vis data, like from SafeFlow
         this.SafeRoute.networkSFpeerdata(data) 
@@ -313,6 +315,15 @@ class HOP extends EventEmitter {
       this.sendSocketMessage(JSON.stringify(peerNotify))
     })
 
+    this.DataNetwork.on('peer-disconnect-notify', (data) => {
+      let peerNotify = {}
+      peerNotify.type = 'account'
+      peerNotify.action = 'network-peer-disconnect'
+      peerNotify.data = data
+      this.sendSocketMessage(JSON.stringify(peerNotify))
+    })
+
+
     this.DataNetwork.on('invite-live-peer', (data) => {
       let peerId = {}
       peerId.type = 'account'
@@ -382,8 +393,11 @@ class HOP extends EventEmitter {
   * @method closeHOP
   *
   */
-  closeHOP = function () {
-    process.exit(1)
+  closeHOP = async function () {
+    console.log('clos HOP beebee ')
+    // inform network peer has closed.
+    await this.DataNetwork.networkPath({ type: 'network', action: 'peer-closed' })
+    // process.exit(1)
   }
 
 }

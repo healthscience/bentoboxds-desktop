@@ -78,7 +78,7 @@ export const cuesStore = defineStore('cues', {
     cueGluePrepare (glueType) {
       // match cue to its contract
       this.glueRelActive = glueType
-      if (glueType === 'down') {
+      if (glueType === 'down' || glueType === 'up' || glueType === 'equal') {
         let cueContract = this.cueUtil.cueMatch(this.activeCue, this.cuesList)
         let cueWheel = this.cueUtil.prepareGlueWheel(glueType, cueContract, this.cuesList)
         this.activeCueExpanded = cueWheel.expandedcues

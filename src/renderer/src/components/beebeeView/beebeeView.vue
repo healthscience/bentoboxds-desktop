@@ -14,7 +14,7 @@
             <button @click="historyType('history')" class="button-chat-menu" v-bind:class="{ active: historyList === 'history' }">Chat</button>
           </div>
           <div class="history-menu">
-            <button @click="historyType('space')" class="button-chat-menu" v-bind:class="{ active: historyList === 'space' }">Spaces</button>
+            <button id="space-button-menu" @click="historyType('space')" class="button-chat-menu" v-bind:class="{ active: historyList === 'space' }">Spaces</button>
           </div>
           <div class="history-menu">
             <button id="body-image" @click="viewBody()" class="button-chat-menu" :class="{ active: bodyDiagramShow === true }">Body</button>
@@ -25,7 +25,7 @@
             </Teleport>
           </div>
           <div class="history-menu">
-            <button @click="openLibrary()" class="button-chat-menu" v-bind:class="{ active: viewLibrary === true }">Library</button>
+            <button id="library-button-menu"@click="openLibrary()" class="button-chat-menu" v-bind:class="{ active: viewLibrary === true }">Library</button>
           </div>
         </div>
         <div id="active-history-menu">
@@ -198,6 +198,7 @@ import { computed } from 'vue'
     grid-template-columns: 1fr;
     margin-top: 2em;
     margin-bottom: 2em;
+    z-index: 23;
   }
 
 .cue-agent {

@@ -1,13 +1,18 @@
 <template>
   <div id="datastore-lists">
     <div class="list-space" id="datastore-list">
+      <div id="public-datastores">
+        Public datastores
+      </div>
       <div id="peers-listkeys">
         <div v-if="swarmState === true" id="open-connect">Public Library OPEN for replication
+        </div>
+        <div id="private-datastores">
+          Private datastores
         </div>
         <div id="drive-pubkey">
           Drive key: {{ storeAccount.publickeyDrive }}
         </div>
-        Datastores
         <div class="peer-ledgers" v-for='pk in storeAccount.publicKeysList' :key='pk.id'>
           <div class="type-store"> {{ pk.store }}</div>
           <div class="type-store-key">pubkey- {{ pk.pubkey }}</div>

@@ -15,7 +15,7 @@
           </button>
           <div id="return-modal-close" @click="closedataBox">return</div>
         </div>
-        <h3>Data Box</h3>
+        <div id="data-box-header">Data Box</div>
         <button class="button-lib-data" v-bind:class="{ active: libraryStatus === true }" @click="networkLibraryShow">
           Library
         </button>

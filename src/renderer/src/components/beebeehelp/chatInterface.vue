@@ -119,7 +119,7 @@
                 </div>
               </div>
             </div>
-            <div id="beebee-chartspace" v-if="storeAI.beebeeChatLog[chati?.question?.bbid] === true && storeAI.visData[chati.reply.bbid].datasets[0]?.data !== undefined">passs
+            <div id="beebee-chartspace" v-if="storeAI.beebeeChatLog[chati?.question?.bbid] === true && storeAI.visData[chati.reply.bbid].datasets[0]?.data !== undefined">
               <!--the slimed down bentobox to chart and bring in tools as needed  storeAI.beebeeChatLog[chati?.question] !== undefined &&  -->
               <bento-box :bboxid="chati?.question?.bbid"></bento-box>
             </div>
@@ -228,7 +228,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
   }
 
   const publibLibAdd = (board) => {
-    storeLibrary.confrimAddPublicLibrary(board)
+    storeLibrary.confrimAddPublicLibrary(board.data)
   }
 
   const uploadButton = () =>  {

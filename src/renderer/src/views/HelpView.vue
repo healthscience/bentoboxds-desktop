@@ -3,15 +3,19 @@
     <div class="helpspace">
       <header>Help</header>
       <div class="beebee-help">
-        <p>
-          Ask beebee or look at some of the guides or watch videos.
-        </p>
-        <p>
-          Menu
-        </p>
-        <p>
-          Guides
-        </p>
+        <div id="ask-beebee">
+          Ask beebee for help via the chat box.  Look for beebee button bottom right.
+        </div>
+        <div id="video-menu">
+          <p>A selection of videos have been made including the topic of getting started, cues, making relationships, connecting to other peers, sharing peer to peer.</p>
+          <p>Watch all videos on <a href="https://rumble.com/user/BeeBeeHop/videos" target="_blank" rel="noopener noreferrer">Rumble</a></p>
+        </div>
+        <div id="guides">
+          Guides to BentoTemplate building coming soon.
+        </div>
+        <div id="community">
+          Join the community for self help and learning on <a href="https://discord.gg/JhdkXX54Xk" target="_blank" rel="noopener noreferrer">Discord</a>
+        </div>
       </div>
         <!-- youtube div element -->
         <vue-plyr>
