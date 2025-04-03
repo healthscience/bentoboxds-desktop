@@ -42,8 +42,6 @@ class PeersUtility {
   *
   */
   n1Match = function (sharePubkey, keyPublibary, cueID, bboxes, peerLibrary, layoutBBoxes) {
-    console.log('no1 match')
-    console.log(bboxes)
     let peerBBMatch = {}
     let publicN1contracts = []
     if (bboxes !== undefined) {
@@ -54,7 +52,7 @@ class PeersUtility {
             let peerDetails = {}
             peerDetails.name = 'peer'
             peerDetails.type = 'public-n1-experiment'
-            peerDetails.publickey = sharePubkey
+            peerDetails.publickey = sharePubkey.key
             peerDetails.datastores = keyPublibary
             peerDetails.boardID =  n1contract.value.genesis
             peerDetails.boardname =  n1contract.value.name

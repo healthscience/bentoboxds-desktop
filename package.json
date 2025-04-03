@@ -1,7 +1,7 @@
 {
   "name": "bentoboxds",
   "description": "sovereign data that shapes health",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "author": "aboynejames",
   "private": true,
   "main": "./out/main/index.js",
@@ -26,7 +26,7 @@
     "electron-log": "^5.0.1",
     "electron-updater": "^6.1.1",
     "@cypress/vue": "^3.1.0",
-    "@intlify/unplugin-vue-i18n": "^0.8.1",
+    "vue-i18n": "^10.0.6",
     "@vuepic/vue-datepicker": "^8.6.0",
     "@vueuse/core": "^10.5.0",
     "chart.js": "^4.3.2",
@@ -43,7 +43,6 @@
     "vue-chartjs": "^5.2.0",
     "vue-date-picker": "^2.5.0",
     "vue-dragscroll": "^4.0.5",
-    "vue-i18n": "^9.2.2",
     "vue-plyr": "^7.0.0",
     "vue-resizable": "^2.1.7",
     "vue-router": "^4.1.6",
@@ -51,6 +50,7 @@
     "vue3-openlayers": "^9.0.1"
   },
   "devDependencies": {
+    "@intlify/unplugin-vue-i18n": "^6.0.5",
     "@rushstack/eslint-patch": "^1.1.4",
     "@vitejs/plugin-basic-ssl": "^1.0.1",
     "@vitejs/plugin-vue": "^4.3.1",
@@ -66,6 +66,7 @@
     "jsdom": "^20.0.3",
     "prettier": "^2.7.1",
     "start-server-and-test": "^1.15.2",
+    "vite-plugin-pwa": "^0.16.4",
     "vite": "^4.4.9",
     "vite-plugin-electron": "^0.15.3",
     "vite-plugin-electron-renderer": "^0.14.5",

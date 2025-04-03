@@ -1,7 +1,7 @@
 # bentoboxds
 
-BentoBoxDS - sovereign intelligences that shapes health
-A graphical toolkit for charting ( https://bentoboxds.org/ ) & building network experiments & coordinating DML (decentralise machine learning) on the Health Oracle Protocol ( https://github.com/healthscience/hop )
+BentoBoxDS - sovereign intelligences shape health
+A graphical toolkit building collective intelligences ( https://bentoboxds.org/ ) includig charting & building network experiments & coordinating DML (decentralise machine learning) on the Health Oracle Protocol ( https://github.com/healthscience/hop )
 
 BentoBoxDS run as desktop or web application in the browser and will require HOP to be installed locally.  Setup help available discord server (community link on  https://bentoboxds.org/).
 
@@ -33,7 +33,7 @@ npm run build
 npm run test:unit
 ```
 
-### Run End-to-End Tests with [Cypress](https://www.cypress.io/)
+### Run End-to-End Tests with [Cypress](https://www.cypress.io/)  also component testing (note turn off BasicSsl() in vite.config.js)
 
 ```sh
 npm run test:e2e:dev

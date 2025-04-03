@@ -23,3 +23,17 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+// Custom command for managing multiple instances
+/*
+Cypress.Commands.add('startInstance', (instanceName) => {
+  cy.task('startServer', { instance: instanceName })
+    .then((port) => {
+      return `${Cypress.config().baseUrl}:${port}`
+    })
+})
+
+Cypress.Commands.add('stopInstance', (instanceName) => {
+  cy.task('stopServer', { instance: instanceName })
+})
+*/

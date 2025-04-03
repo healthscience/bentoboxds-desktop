@@ -6,7 +6,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
 import { bentoboxStore } from "@/stores/bentoboxStore.js"
 import PeersUtility from '@/stores/hopUtility/peersUtility.js'
 import SpaceUtility from '@/stores/hopUtility/spaceContentUtil.js'
-import { matchedRouteKey } from 'vue-router'
 
 export const accountStore = defineStore('account', {
   state: () => ({
@@ -219,7 +218,7 @@ export const accountStore = defineStore('account', {
     },
     shareProtocol (boxid, shareType) {
       // existing peer relationshiop? or first time
-      let existingMatch = this.utilPeers.checkPeerMatch(this.warmPeers, this.sharePubkey)
+      let existingMatch = this.utilPeers.checkPeerMatch(this.warmPeers, this.sharePubkey.key)
       let existingPeer = false
       let topicSet = ''
       // check if warm peer of first time
@@ -266,7 +265,6 @@ export const accountStore = defineStore('account', {
       }
     },
     shareCodename (peerInvite) {
-      console.log(peerInvite)
       let shareInfo = {}
       shareInfo.type = 'network'
       shareInfo.action = 'share'
@@ -301,7 +299,7 @@ export const accountStore = defineStore('account', {
     prepareChartShareDirect (boxid) {
       let peerDetails = {}
       peerDetails.name = 'peer'
-      peerDetails.publickey = this.sharePubkey
+      peerDetails.publickey = this.sharePubkey.key
       peerDetails.datastores = ''
       // this.warmPeers = this.utilPeers.checkPeerMatch(this.warmPeers, peerDetails)
       let shareContext = {}
@@ -325,7 +323,7 @@ export const accountStore = defineStore('account', {
       dataShare.bbid = boxid
       dataShare.data = this.storeAI.visData[boxid]
       shareContext.hop = sfSummary.summary
-      shareContext.publickey = this.sharePubkey
+      shareContext.publickey = this.sharePubkey.key
       shareContext.data = dataShare
       let shareInfo = {}
       shareInfo.type = 'network'
@@ -334,9 +332,8 @@ export const accountStore = defineStore('account', {
       shareInfo.reftype = 'null'
       shareInfo.privacy = 'private'
       shareInfo.data = shareContext
-      console.log('share chart -----------')
-      console.log(shareInfo)
       this.sendMessageHOP(shareInfo)
+      this.sharePubkey = ''
     },
     prepareSpaceShareDirect (boxid) {
       // gather space context and prepare share data
@@ -351,7 +348,7 @@ export const accountStore = defineStore('account', {
           publicLibrary = hbee.pubkey
         }
       }
-      spaceContent.bbn1 = this.utilPeers.n1Match(this.sharePubkey, publicLibrary, this.storeAI.liveBspace.cueid, this.storeAI.bentoboxList[this.storeAI.liveBspace.cueid], this.storeLibrary.peerLibrary.experiment, this.storeBentoBox.locationBbox[this.storeAI.liveBspace.cueid])
+      spaceContent.bbn1 = this.utilPeers.n1Match(this.sharePubkey.key, publicLibrary, this.storeAI.liveBspace.cueid, this.storeAI.bentoboxList[this.storeAI.liveBspace.cueid], this.storeLibrary.peerLibrary.experiment, this.storeBentoBox.locationBbox[this.storeAI.liveBspace.cueid])
       spaceContent.media = this.utilSpacecontent.mediaMatch(this.storeCues.mediaMatch[this.storeAI.liveBspace.cueid])
       spaceContent.research = this.utilSpacecontent.researchMatch(this.storeCues.researchPapers[this.storeAI.liveBspace.cueid])
       spaceContent.markers = this.utilSpacecontent.markerMatch(this.storeCues.markerMatch[this.storeAI.liveBspace.cueid])
@@ -359,7 +356,7 @@ export const accountStore = defineStore('account', {
       let spaceDetails = {}
       spaceDetails.name = 'private-cue-space'
       spaceDetails.type = 'private-cue-space'
-      spaceDetails.publickey = this.sharePubkey
+      spaceDetails.publickey = this.sharePubkey.key
       spaceDetails.content = spaceContent
       spaceDetails.cueid = this.storeAI.liveBspace.cueid
       // this.warmPeers = this.utilPeers.checkPeerMatch(this.warmPeers, spaceDetails)
@@ -376,9 +373,9 @@ export const accountStore = defineStore('account', {
       shareInfo.privacy = 'private'
       shareInfo.data = shareContext
       this.sendMessageHOP(shareInfo)
+      this.sharePubkey = ''
     },
     prepareN1ShareDirect () {
-      console.log('share n1 parpe')
       let publicLibrary = ''
       for (let hbee of this.publicKeysList) {
         if (hbee.store === 'publiclibrary') {
@@ -388,7 +385,7 @@ export const accountStore = defineStore('account', {
       let peerDetails = {}
       peerDetails.name = 'peer'
       peerDetails.type = 'public-n1-experiment'
-      peerDetails.publickey = this.sharePubkey
+      peerDetails.publickey = this.sharePubkey.key
       peerDetails.datastores = publicLibrary
       peerDetails.boardID = this.shareBoardNXP.id
       peerDetails.boardname = this.shareBoardNXP.name
@@ -406,8 +403,8 @@ export const accountStore = defineStore('account', {
       shareInfo.reftype = 'null'
       shareInfo.privacy = 'public'
       shareInfo.data = shareContext
-      // console.log(shareInfo)
       this.sendMessageHOP(shareInfo)
+      this.sharePubkey = ''
     },
     sendMessageHOP (message) {
       this.sendSocket.send_message(message)

@@ -45,7 +45,7 @@
     </div>
     <div id="add-peer">
       <div id="prepare-invite">
-        <button type="button" class="btn-peer-add" @click.prevent="addWarmpeer()">Add new peer</button>
+        <button type="button" class="btn-peer-add" @click.prevent="addWarmpeer()">Add peer invite</button>
         <div v-if="addWarm === true" id="add-warm-peer">
           <input v-model="newPeername" placeholder="name">
           <input v-model="newPeerPubKey" placeholder="public key">

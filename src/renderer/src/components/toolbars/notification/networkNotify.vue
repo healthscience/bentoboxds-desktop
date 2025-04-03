@@ -33,7 +33,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   const viewItemNotify = (item) => {
     if (item.action === 'network-library-n1') {
       // create a message for beebee to display
-      storeAI.preparePublicConfirm(item)
+      storeAI.preparePublicConfirm(item, {})
     } else if (item.action === 'cue-space') {
       storeAI.prepareCuespace(item)
     }

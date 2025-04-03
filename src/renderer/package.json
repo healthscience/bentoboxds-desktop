@@ -1,7 +1,7 @@
 {
   "name": "bentoboxds",
-  "description": "sovereign intelligences that shapes health",
-  "version": "0.2.6",
+  "description": "sovereign intelligences shape health",
+  "version": "0.2.8",
   "author": "aboynejames",
   "license": "GPL-3.0",
   "private": true,
@@ -10,6 +10,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test:open": "npx cypress open",
+    "test:browser": "npm run test:open & npm run dev",
+    "test:headless": "npx cypress run  --headless & npm run dev",
     "test:unit": "vitest --environment jsdom --root src/",
     "test:e2e": "start-server-and-test preview :4173 'cypress run --e2e'",
     "test:e2e:dev": "start-server-and-test 'vite dev --port 4173' :4173 'cypress open --e2e'",
@@ -18,7 +21,7 @@
   },
   "dependencies": {
     "@cypress/vue": "^3.1.0",
-    "@intlify/unplugin-vue-i18n": "^0.8.1",
+    "vue-i18n": "^10.0.6",
     "@vuepic/vue-datepicker": "^8.6.0",
     "@vueuse/core": "^10.5.0",
     "chart.js": "^4.3.2",
@@ -35,7 +38,6 @@
     "vue-chartjs": "^5.2.0",
     "vue-date-picker": "^2.5.0",
     "vue-dragscroll": "^4.0.5",
-    "vue-i18n": "^9.2.2",
     "vue-plyr": "^7.0.0",
     "vue-resizable": "^2.1.7",
     "vue-router": "^4.1.6",
@@ -43,6 +45,7 @@
     "vue3-openlayers": "^9.0.1"
   },
   "devDependencies": {
+    "@intlify/unplugin-vue-i18n": "^6.0.5",
     "@rushstack/eslint-patch": "^1.1.4",
     "@vitejs/plugin-basic-ssl": "^1.0.1",
     "@vitejs/plugin-vue": "^4.0.0",
@@ -60,6 +63,6 @@
     "vite-plugin-pwa": "^0.16.4",
     "vite-plugin-top-level-await": "^1.2.2",
     "vite-plugin-wasm": "^3.1.0",
-    "vitest": "^0.25.6"
+    "vitest": "^3.0.9"
   }
 }
