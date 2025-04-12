@@ -61,6 +61,15 @@ export const cuesStore = defineStore('cues', {
       let cueContract = this.cueUtil.prepareCuesContractPrime(cueInfo)
       this.sendSocket.send_message(cueContract)
     },
+    refreshGetCues () {
+      const cueContract = {}
+      cueContract.type = 'library'
+      cueContract.action = 'cues'
+      cueContract.reftype = 'start-cues'
+      cueContract.task = 'GET'
+      cueContract.privacy = 'public'
+      this.sendSocket.send_message(cueContract)
+    },
     cueDisplayBuilder (cueKey, cueRel, liveWheel) {
       let cueDisplay = this.cueUtil.cueDisplayMake(cueKey, cueRel, liveWheel)
       return cueDisplay

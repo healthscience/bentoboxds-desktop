@@ -236,7 +236,19 @@ export const bentoboxStore = defineStore('bentostore', {
           }
           // back to  chat logic
           if (chatMenu.length > 0) {
-            this.chatList = chatMenu
+            // only one set as active true  TEMP design to only set one on close
+            let setOneActive = []
+            let chatAct = 0
+            for (let chat of chatMenu) {
+              if (chat.active === true && chatAct === 0) {
+                chatAct++
+                setOneActive.push(chat)
+              } else {
+                chat.active = false
+                setOneActive.push(chat)
+              }
+            }
+            this.chatList = setOneActive
           } else {
             // save latest first time only
             let saveData = {}
@@ -252,11 +264,7 @@ export const bentoboxStore = defineStore('bentostore', {
             saveBentoBoxsetting.data = saveData
             saveBentoBoxsetting.bbid = ''
             this.storeAI.sendMessageHOP(saveBentoBoxsetting)
-            // this.storeAI.prepareChatBentoBoxSave(saveBentoBoxsetting)
           }
-          /* if (this.chatList.length !== 0) {
-            this.chatList.push({ name:'latest', chatid:'0123456543210', active: true })
-          } */
           // set the chat list live
           this.storeAI.historyList = 'history'
           this.storeAI.chatAttention = this.chatList[0].chatid

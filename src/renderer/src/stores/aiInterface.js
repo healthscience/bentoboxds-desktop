@@ -481,8 +481,9 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         // create a notification accept public board and save?
       } else if (received.action === 'cue-space') {
         // populate space  check if cue needing setup then fill and notify
-        console.log('share cue space')
-      }
+      } else if (received.action === 'network-replicate-publiclibrary') {
+        this.storeLibrary.replicateFeedback = received.data.data
+      }  
     },
     preparePublicConfirm (item, peer) {
       // match to peerid  name
@@ -803,7 +804,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }
     },
     prepareUpdateModelContract (modelInfo, active, onstart) {
-
       // structure inputs for cue contract
       modelInfo.value.computational.active = active
       modelInfo.value.computational.onstart = onstart

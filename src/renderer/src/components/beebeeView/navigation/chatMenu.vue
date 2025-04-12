@@ -34,20 +34,12 @@ const storeBentobox = bentoboxStore()
 let saveChat = ref(false)
 let newChatname = ref('')
 
-const historyActive = computed(() => {
-  return storeBentobox.historyActive
-})
-
 const historyList = computed(() => {
   return storeAI.historyList
 })
 
 const chatList = computed(() => {
   return storeBentobox.chatList
-})
-
-const attentionChat = computed(() => {
-  return storeAI.chatAttention
 })
 
 const hoverCheck = (sis) => {

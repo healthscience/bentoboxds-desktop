@@ -21,7 +21,8 @@ export const libraryStore = defineStore('librarystore', {
     utilLibrary: new LibraryUtility(),
     sendSocket: useSocketStore(),
     liveChatUtil: new ChatUtilty(),
-    startLibrary: false,
+    startPubLibrary: false,
+    replicateFeedback: {},
     libraryMessage: '',
     uploadStatus: false,
     describeSource: {},
@@ -338,7 +339,7 @@ export const libraryStore = defineStore('librarystore', {
         let checkLogic = (element) => element  === true
         let checkSetup = setupContracts.some(checkLogic)
         if (checkSetup === false) {
-          this.startLibrary = true
+          this.startPubLibrary = true
         } else {
           // starting public library (TODO bring in what is needed given context of Peer cues, nxps, besearch cycles etc.)
           this.publicLibrary = message

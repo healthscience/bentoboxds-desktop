@@ -32,20 +32,6 @@
               <button class="cue-select-btn" id="decision-start" @click="selectWheel('decision')" v-bind:class="{ active: cueAction === 'decision' }">+ Decision</button>
               <button class="cue-select-btn" id="decision-start" @click="selectWheel('clone')" v-bind:class="{ active: cueAction === 'clone' }">Clone</button>
             </div>
-            <!-- existing cues -->
-            <cues-prepared v-if="cueAction === 'cues'"></cues-prepared>
-            <!-- view bento paths -->
-            <path-view v-if="cueAction === 'bentopath'"></path-view>
-            <!-- new bentopath -->
-            <bento-path v-if="cueAction === 'newbentopath'"></bento-path>
-            <!-- new cue -->
-            <new-cue v-if="cueAction === 'newcue'"></new-cue>
-            <!-- new relationships -->
-            <new-relationships v-if="cueAction === 'newrelationships'"></new-relationships>
-            <!-- decision cues -->
-            <decision-cue v-if="cueAction === 'decision'"></decision-cue>
-            <!-- clone cue -->
-            <clone-cue v-if="cueAction === 'clone'"></clone-cue>
           </div>
           <!--<div id="filter-cues">
             <header>Filters</header>
@@ -87,6 +73,22 @@
               </div>
             </div>
           </div>-->
+        </div>
+        <div id="cues-views-tools">
+          <!-- existing cues -->
+          <cues-prepared v-if="cueAction === 'cues'"></cues-prepared>
+          <!-- view bento paths -->
+          <path-view v-if="cueAction === 'bentopath'"></path-view>
+          <!-- new bentopath -->
+          <bento-path v-if="cueAction === 'newbentopath'"></bento-path>
+          <!-- new cue -->
+          <new-cue v-if="cueAction === 'newcue'"></new-cue>
+          <!-- new relationships -->
+          <new-relationships v-if="cueAction === 'newrelationships'"></new-relationships>
+          <!-- decision cues -->
+          <decision-cue v-if="cueAction === 'decision'"></decision-cue>
+          <!-- clone cue -->
+          <clone-cue v-if="cueAction === 'clone'"></clone-cue>
         </div>
       </template>
       <template #footer>
@@ -228,13 +230,16 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   background-color: white;
 }
 
+#cues-views-tools {
+  display: grid;
+  grid-template-columns: 1fr;
+}
 
 .active {
   background-color: rgb(113, 172, 114);
 }
 
   @media (min-width: 1024px) {
-
 
     #bento-cues {
       display: grid;
@@ -292,7 +297,6 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
     /* four basic quadrants */
     #decision-doughnut {
-      border: 1px solid blue;
       min-height: 60vh;
     }
 
@@ -372,10 +376,17 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
       padding: .4em;
     }
 
+    #cues-views-tools {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
     /*  fliters  */
     #filter-cues {
       margin-left: 2em;
     }
+
+
 
   }
 

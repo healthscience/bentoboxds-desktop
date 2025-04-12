@@ -56,7 +56,7 @@ export const accountStore = defineStore('account', {
         this.storeAI.sendMessageHOP(saveBentoBoxsetting) 
       } else if (received.action === 'hyperbee-pubkeys') {
         this.publicKeysList = received.data
-      } else if (received.action === 'drive-pubkeys') {
+      } else if (received.action === 'drive-pubkey') {
         this.publickeyDrive = received.data
       } else if (received.action === 'warm-peers') {
         this.warmPeers = received.data

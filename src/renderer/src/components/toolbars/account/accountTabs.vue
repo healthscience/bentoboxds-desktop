@@ -25,11 +25,11 @@
           AI Agents
         </div>
         <div
-          id="wallets-tab"
-          class="grid-component-tab" v-bind:class="{ active: activeTab === 'wallets' }"
-          @click="selectTab('wallets')"
+          id="sovereign-tab"
+          class="grid-component-tab" v-bind:class="{ active: activeTab === 'sovereign' }"
+          @click="selectTab('sovereign')"
         >
-          Wallet
+          Sovereign
         </div>
         <div class="grid-component-tab">
           Disconnect
@@ -47,7 +47,7 @@
         </div>
         <datastore-list v-if="activeTab === 'datastores'"></datastore-list>
         <aiagents-list v-if="activeTab === 'aiagents'"></aiagents-list>
-        <div class="list-space" id="wallet-list" v-if="activeTab === 'wallets'">
+        <div class="list-space" id="wallet-list" v-if="activeTab === 'sovereign'">
         </div>
       </div>
     </div>
@@ -76,8 +76,8 @@ let activeTab = ref('peers')
       activeTab.value = 'datastores'
     } else if (ls === 'aiagents') {
       activeTab.value = 'aiagents'
-    } else if (ls === 'wallets') {
-      activeTab.value = 'wallets'
+    } else if (ls === 'sovereign') {
+      activeTab.value = 'sovereign'
     }
   }
 

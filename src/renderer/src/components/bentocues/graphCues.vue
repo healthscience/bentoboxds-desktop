@@ -21,18 +21,36 @@
           <beebee-ai></beebee-ai>
           <button id="open-beebee" @click.prevent="setShowBeeBee">beebee</button>
           <div id="graph-toolbar">
-            <button class="graph-type-button" @click="graphSelect('social')">Peers</button>
-            <button class="graph-type-button" @click="graphSelect('cues')">Cues</button>
-            <button class="graph-type-button" @click="graphSelect('N=1')">N=1's</button>
+            <button 
+              class="graph-type-button" 
+              :class="{ selected: isButtonSelected('social') }"
+              @click="graphSelect('social')"
+            >
+              Peers
+            </button>
+            <button 
+              class="graph-type-button" 
+              :class="{ selected: isButtonSelected('cues') }"
+              @click="graphSelect('cues')"
+            >
+              Cues
+            </button>
+            <button 
+              class="graph-type-button" 
+              :class="{ selected: isButtonSelected('N=1') }"
+              @click="graphSelect('N=1')"
+            >
+              N=1's
+            </button>
           </div>
           <div id="display-graph">
-            <div id="graph-container" v-if="graphType == 'social'">
+            <div id="graph-holder" v-if="graphType == 'social'">
               <social-graph></social-graph>
             </div>
-            <div id="graph-container" v-if="graphType == 'cues'">
-              Cues cognative glue coming soon
+            <div id="graph-holder" v-if="graphType == 'cues'">
+              <cues-mind></cues-mind>
             </div>
-            <div id="graph-container" v-if="graphType == 'N=1'">
+            <div id="graph-holder" v-if="graphType == 'N=1'">
               Network experiments coming soon
             </div>
           </div>
@@ -46,6 +64,7 @@
 
 <script setup>
 import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
+import CuesMind from '@/components/bentocues/graphs/cuesMind.vue'
 import { ref, computed, onMounted } from 'vue'
 import ModalCues from '@/components/bentocues/cuesModal.vue'
 import BeebeeAi from '@/components/beebeehelp/spaceChat.vue'
@@ -57,7 +76,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
 
-  let graphType = ref('social')
+  let graphType = ref('cues')
 
   /* on mount */
   onMounted(() => {
@@ -84,6 +103,10 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     graphType.value = type
   }
 
+  const isButtonSelected = (type) => {
+    return graphType.value === type
+  }
+
 </script>
 
 <style scoped>
@@ -93,35 +116,31 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   grid-template-columns: 1fr 1fr 1fr;
 }
 
+.main {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
 .graph-type-button {
   font-size: 1.2em;
   width: 120px;
-}
-
-.graph-type-button {
-  display: inline-grid;
-  margin-right: .4em;
-  background-color: #b8cde2;
-  color: #140d6b;
+  padding: 8px;
+  margin: 4px;
   border: none;
   border-radius: 4px;
-  padding: 10px 20px;
-  font-size: 14px;
+  background-color: #f0f0f0;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 .graph-type-button:hover {
-    background-color: #2a82e0;
-    transform: translateY(-2px);
+  background-color: #e0e0e0;
 }
 
-.graph-type-button:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
+.graph-type-button.selected {
+  background-color: #4CAF50;
+  color: white;
 }
-
 
 #open-beebee {
     position: fixed;
@@ -143,11 +162,11 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     margin: 2em;
   }
 
-  #graph-container {
+  #graph-holder {
     position: relative;
     display: grid;
-    width: 900px;
-    height: 500px;
+    width: 100%;
+    height: 100%;
   }
 
   #graph-modal-header {
@@ -179,7 +198,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
       height: 100%;
     }
 
-    #graph-container {
+    #graph-holder {
       position: relative;
       display: grid;
       width: 900px;

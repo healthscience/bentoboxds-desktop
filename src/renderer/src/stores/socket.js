@@ -96,7 +96,6 @@ export const useSocketStore = defineStore({
       // this.messages.push( { from: "send", message: to_send.message } )
     },    
     onSockerError (evt) {
-      console.log('socket error')
       this.connection_ready = false
       this.connection_error = true
       // this.autoReconnect()

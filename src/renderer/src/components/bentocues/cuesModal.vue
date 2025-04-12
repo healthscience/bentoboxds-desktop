@@ -100,4 +100,9 @@
   -webkit-transform: scale(1.1);
   transform: scale(1.1);
 }
+
+.modal-footer {
+  display: grid;
+  grid-template-columns: 9fr 1fr;
+}
 </style>
