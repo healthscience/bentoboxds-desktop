@@ -52,16 +52,16 @@
               <div class="refinfo-col1">
                 Wikipedia:
               </div>
-              <div class="refinfo-col2">
-                <a :href="cd.value.concept.wikipedia"> {{ cd.value.concept.name }}</a>
+              <div class="refinfo-col2" @click="openWikipedia(cd.value.concept.wiki)">
+                <a  href="#"> {{ cd.value.concept.name }}</a>
               </div>
             </div>
             <div class="ref-description">
               <div class="refinfo-col1">
                 RDF:
               </div>
-              <div class="refinfo-col2">
-                <a :href="cd.value.concept.rdf">rdf file</a>
+              <div class="refinfo-col2" @click="openRDF(cd.value.concept.rdf)">
+                <a href="#">rdf file</a>
               </div>
             </div>
             <div class="ref-description">
@@ -292,6 +292,35 @@ import { ref, computed } from 'vue'
     }
     return storeLibrary.publicLibrary.referenceContracts[props.refTypeLive]
   })
+
+  /* methods */
+  const openWikipedia = (url) => {
+    if (window.process?.versions?.electron) {
+      if (window.process.type === 'renderer') {
+        const { shell } = require('@electron/remote')
+        shell.openExternal(url)
+      } else {
+        const { shell } = require('electron')
+        shell.openExternal(url)
+      }
+    } else {
+      window.open(url, '_blank', 'noopener noreferrer')
+    }
+  }
+
+  const openRDF = (url) => {
+    if (window.process?.versions?.electron) {
+      if (window.process.type === 'renderer') {
+        const { shell } = require('@electron/remote')
+        shell.openExternal(url)
+      } else {
+        const { shell } = require('electron')
+        shell.openExternal(url)
+      }
+    } else {
+      window.open(url, '_blank', 'noopener noreferrer')
+    }
+  }
 
 </script>
 
