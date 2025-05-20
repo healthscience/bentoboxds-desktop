@@ -138,7 +138,6 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   /* methods */
   const addDecisionElement = (ditem) => {
     // add data to doughnut
-    console.log(ditem)
     let updatePie = {}
     updatePie.labels = []
     updatePie.datasets = []
@@ -178,7 +177,6 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   }
 
   const cueSelect = (cueID, segID) => {
-    console.log(segID.label)
     cueActive.value = segID.label
     if (segID.label === 'Blood') {
       spaceSelect('b6e81d8bed9758b538aa25c13239968813b17f5a', segID.label)

@@ -107,7 +107,7 @@ import { cuesStore } from '@/stores/cuesStore.js'
 
   const saveCue = () => {
     // did the new cue come from the space menu create button?
-    if (storeAI.historyList === 'space') {
+    if (storeAI.historyCuesList === true) {
       // close the cues tools
       storeAI.bentocuesState = false
     }

@@ -24,7 +24,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     cuesRelationshipFeedback: {},
     startChat: true,
     chatAttention: '',
-    historyList: '',
+    historyList: false,
+    historyCuesList: false,
     historyBar: false,
     beginChat: false,
     beebeeStatus: false,
@@ -37,9 +38,11 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
     llmModelsList: [],
     oracleData: { type: 'oracle', action: 'decision', elements: [{ label: 'muscle mass', datasets: { backgroundColor: '#01923c', data: 30 }}, { label: 'brain', datasets: { backgroundColor: '#71923c', data: 30 }}], concerns: [{ label: 'kidneys', datasets: { backgroundColor: '#b90e28', data: 30 }}, { label: 'pee more', datasets: { backgroundColor: '#e62643', data: 30 }}]},
     askQuestion: {
-      text: ''
+      text: '',
+      compute: 'observation'
     },
     bodyDiagramShow: false,
+    agentProgress: {},
     inputAskHistory: [],
     statusCALE:
     {
@@ -161,6 +164,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         let saveQ = {}
         saveQ.count = this.qcount
         saveQ.text = this.askQuestion.text
+        saveQ.compute = this.askQuestion.compute
         saveQ.active = true
         let date = new Date()
         // get the time as a string
@@ -224,17 +228,50 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         this.decisionDoughnutCue = true
       }
     },
+    trackAgentProgress (bboxID) {
+      // setup chat feedback object if need
+      if (this.agentProgress[this.chatAttention] === undefined) {
+        this.agentProgress[this.chatAttention] = {}
+      }
+      // need some sort of loop
+      let agentLoopActive = true
+      if (agentLoopActive === true) {
+        this.agentProgress[this.chatAttention] = {}  // TODO  setup object better to allow deeper reactivity
+        this.agentProgress[this.chatAttention][bboxID] = {}
+        this.agentProgress[this.chatAttention][bboxID] = { feedback: 'orchestring agents in progress', timeCounter: 1, show: true }
+      } else if (agentLoopActive === false) {
+        this.agentProgress[this.chatAttention][bboxID] = { feedback: 'agent flow complete', timeCounter: 0, show: false }
+      }
+    },
+    trackAgentProgressUpdate (inputID) {
+      // loop over and set feedback to false
+      let progressKeys = Object.keys(this.agentProgress[this.chatAttention])
+      let updateProgreefb = []
+      for (let progressK of progressKeys) {
+        if (progressK === inputID) {
+          let updateProg = this.agentProgress[this.chatAttention][progressK]
+          updateProg.show = false
+          updateProgreefb.push(updateProg)
+        } else {
+          updateProgreefb.push(this.agentProgress[this.chatAttention][progressK])
+        }
+      }
+      this.agentProgress[this.chatAttention] = updateProgreefb
+    },
     largeFilesubmitAsk (dataInfo) {
       // console.log('large file prep')
       // console.log(dataInfo)
     },
     actionFileAskInput (fileData) {
+      // fileData.data.input = { data: {compute: 'observation'} }
       let aiMessageout = {}
       aiMessageout.type = 'bbai'
       aiMessageout.reftype = 'ignore'
       aiMessageout.action = 'question'
       aiMessageout.data = fileData.data
       aiMessageout.bbid = fileData.bbid
+      // keep track of time and any feedback from beebee agents
+      this.trackAgentProgress(fileData.bbid)
       this.sendSocket.send_message(aiMessageout)
       this.helpchatHistory.push(aiMessageout)
       this.askQuestion.text = ''
@@ -248,6 +285,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       aiMessageout.action = 'question'
       aiMessageout.data = question
       aiMessageout.bbid = hashQuestion
+      this.trackAgentProgress(hashQuestion)
       this.sendSocket.send_message(aiMessageout)
       this.helpchatHistory.push(aiMessageout)
       this.qcount++
@@ -269,6 +307,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         aiMessageout.action = 'question'
         aiMessageout.data = matchQuestion
         aiMessageout.bbid = hashQuestion
+        // keep track of time and any feedback from beebee agents
+        this.trackAgentProgress(hashQuestion)
         this.sendSocket.send_message(aiMessageout)
         this.helpchatHistory.push(aiMessageout)
         this.askQuestion.text = ''
@@ -313,8 +353,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
           this.historyPair[this.chatAttention].push(pairBB)
         }
       } else if (received.action === 'no-data') {
-        console.log('no data')
-      } else {
+      } else { // if (received.action !== undefined) {
         // match to question via bbid
         if (received.data) {
           let questionStart = {}
@@ -325,7 +364,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
               questionStart = histMatch
             }
           }
-        
           if (questionCount.length === 1) {
             // does the question exist from file upload?
             if (questionCount[0].data?.filedata) {
@@ -333,15 +371,6 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
               let opendataToolbar = this.liveChatUtil.setOpendataToolbar()
               this.storeBentoBox.boxToolStatus[received.bbid] = {}
               this.storeBentoBox.boxToolStatus[received.bbid] = opendataToolbar
-              /* let boxSettings = 
-              {
-                opendatatools: { active: false },
-                boxtoolshow: { active: false },
-                vistoolsstatus: { active: false },
-                scalezoom: 1,
-                location: {},
-                storeBentoboxstoreBentobox: 'line'
-              } */
               this.storeBentoBox.devicesettings[received.bbid] = {}
               this.storeBentoBox.devicesettings[received.bbid] = this.storeBentoBox.settings
               this.storeBentoBox.chartStyle[received.bbid] = this.boxSettings.chartstyle  // 'line'
@@ -358,6 +387,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
                 this.storeBentoBox.devicesettings[received.bbid] = this.storeBentoBox.settings
               }
             }
+            // stop any agent feedback message
+            this.trackAgentProgressUpdate(received.bbid)
           }
           if (received.action === 'library-peerlibrary' || 'publiclibrary') {
             this.storeLibrary.processReply(received, questionStart)
@@ -397,6 +428,8 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
       }*/
     },
     processNotification (received) {
+      // stop any agent feedback message
+      this.trackAgentProgressUpdate(received.data.data.bbid)
       this.countNotifications++
       this.notifList.push(received)
       // add to chart part list (do now or on requrest?)
@@ -611,7 +644,7 @@ export const aiInterfaceStore = defineStore('beebeeAIstore', {
         // this.expandBentobox[matchBBID] = true
         this.beebeeChatLog[matchBBID] = true
         let hopDataChart = {}
-        hopDataChart.datasets = dataHOP.data.data.chartPackage.datasets // [ { label: dataHOP.data.data.chartPackage.datasets[0].label, data: dataHOP.data.data.chartPackage.datasets[0].data } ]
+        hopDataChart.datasets = dataHOP.data.data.chartPackage.datasets
         hopDataChart.labels = dataHOP.data.data.chartPackage.labels
         this.visData[matchBBID] = hopDataChart
         this.storeBentoBox.setChartstyle(matchBBID, dataHOP.context.moduleorder.visualise.value.info.settings.visualise)

@@ -42,7 +42,6 @@ const storeBentobox = bentoboxStore()
   * library summary
   */
   const expLibrarySummary = computed(() => {
-    console.log(storeAI?.boxLibSummary)
     if (storeAI?.boxLibSummary[props.bboxid] === undefined) {
         console.log(' firs time use of nxp i bbox')
     } else {

@@ -185,7 +185,6 @@ const drawbentoGraph = () => {
 const zoomIn = () => {
   if (sigmaInstance.value) {
     const camera = sigmaInstance.value.getCamera()
-    console.log('Current ratio:', camera.ratio) // Add debug log
     camera.ratio = Math.min(10, camera.ratio * 1.2) // Add max limit
     sigmaInstance.value.refresh() // Force refresh
   }
@@ -194,7 +193,6 @@ const zoomIn = () => {
 const zoomOut = () => {
   if (sigmaInstance.value) {
     const camera = sigmaInstance.value.getCamera()
-    console.log('Current ratio:', camera.ratio) // Add debug log
     camera.ratio = Math.max(0.1, camera.ratio * 0.8) // Add min limit
     sigmaInstance.value.refresh() // Force refresh
   }
@@ -203,7 +201,6 @@ const zoomOut = () => {
 const resetView = () => {
   if (sigmaInstance.value) {
     const camera = sigmaInstance.value.getCamera()
-    console.log('Resetting view') // Add debug log
     camera.position = [0, 0]
     camera.ratio = 1
     sigmaInstance.value.refresh() // Force refresh
@@ -213,7 +210,6 @@ const resetView = () => {
 const centerView = () => {
   if (sigmaInstance.value) {
     const camera = sigmaInstance.value.getCamera()
-    console.log('Centering view') // Add debug log
     camera.position = [0, 0]
     sigmaInstance.value.refresh() // Force refresh
   }
@@ -298,23 +294,16 @@ const cueNodeClick = (event) => {
   // Handle different types of nodes
   if (node === '1') {
     // Handle mind node click
-    console.log('Mind node clicked')
     // Reset the graph or show overview
     resetGraph()
   } else {
-    // Handle concept node click
-    console.log('Concept clicked:', nodeData.label)
-    
     // Get the concept data
     const concept = storeCues.cuesList.find(cue => cue.key === node)
     if (concept) {
-      // Show concept details
-      console.log('Concept details:', concept)
       
       // Example: Show related concepts
       if (concept.value.computational.relationships) {
         const relatedConcepts = Object.keys(concept.value.computational.relationships)
-        console.log('Related concepts:', relatedConcepts)
       }
     }
   }

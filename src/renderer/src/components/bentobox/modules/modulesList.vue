@@ -66,23 +66,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
     return storeAI.boxModelUpdate[props.bboxid]
   })
 
-  /*
-  * library summary
-
-  const boxLibrarySummary = computed(() => {
-    console.log('toooools')
-    console.log(props.bboxid)
-    console.log(storeAI.boxLibSummary)
-    let NXPcontract = {}
-    NXPcontract.key = Object.keys(storeAI.boxLibSummary[props.bboxid]?.data)
-    let modKeys = []
-    for (let mod of storeAI?.boxLibSummary[props.bboxid]?.data[NXPcontract.key].modules) {
-      modKeys.push(mod.key)
-    }
-    NXPcontract.modules = modKeys
-    return NXPcontract
-  })  */
-
   /* methods */
   const trainStart = () => {
     let aiMessage = {}

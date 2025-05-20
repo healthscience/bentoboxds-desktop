@@ -71,7 +71,8 @@ export const bentoboxStore = defineStore('bentostore', {
     researchMedia: {},
     markerMedia: {},
     productMedia: {},
-    libraryCheck: false
+    libraryCheck: false,
+    isBentospaceActive: false
   }),
   actions: {
     // since we rely on `this`, we cannot use an arrow function
@@ -243,6 +244,8 @@ export const bentoboxStore = defineStore('bentostore', {
               if (chat.active === true && chatAct === 0) {
                 chatAct++
                 setOneActive.push(chat)
+                // set attention of chat
+                this.storeAI.chatAttention = chat.chatid
               } else {
                 chat.active = false
                 setOneActive.push(chat)
@@ -266,7 +269,7 @@ export const bentoboxStore = defineStore('bentostore', {
             this.storeAI.sendMessageHOP(saveBentoBoxsetting)
           }
           // set the chat list live
-          this.storeAI.historyList = 'history'
+          this.storeAI.historyList = true
           this.storeAI.chatAttention = this.chatList[0].chatid
           // if no chats offer up default chat
           this.storeAI.setupChatHistory(this.chatList[0])

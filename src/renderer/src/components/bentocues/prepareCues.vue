@@ -12,6 +12,19 @@
           <div id="beebee-feedback">
             {{ beebeeFeedback }}
           </div>
+          <div id="cue-history">
+            <div id="cue-history-title">
+              History
+            </div>
+            <div class="cue-history-item" v-for="cueH of glueHistoryList">
+              <div class="cue-relationship-history" v-if="cueH.type !== undefined">
+                <button class="cue-history-button" @click="glueType(cueH.type)">{{ cueH.type }}</button>
+              </div>
+              <div v-else>
+                <button class="cue-history-button" @click="viewCueHistory(cueH.key, cueH)">{{ cueH.data.labels[0] }}</button>
+              </div>
+            </div>
+          </div>
           <div id="remove-cue">
             <button id="view-cue-button" @click="bentoSpaceOpen()">Space</button>
             <button id="remove-cue-delete" @click="removeCue()">Delete</button>
@@ -97,6 +110,10 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     return storeCues.cueContext
   })
 
+  const glueHistoryList = computed(() => {
+    return storeCues.glueHistory
+  })
+
   const minCues = computed(() => {
     return storeCues.minCuesStatus
   })
@@ -164,6 +181,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
   const viewCue = (cueKey, cueR) => {
     // reset any context
+    storeCues.glueHistory = []
     storeCues.cueMatchMarkersLive = [] 
     storeCues.cueKnowledge = 'concept'
     storeCues.activeCue = cueKey
@@ -171,6 +189,10 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     // check in other context e.g. flake
     storeCues.glueRelActive = ''
     storeCues.checkCueContext()
+  }
+
+  const viewCueHistory = (cueKey, cueH) => {
+    storeCues.activeDougnnutData = cueH.data
   }
 
   const minimiseCues = () => {
@@ -249,6 +271,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 <style scoped>
 
 #cues-container {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr;
   padding: 0.5rem;
@@ -295,6 +318,12 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   display: grid;
   grid-template-columns: 1fr;
   height: inherit;
+}
+
+#cue-history {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin-bottom: 1em;
 }
 
 #beebee-feedback {
@@ -507,10 +536,12 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 @media (min-width: 1024px) {
 
   #cues-container {
+    position: relative;
     display: grid;
     grid-template-columns: 1fr 1fr;
     padding: 0.5rem;
     width: 100%;
+    z-index: 9999;
   }
 
   #chart-column {

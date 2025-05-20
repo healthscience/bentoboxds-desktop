@@ -159,8 +159,7 @@ import { mapminiStore } from '@/stores/mapStore.js'
     storeBentobox.videoMedia[storeAI.liveBspace.cueid] = updateMblist
     // update miniMap of removal
     // storeMmap.actionDashBRemove(props.bboxid)
-    // delete from store
-    console.log(props.bsmedia)
+    // delete from store)
     let delMessage = {}
     delMessage.type = 'library'
     delMessage.action = 'media'

@@ -125,10 +125,8 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   const handleCanvasClick = (ev) => {
     selectedArea.value = {}
     const rect = canvas
-    console.log(ev.clientX, ev.clientY)
     const x = (ev.clientX - rect.offsetParent.offsetLeft)
     const y = (ev.clientY - (rect.offsetTop + 20) )
-console.log(x, y)
     organAreas.value.forEach(area => {
       if (x >= area.coords.x && x <= area.coords.x + area.coords.width &&
           y >= area.coords.y && y <= area.coords.y + area.coords.height) {

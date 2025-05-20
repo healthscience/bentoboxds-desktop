@@ -310,6 +310,7 @@ import { ref, computed, onMounted } from 'vue'
 #space-menu {
   display: grid;
   grid-template-columns: 1fr;
+  min-height: 300px;
 }
 
 .create-space {
@@ -380,6 +381,13 @@ import { ref, computed, onMounted } from 'vue'
 }
 
   @media (min-width: 1024px) {
+
+    #space-menu {
+      display: grid;
+      grid-template-columns: 1fr;
+      min-height: 300px;
+      border: 2px solid red;
+    }
 
     .menulive {
       background-color: 1px solid green;

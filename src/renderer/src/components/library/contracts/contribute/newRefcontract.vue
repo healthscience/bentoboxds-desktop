@@ -91,7 +91,6 @@ const formContribute = [
     } else if (contractformType.value.type === 'visualise') {
       refContract.data = storeLibrary.newVisualiseForm
     } else if (contractformType.value.type === 'media') {
-      console.log('media')
       refContract.action = 'media'
       refContract.data = storeLibrary.newMediaForm
     } else if (contractformType.value.type === 'research') {

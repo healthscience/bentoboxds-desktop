@@ -1,6 +1,6 @@
 <template>
   <Transition name="modal">
-    <div v-if="show" class="modal-mask" @click="emit('close')">
+    <div v-if="show" class="modal-mask" :style="{'--z-index': zIndex.toString()}" @click="emit('close')">
       <div class="modal-container" @click.stop>
         <div class="modal-header">
           <slot name="header">default header</slot>
@@ -25,7 +25,11 @@
 
 <script setup>
 const props = defineProps({
-  show: Boolean
+  show: Boolean,
+  zIndex: {
+    type: Number,
+    default: 900 // default z-index
+  }
 })
 
 const emit = defineEmits(['close'])
@@ -35,7 +39,7 @@ const emit = defineEmits(['close'])
 <style scoped>
 .modal-mask {
   position: fixed;
-  z-index: 499;
+  z-index: var(--z-index, 900);
   top: 0;
   left: 0;
   width: 100%;

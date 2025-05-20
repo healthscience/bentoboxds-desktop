@@ -1,6 +1,6 @@
 <template>
   <Transition name="modal">
-    <div v-if="show" class="modal-mask" @click="emit('close')">
+    <div v-if="show" class="modal-mask" :style="{'--z-index': zIndex.toString()}" @click="emit('close')">
       <div class="modal-container" @click.stop>
         <div class="modal-header">
           <slot name="header">default header</slot>
@@ -27,10 +27,17 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
+import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
+const storeBentobox = bentoboxStore()
 
   const props = defineProps({
-    show: Boolean
+    show: Boolean,
+    zIndex: {
+      type: Number,
+      default: 1000 // default z-index
+    }
   })
 
   const emit = defineEmits(['close'])
@@ -41,8 +48,8 @@
 
 <style scoped>
 .modal-mask {
-  z-index: 699;
   position: fixed;
+  z-index: var(--z-index, 1000);
   top: 0;
   left: 0;
   width: 100%;

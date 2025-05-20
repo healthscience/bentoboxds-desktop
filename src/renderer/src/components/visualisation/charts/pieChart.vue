@@ -34,9 +34,6 @@ ChartJS.register(ArcElement, Tooltip, Legend) //
       responsive: true,
       maintainAspectRatio: false,
       onClick: (e) => {
-        console.log('cue interact click')
-        // console.log(e)
-        console.log(chartspace.value.chart.$context.chart.tooltip.dataPoints)
       }
     }
 
@@ -45,7 +42,6 @@ ChartJS.register(ArcElement, Tooltip, Legend) //
 
 
   const pieCilckplease = (e) => {
-    console.log('p[ie clickc]')
     console.log(e)
   }
 

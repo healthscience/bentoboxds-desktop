@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <!-- use the modal component, pass in the prop -->
-    <modal-space :show="bentospaceStatus" @close="closeBentoSpace">
+    <modal-space :show="bentospaceStatus" :z-index="currentZIndex" @close="closeBentoSpace">
       <template #header>
         <!-- The code below goes into the header slot -->
         <div id="space-modal-header">
@@ -180,6 +180,9 @@ import { mapminiStore } from '@/stores/mapStore.js'
   let spaceProduct = ref(false)
 
   /* computed */
+  const currentZIndex = computed(() => {
+    return storeBentobox.isBentospaceActive ? 1100 : 900
+  })
   const bentospaceStatus = computed(() => {
     return storeAI.bentospaceState
   })
@@ -244,6 +247,7 @@ import { mapminiStore } from '@/stores/mapStore.js'
 
   const cuesHolistic = () => {
     storeCues.liveCueContext = 'flake'
+    storeBentobox.isBentospaceActive = false
     storeAI.bentoflakeState = !storeAI.bentoflakeState
   }
 

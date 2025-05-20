@@ -27,6 +27,7 @@ export const accountStore = defineStore('account', {
     pendingInvites: [],
     invitedPeers: [],
     beebeeAccountFeedback: '',
+    beebeeConnectFeedback: '',
     publickeyDrive: [],
     publicKeysList: [],
     sharePubkey: '',
@@ -111,6 +112,8 @@ export const accountStore = defineStore('account', {
       for (let wpeer of this.warmPeers) {
         if (wpeer.key === update.key) {
           updatePeerList.push(update)
+          // update peer invite gen list
+          this.updateGeninviteList(update)
         } else {
           updatePeerList.push(wpeer)
         }
@@ -182,6 +185,20 @@ export const accountStore = defineStore('account', {
         }
       }
       this.warmPeers = updateNameList
+    },
+    updateGeninviteList (peer) {
+      // also set feedback connection message
+      this.beebeeConnectFeedback = 'Connected to ' + peer.value.name
+      let updateInviteList = []
+      for (let invite of this.inviteListGenerated) {
+        if (invite.name === peer.value.name) {
+          invite.matched = true
+          updateInviteList.push(invite)
+        } else {
+          updateInviteList.push(invite)
+        }
+      }
+      this.inviteListGenerated = updateInviteList
     },
     checkPeerStatus (peer) {
       // brand new peer first time or update save for topic

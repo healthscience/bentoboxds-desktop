@@ -50,7 +50,9 @@ export const cuesStore = defineStore('cues', {
     glueRelActive: '',
     minCuesStatus: true,
     minCuesText: 'Minimise',
-    spaceListHistory: []
+    spaceListHistory: [],
+    cueHistory: [],
+    glueHistory: []
   }),
   actions: {
     processReply (received) {
@@ -72,6 +74,9 @@ export const cuesStore = defineStore('cues', {
     },
     cueDisplayBuilder (cueKey, cueRel, liveWheel) {
       let cueDisplay = this.cueUtil.cueDisplayMake(cueKey, cueRel, liveWheel)
+      // keep track of history
+      this.glueHistory.push({ key: cueKey, data: cueDisplay })
+      this.cueHistory.push({ key: cueKey, data: cueDisplay })
       return cueDisplay
     },
     cogGlueSpace (spaceID) {
@@ -88,14 +93,29 @@ export const cuesStore = defineStore('cues', {
       // match cue to its contract
       this.glueRelActive = glueType
       if (glueType === 'down' || glueType === 'up' || glueType === 'equal') {
-        let cueContract = this.cueUtil.cueMatch(this.activeCue, this.cuesList)
-        let cueWheel = this.cueUtil.prepareGlueWheel(glueType, cueContract, this.cuesList)
-        this.activeCueExpanded = cueWheel.expandedcues
-        if (cueWheel?.wheeldata?.labels.length > 0) {
-          this.activeDougnnutData = cueWheel.wheeldata
-          this.checkCueContext()
+        // need to match glue type to specific path
+        if (glueType === 'up') {
+         // look at history of down and go back one stage
+         let lastDown = this.glueHistory[this.glueHistory.length - 2]
+         // could be single or multiple cude data structure
+         if (lastDown.data.wheeldata !== undefined) {
+          this.activeDougnnutData = lastDown.data.wheeldata
+         } else {
+          this.activeDougnnutData = lastDown.data     
+         }
+         this.checkCueContext()
+        } else {
+          let cueContract = this.cueUtil.cueMatch(this.activeCue, this.cuesList)
+          let cueWheel = this.cueUtil.prepareGlueWheel(glueType, cueContract, this.cuesList)
+          this.activeCueExpanded = cueWheel.expandedcues
+          if (cueWheel?.wheeldata?.labels.length > 0) {
+            // keep track of glue history
+            this.glueHistory.push({ type: glueType, data: cueWheel })
+            this.activeDougnnutData = cueWheel.wheeldata
+            this.checkCueContext()
+          }
+          this.storeAI.cuesFeedback = cueWheel.feedback
         }
-        this.storeAI.cuesFeedback = cueWheel.feedback
       } else if (glueType === 'measure') {
         let cueContract = this.cueUtil.cueMatch(this.activeCue, this.cuesList)
         let relAvailable = Object.keys(cueContract?.value?.computational?.relationships)
@@ -146,7 +166,6 @@ export const cuesStore = defineStore('cues', {
         // what cue is active
         this.flakeCuesList()
       } else if (this.liveCueContext === 'space') {
-        console.log('space end')
       } else if (this.liveCueContext === 'flake') {
         // any relationships active?
         this.minCuesStatus = false

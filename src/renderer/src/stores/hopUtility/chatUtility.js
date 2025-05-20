@@ -159,8 +159,6 @@ class ChatUtility {
   *
   */
   setlargeUploadChat = function (message, count) {
-    console.log('large path')
-    console.log(message)
     let question = {}
     question.type ='bbai'
     question.reftype = 'ignore'

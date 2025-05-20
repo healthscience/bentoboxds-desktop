@@ -213,7 +213,6 @@ class PositionUtility {
     const element = document.getElementById('bentospace-holder')
     let x = element.scrollLeft
     let y = element.scrollTop
-    console.log(x, y)
     const elementm = document.getElementById('bentospace-holder')
     elementm.scrollLeft = 0
     elementm.scrollTop = 0

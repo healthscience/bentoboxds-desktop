@@ -82,7 +82,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   }
 
   const viewproduct = (product) => {
-    console.log(product)
     let productID = product
     if (product.length > 0) {
       // check if holder setup

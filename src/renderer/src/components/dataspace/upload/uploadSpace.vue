@@ -94,10 +94,7 @@ const checkElectron = () => {
 }
 
 const saveFiles = (files) => {
-	console.log(HandleLargeFiles)
 	for (let file of files) {
-		console.log('file size')
-		console.log(file.file.size)
 		let fileSize = file.file.size
 		let largeFileStatus = false
 		if ((fileSize / 1000000) > 10) {
@@ -129,7 +126,6 @@ const saveFiles = (files) => {
 		storeLibrary.fileBundleList.push(fileBundle)
 		// give summary back to peer
 		if (file.file.type === 'text/csv') {
-			console.log('svs')
 			storeLibrary.csvpreviewLive = true
 			// use hander large or small?
 			if (largeFileStatus === false) {
@@ -343,7 +339,6 @@ const saveFiles = (files) => {
 				messageHOP.task = 'PUT'
 				messageHOP.data = fileSave // storeLibrary.fileBund
 				// send to HOP
-				console.log('save on uplodald+++')
 				storeLibrary.sendMessage(messageHOP)
 				storeLibrary.uploadStatus = false
 			}

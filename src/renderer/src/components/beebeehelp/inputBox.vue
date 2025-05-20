@@ -1,5 +1,10 @@
 <template>
   <div id="ai-interaction">
+    <div class="agent-feedback-progress" v-for="agentFeedback of agentProgressUpdate">
+      <div class="progress-feedback" v-if="agentFeedback.show === true">
+      {{ agentFeedback.feedback }}
+      </div>
+    </div>
     <div id="input-tools">
       <form id="ask-ai-form" @submit.prevent="storeAI.submitAsk()">
         <label for="askname"></label><!--  v-on:keyup="storeAI.actionNatlangIn($event)" -->
@@ -33,7 +38,7 @@
 import DataBox from '@/components/dataspace/dataBox.vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
   const storeLibrary = libraryStore()
   const storeAI = aiInterfaceStore()
@@ -45,9 +50,52 @@ import { ref, computed } from 'vue'
 
    let agentsActive = ref(false)
 
+
+
+  // For watching the entire object
+  /*
+  watch(
+    () => storeAI.agentProgress,
+    (newValue) => {
+      console.log('agentProgress changed:', newValue)
+      // Your logic here
+    },
+    { deep: true }
+  )
+
+  // For watching a specific property
+  const specificProperty = computed(() => storeAI.agentProgress[storeAI.chatAttention])
+  watch(
+    specificProperty,
+    (newValue) => {
+      console.log('Specific property changed:', newValue)
+      // Your logic here
+    },
+    { immediate: true }
+  ) */
+
+
+
+
   /* computed */
   const beebeeAIStatus = computed(() => {
     return storeAI.helpchatAsk
+  })
+
+  const agentProgressUpdate = computed(() => {
+    if (storeAI.agentProgress[storeAI.chatAttention] !== undefined) {
+      let chatFeedback = storeAI.agentProgress[storeAI.chatAttention]
+      let feedbackKeys = Object.keys(chatFeedback)
+      let agentProgressFeeback = []
+      for (let feedAgent of feedbackKeys) {
+        if (chatFeedback[feedAgent].show === true) {
+          agentProgressFeeback.push(chatFeedback[feedAgent])
+        }
+      }
+      return agentProgressFeeback
+    } else {
+      return []
+    }
   })
 
   const modelLoadingStatus = computed(() => {
@@ -141,6 +189,21 @@ import { ref, computed } from 'vue'
     opacity: 0;
   }
 }
+
+@keyframes gentleFlash {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+.progress-feedback {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  font-size: 1.1em;
+  animation: gentleFlash 2s ease-in-out infinite;
+}
+
 
 @media (min-width: 1024px) {
   #ai-interaction {

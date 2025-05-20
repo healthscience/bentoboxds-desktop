@@ -1,7 +1,4 @@
 'use strict'
-
-import { uniq } from "@vueuse/core/metadata.cjs"
-
 /**
 *  LibraryUtility
 *
@@ -13,11 +10,31 @@ import { uniq } from "@vueuse/core/metadata.cjs"
 * @version    $Id$
 */
 // import EventEmitter from 'events'
+import LibraryManager from 'library-hop'
 
 class LibraryUtility { //  extends EventEmitter {
 
-  constructor() {
+  constructor(HolepunchHOP) {
     // super()
+    this.liveHolepunch = HolepunchHOP
+    this.libraryManager = new LibraryManager(this.liveHolepunch)
+  }
+
+  /**
+  * Prepare table for public experiment list available
+  * @method preparePublicNXPlist
+  *
+  *
+  */
+  setupMinLibrary = async function () {
+    let defaultConts = this.prepareDefaultContracts()
+    for (let message of defaultConts) {
+      //this.sendMessage(contract)
+      await this.libraryManager.libraryManage(message)
+    }
+    // ask for library updates
+    let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+    return publibData
   }
 
   /**
@@ -265,30 +282,11 @@ class LibraryUtility { //  extends EventEmitter {
     let timeContract = this.prepareDefaultMessage('datatype')
     let computeContract = this.prepareDefaultMessage('compute')
     let visualiseContract = this.prepareDefaultMessage('visualise')
+    let averageComputeContract = this.prepareAverageComputeMessage()
     libContracts.push(timeContract)
     libContracts.push(computeContract)
     libContracts.push(visualiseContract)
-    return libContracts
-  }
-
-  /**
-  * default cues contracts
-  * @method prepareDefaultCues
-  *
-  */
-  prepareDefaultCues = function () {
-    let libContracts = []
-    // cues setup
-    let cuesDatatypes = this.prepareFirstCues('datatype-gaia')
-    libContracts.push(cuesDatatypes)
-    let cuesDatatypes2 = this.prepareFirstCues('datatype-nature')
-    libContracts.push(cuesDatatypes2)
-    let cuesDatatypes3 = this.prepareFirstCues('datatype-environment')
-    libContracts.push(cuesDatatypes3)
-    let cuesDatatypes4 = this.prepareFirstCues('datatype-culture')
-    libContracts.push(cuesDatatypes4)
-    let cuesDatatypes5 = this.prepareFirstCues('datatype-life')
-    libContracts.push(cuesDatatypes5)
+    libContracts.push(averageComputeContract)
     return libContracts
   }
 
@@ -337,7 +335,50 @@ class LibraryUtility { //  extends EventEmitter {
       refContract.data = visSettings
     }
     return refContract
+  }
 
+  /**
+  * prepare save contract message
+  * @method prepareAverageComputeMessage
+  *
+  */
+  prepareAverageComputeMessage = function () {
+    const refContract = {}
+    refContract.type = 'library'
+    refContract.action = 'contracts'
+    refContract.reftype = 'compute'
+    refContract.task = 'PUT'
+    refContract.privacy = 'public'
+    let compSettings = {}
+    compSettings.primary = true
+    compSettings.name = 'average'
+    compSettings.description = 'statistical mean'
+    compSettings.dtprefix = 'null'
+    compSettings.code = ''
+    compSettings.hash = ''
+    refContract.data = compSettings
+    return refContract
+  }
+
+  /**
+  * default cues contracts
+  * @method prepareDefaultCues
+  *
+  */
+  prepareDefaultCues = function () {
+    let libContracts = []
+    // cues setup
+    let cuesDatatypes = this.prepareFirstCues('datatype-gaia')
+    libContracts.push(cuesDatatypes)
+    let cuesDatatypes2 = this.prepareFirstCues('datatype-nature')
+    libContracts.push(cuesDatatypes2)
+    let cuesDatatypes3 = this.prepareFirstCues('datatype-environment')
+    libContracts.push(cuesDatatypes3)
+    let cuesDatatypes4 = this.prepareFirstCues('datatype-culture')
+    libContracts.push(cuesDatatypes4)
+    let cuesDatatypes5 = this.prepareFirstCues('datatype-life')
+    libContracts.push(cuesDatatypes5)
+    return libContracts
   }
 
   /**

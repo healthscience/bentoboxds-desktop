@@ -1,6 +1,6 @@
 <template>
   <div class="live-drop-zone" @mouseover="hoverCheck(sis)">
-    <div v-if="historyList === 'history'">
+    <div v-if="historyList === true">
       <button class="create-chat" @click="newChatchannel">
         + create chat
       </button>

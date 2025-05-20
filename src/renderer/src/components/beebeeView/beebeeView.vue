@@ -11,10 +11,10 @@
       <div id="bento-history">
         <div id="history-buttons">
           <div class="history-menu">
-            <button @click="historyType('history')" class="button-chat-menu" v-bind:class="{ active: historyList === 'history' }">Chat</button>
+            <button @click="historyType()" class="button-chat-menu" v-bind:class="{ active: historyList === true }">Chat</button>
           </div>
           <div class="history-menu">
-            <button id="space-button-menu" @click="historyType('space')" class="button-chat-menu" v-bind:class="{ active: historyList === 'space' }">Spaces</button>
+            <button id="space-button-menu" @click="historyCuesType()" class="button-chat-menu" v-bind:class="{ active: historyCuesList === true }">Spaces</button>
           </div>
           <div class="history-menu">
             <button id="body-image" @click="viewBody()" class="button-chat-menu" :class="{ active: bodyDiagramShow === true }">Body</button>
@@ -28,9 +28,11 @@
             <button id="library-button-menu"@click="openLibrary()" class="button-chat-menu" v-bind:class="{ active: viewLibrary === true }">Library</button>
           </div>
         </div>
-        <div id="active-history-menu">
-          <chat-menu v-if="historyList ===  'history'"></chat-menu>
-          <space-menu v-if="historyList ===  'space'"></space-menu>
+        <div id="active-history-menu" v-if="historyList ===  true">
+          <chat-menu ></chat-menu>
+        </div>
+        <div id="active-space-history" v-if="historyCuesList ===  true">
+          <space-menu></space-menu>
         </div>
       </div>
       <div id="beebee-bento-chat">
@@ -83,25 +85,30 @@ import { computed } from 'vue'
     return storeAI.bentographState
   })
 
-  const historyActive = computed(() => {
-    return storeBentobox.historyActive
-  })
-
   const historyList = computed(() => {
     return storeAI.historyList
   })
 
+  const historyCuesList = computed(() => {
+    return storeAI.historyCuesList
+  })
+
   /* methods */
   const historyType = (type) => {
-    storeAI.historyList = type
-    storeBentobox.historyActive = !storeBentobox.historyActive // true
+    storeAI.historyList = !storeAI.historyList
+    storeAI.historyCuesList = false
+  }
+
+  const historyCuesType = () => {
+    storeAI.historyCuesList = !storeAI.historyCuesList
+    storeAI.historyList = false
   }
 
   const openBentoAgent = (agent) => {
     agentActive.value = agent
     if (agent === 'cues') {
       storeAI.bentocuesState = !storeAI.bentocuesState
-      storeAI.historyList = 'cue'
+      storeAI.historyCuesList = true
     } else if (agent === 'flake') {
       storeCues.liveCueContext = 'flake'
       storeAI.bentoflakeState = !storeAI.bentoflakeState

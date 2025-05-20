@@ -55,12 +55,12 @@
                       <div id="type-data-options" v-if="chati.reply?.data?.filedata.type !== 'sqlite'">options1 {{ chati.reply.data.opitons }}
                         <div class="data-options"  v-for="(dopt, index) in chati.reply?.data?.options">
                           <!-- csv or json format -->
-                          <div v-if="typeof dopt === 'string'">str --
+                          <div v-if="typeof dopt === 'string'">
                             <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid, chati.reply?.data?.options, chati.reply?.data?.filedata.size)">
                               {{ dopt }}
                             </button>
                           </div>
-                          <div v-else>nostr
+                          <div v-else>
                               <button class="data-option-select" @click.prevent="dataOptionVis(index, dopt, chati.reply.bbid, chati.reply?.data?.options )">
                                 {{ dopt.name }}
                               </button>
@@ -126,7 +126,7 @@
               </div>
               <bento-box :bboxid="chati?.question?.bbid"></bento-box>
             </div>
-            <div  v-else-if="chati?.reply?.data?.text !== undefined && chati?.reply?.data?.text.length > 0">
+            <div v-else-if="chati?.reply?.data?.text !== undefined && chati?.reply?.data?.text.length > 0">
               {{ chati?.reply?.data?.text }}
               <bento-box :bboxid="chati?.question?.bbid"></bento-box>
             </div>

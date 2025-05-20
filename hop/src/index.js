@@ -5,7 +5,7 @@
 *
 * @class HOP
 * @package    HOP
-* @copyright  Copyright (c) 2024 James Littlejohn
+* @copyright  Copyright (c) 2025 James Littlejohn
 * @license    http://www.gnu.org/licenses/old-licenses/gpl-3.0.html
 * @version    $Id$
 */
@@ -34,7 +34,7 @@ class HOP extends EventEmitter {
     this.hoptoken = ''
     this.options = options
     this.MessagesFlow = new MessageFlow()
-    this.DataNetwork = new HolepunchHOP()
+    this.DataNetwork = new HolepunchHOP(this.options.storename)
     this.wsocket = {}
     this.socketCount = 0
     this.BBRoute = {}
@@ -103,7 +103,9 @@ class HOP extends EventEmitter {
       this.wsocket.id = uuidv4()
 
       this.wsocket.on('message', async (msg) => {
+        // console.log('HOP message received')
         const o = JSON.parse(msg)
+        // console.log(o)
         // check keys / pw and startup HOP if all secure
         if (o.type.trim() === 'hop-auth') {
           this.messageAuth()
@@ -171,6 +173,7 @@ class HOP extends EventEmitter {
   listenLibrary = async function () {
     this.LibRoute.on('library-data', async (data) => {
       // need to inform beebee and prepare HQB for SF
+      console.log('data in librayr now pass to safelfow ----')
       let bbMessage = {}
       bbMessage.type = 'bbai-reply'
       bbMessage.reftype = 'ignore'
@@ -369,7 +372,7 @@ class HOP extends EventEmitter {
   *
   */
   //  = function (o) {
-    messageResponder = async (o) => {
+  messageResponder = async (o) => {
     let messageRoute = this.MessagesFlow.messageIn(o)
     if (messageRoute.type === 'bbai-reply') {
       await this.BBRoute.bbAIpath(messageRoute)
@@ -410,4 +413,5 @@ class HOP extends EventEmitter {
 export default HOP
 let options = {}
 options.port = 9888
+options.storename = '' // 'hop-test-prime'
 new HOP(options)

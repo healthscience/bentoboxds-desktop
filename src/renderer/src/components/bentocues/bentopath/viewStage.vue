@@ -27,8 +27,6 @@
   
   /* methods */
   const viewOnmap = (stage) => {
-    console.log('stage clickec')
-    console.log(stage)
     // this.$store.dispatch('actionStageID', stage)
   }
 

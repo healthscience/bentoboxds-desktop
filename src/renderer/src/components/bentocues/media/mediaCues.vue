@@ -68,7 +68,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   }
 
   const viewmedia = (media) => {
-    console.log(media)
     let idmedia = media
     if (idmedia.length > 0) {
       // check if holder setup

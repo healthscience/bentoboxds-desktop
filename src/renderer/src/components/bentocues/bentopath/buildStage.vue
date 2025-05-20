@@ -180,12 +180,10 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
    /* methods */
   const newCueButton = () => {
-    console.log('clicck')
     newcueStage.value = !newcueStage.value
   }
 
   const saveStage = () => {
-    console.log('save stage')
     // save story name and create holder for story
     if (storeCues.stageCount === 0) {
       storeCues.pathRefContracts[storeCues.pathName] = {}
@@ -212,8 +210,6 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   }
 
   const experimentLookup = () => {
-    console.log('lookup reference contract')
-    console.log(stageExperiment.value)
   }
 
   const cueSelect = () => {

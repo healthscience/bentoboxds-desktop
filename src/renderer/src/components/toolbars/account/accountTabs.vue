@@ -96,40 +96,68 @@ let activeTab = ref('peers')
 <style scoped>
 #connection-account {
   position: relative;
-  display: block;
+  display: grid;
+  grid-template-columns: 1fr;
   height: 98vh;
 }
 
 #tabs-component {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 2fr;
-  height: auto;
+  display: flex;
+  gap: 8px;
+  padding: 16px 16px 0;
+  background-color: #f5f7fa;
+  border-radius: 8px 8px 0 0;
 }
 
 .grid-component-tab {
-  border-top: 2px solid grey;
-  border-left: 2px solid grey;
-  border-right: 2px solid grey;
-  font-size: 1.2em;
-  padding: 1em;
+  position: relative;
+  padding: 12px 20px;
+  font-size: 1em;
+  font-weight: 500;
+  color: #4a5568;
+  background-color: #e2e8f0;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+  margin-right: 4px;
+}
+
+.grid-component-tab:hover {
+  background-color: #cbd5e0;
+  transform: translateY(-2px);
 }
 
 .grid-component-tab.active {
- background-color: rgb(240, 242, 243);
+  background-color: white;
+  color: #2b6cb0;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  border-bottom: 3px solid #2b6cb0;
+  transform: translateY(0);
 }
 
-.is-disabled {
-  background: white;
+.grid-component-tab:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(43, 108, 176, 0.3);
+}
+
+.spacer-component-tab {
+  flex-grow: 1;
 }
 
 #list-content {
-  border-left: 1px solid grey;
-  border-right: 1px solid grey;
-  border-bottom: 1px solid grey;
+  background-color: white;
+  border-radius: 0 0 8px 8px;
   min-height: 240px;
-  background-color: rgb(243, 242, 242);
-  font-size: 1.2em;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  font-size: 1em;
   height: auto;
+  border: 1px solid #e2e8f0;
+  border-top: none;
 }
 
 .list-space {
