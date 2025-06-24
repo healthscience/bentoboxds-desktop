@@ -9,7 +9,7 @@ let removeLocation = currentLocation.slice(0, -18)
 let tempLocation = removeLocation //  + 'resources'
 
 // check if hop models has been setup i.e. first time use
-let modelsHopPath = os.homedir() + '/' + '.models-hop'
+let modelsHopPath = os.homedir() + '/' + '.hop-models'
 if (!fs.existsSync(modelsHopPath)) {
   let modelsInstall = path.join(tempLocation, './models-hop')
   fs.mkdirSync(modelsHopPath)
