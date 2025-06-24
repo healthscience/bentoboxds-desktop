@@ -30,6 +30,10 @@
       <label for="compute-add-hash">hash of code:</label>
       <input id="compute-code-hash" placeholder="compute hash" @input="hashSave" @paste="hashSave" @keyup="hashSave" v-model="storeLibrary.newComputeForm.hash" required="" type="text">
     </div>
+        <div class="compute-form-item">
+      <label for="compute-add-mode">mode of compute:</label>
+      <input id="compute-code-mode" placeholder="compute mode" @input="modeSave" @paste="modeSave" @keyup="modeSave" v-model="storeLibrary.newComputeForm.mode" required="" type="text">
+    </div>
   </div>
 </template>
 

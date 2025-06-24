@@ -52,6 +52,9 @@
         </div>
       </div>
     </div>
+    <div id="save-relationship-btnone">
+      <button id="glue-button-one" @click="mapGlue">Glue relationship</button>
+    </div>
     <div id="glue-relationship">
       <div id="glue-wheel">
         <div id="doughnut-size-add" v-if="columnB === true">
@@ -381,6 +384,16 @@ import { cuesStore } from '@/stores/cuesStore.js'
   margin-bottom: .6em;
   margin-right: .6em;
   padding-right: .6em;
+}
+
+#save-relationship-btnone {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-self: end;
+  width: 120px;
+  height: 30px;
+  font-size: 1.2em;
+  margin: .1em;
 }
 
 .active {

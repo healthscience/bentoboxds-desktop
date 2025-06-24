@@ -73,6 +73,8 @@ import { libraryStore } from '@/stores/libraryStore.js'
   })
   /*  methods */
   const selectdbTalbe = () => {
+    console.log('firm ware')
+    console.log(tableChoice.value.name)
     storeLibrary.newDatafile.firmwareQuery = tableChoice.value.name
   }
 

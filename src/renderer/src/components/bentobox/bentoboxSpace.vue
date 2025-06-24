@@ -25,11 +25,13 @@
     <bento-box :bboxid="props.bboxid" :contractid="props.contractid" :bbwidth="bentoboxWidth"></bento-box>
     <button id="bb-remove" @click="removeBboxSpace">remove</button>
   </vue-resizable>
+  <bentobox-focus v-if="storeAI.expandBentobox[props.bboxid] === true" :bboxid="props.bboxid" :contractid="props.contractid"></bentobox-focus>
 </template>
 
 <script setup>
 import VueResizable from 'vue-resizable'
-import BentoBox from  '@/components/bentobox/bentoBox.vue' 
+import BentoBox from  '@/components/bentobox/bentoBox.vue'
+import BentoboxFocus from '@/components/bentobox/bentoboxFocus.vue'
 import { ref, computed} from 'vue'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'

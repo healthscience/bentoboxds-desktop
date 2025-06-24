@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "default": {
+      "binaryFile": "../average-statistics.wasm",
+      "textFile": "../average-statistics.wat",
+      "optimizeLevel": 3,
+      "shrinkLevel": 2,
+      "target": "wasm"
+    }
+  }
+}

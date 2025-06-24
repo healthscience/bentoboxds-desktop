@@ -132,13 +132,13 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     }
   }
 
-const handleDate = () => {
-  let dateChange = boxDate.value
-  // now change date
-  let timeCaptured = DateTime.fromJSDate(dateChange)
-  let startDay = timeCaptured.startOf('day')
-  mutDate.value = startDay.toMillis()
-}
+  const handleDate = () => {
+    let dateChange = boxDate.value
+    // now change date
+    let timeCaptured = DateTime.fromJSDate(dateChange)
+    let startDay = timeCaptured.startOf('day')
+    mutDate.value = startDay.toMillis()
+  }
 
   const updateHOPquery = () => {
     // prepare update for HOP
@@ -163,7 +163,7 @@ const handleDate = () => {
       }
     }
     // get the library contracts
-    storeAI.prepareLibrarySummary(props.bboxid)
+    storeAI.prepareLibrarySummary(props.bboxid, '', '')
     // no summary if already save  NEED other way to set contect
     // what updates are there moduels?  Device/source, compute, vis controls or settings?
     let moduleUpdate = {}
@@ -204,21 +204,24 @@ const handleDate = () => {
     // any settings changes?
     moduleUpdate.compute = computeChanges
     // prepare HOPquery
-    let entityID = Object.keys(storeAI.boxLibSummary[props.bboxid].data)
-    let HOPcontext = {}
-    HOPcontext.entityUUID = storeAI.boxLibSummary[props.bboxid].data[entityID[0]].shellID
-    HOPcontext.bbid = props.bboxid
-    // HOPcontext.modules = storeAI.boxLibSummary[props.bboxid].data[entityID[0]].modules
-    HOPcontext.exp = { key: entityID[0], update: storeAI.boxLibSummary[props.bboxid].data }
-    HOPcontext.update = {}
-    let updateECS = {}
-    updateECS.entityUUID = storeAI.boxLibSummary[props.bboxid].data[entityID[0]].shellID
-    updateECS.input = 'refUpdate'
-    updateECS.modules = storeAI.boxLibSummary[props.bboxid].data[entityID[0]].modules
-    updateECS.changes = moduleUpdate
-    HOPcontext.update = updateECS
-    // close the calendar options and dispay date summary selected
-    storeLibrary.updateHOPqueryContracts(HOPcontext)
+    // could be first time direct
+    if (storeAI.boxLibSummary[props.bboxid] !== undefined) {
+      let entityID = Object.keys(storeAI.boxLibSummary[props.bboxid].data)
+      let HOPcontext = {}
+      HOPcontext.entityUUID = storeAI.boxLibSummary[props.bboxid].data[entityID[0]].shellID
+      HOPcontext.bbid = props.bboxid
+      // HOPcontext.modules = storeAI.boxLibSummary[props.bboxid].data[entityID[0]].modules
+      HOPcontext.exp = { key: entityID[0], update: storeAI.boxLibSummary[props.bboxid].data }
+      HOPcontext.update = {}
+      let updateECS = {}
+      updateECS.entityUUID = storeAI.boxLibSummary[props.bboxid].data[entityID[0]].shellID
+      updateECS.input = 'refUpdate'
+      updateECS.modules = storeAI.boxLibSummary[props.bboxid].data[entityID[0]].modules
+      updateECS.changes = moduleUpdate
+      HOPcontext.update = updateECS
+      // close the calendar options and dispay date summary selected
+      storeLibrary.updateHOPqueryContracts(HOPcontext)
+    }
     setDateStatus.value = false
   }
 

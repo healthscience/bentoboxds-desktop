@@ -233,8 +233,10 @@ class LibraryUtility { //  extends EventEmitter {
   expandCuesDTSingle = function (cueContract, publicLibrary) {
     let expandDTCue = cueContract
     // match datatype key to contract
-    let dtContract = this.matchRefContract(cueContract.value.concept.settings.datatype, publicLibrary, 'datatype')
-    expandDTCue.value.concept.settings.datatype = dtContract
+    if (cueContract?.value?.concept) {
+      let dtContract = this.matchRefContract(cueContract.value.concept.settings.datatype, publicLibrary, 'datatype')
+      expandDTCue.value.concept.settings.datatype = dtContract
+    }
     return expandDTCue
   }
 

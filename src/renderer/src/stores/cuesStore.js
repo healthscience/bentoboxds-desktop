@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useSocketStore } from '@/stores/socket.js'
+import { libraryStore } from '@/stores/libraryStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import CuesUtilty from '@/stores/hopUtility/cuesUtility.js'
 import MarkersUtilty from '@/stores/hopUtility/biomarkerUtility.js'
@@ -7,6 +8,7 @@ import FlakeUtilty from '@/stores/hopUtility/flakeUtility.js'
 
 export const cuesStore = defineStore('cues', {
   state: () => ({
+    storeLibrary: libraryStore(),
     storeAI: aiInterfaceStore(),
     cueUtil: new CuesUtilty(),
     flakeUtil: new FlakeUtilty(),
@@ -51,8 +53,11 @@ export const cuesStore = defineStore('cues', {
     minCuesStatus: true,
     minCuesText: 'Minimise',
     spaceListHistory: [],
+    cuesHistoryList: [],
+    cueMenuHistory: [],
     cueHistory: [],
-    glueHistory: []
+    glueHistory: [],
+    historyCuesStatus: false
   }),
   actions: {
     processReply (received) {
@@ -159,6 +164,8 @@ export const cuesStore = defineStore('cues', {
       return matchLabel
     },
     checkCueContext () {
+      // keep track of history ie popularity of a cue
+      this.cueMenuHistory.push(this.activeCue)
       this.cuesFlakeList = []
       this.flakeCues = {}
       // what cue context is active, menu, space, flake
@@ -184,6 +191,57 @@ export const cuesStore = defineStore('cues', {
           let prepList =this.flakeCuesList()
           this.prepareFlake()
         }
+      }
+    },
+    updateCueTimestamp (cueid) {
+      let cueContract = this.cueUtil.cueMatch(cueid, this.cuesList)
+      let updateCueContract = this.cueUtil.updateTimestamp(cueContract)
+      // update the library saved contract
+      let cueMessage = this.cueUtil.updateCuesContract(cueContract)
+      this.sendSocket.send_message(cueMessage)
+      // need to update current menu and save now or flag to do
+      let updateCueList = []
+      for (let cue of this.cuesList) {
+        if (cue.key === cueContract.key) {
+          updateCueList.push(updateCueContract)
+        } else {
+          updateCueList.push(cue)
+        }
+      }
+      // now time order
+      this.getMostLastusedItems(updateCueList)
+    },
+    getMostLastusedItems (array) {
+      // Sort the array by lastUsedTime in descending order
+      let lastusedHistory = array.sort((a, b) => {
+        const lastUsedTimeA = new Date(a.value.time.lastTimestamp).getTime()
+        const lastUsedTimeB = new Date(b.value.time.lastTimestamp).getTime()
+        return lastUsedTimeB - lastUsedTimeA
+      })
+      this.cuesHistoryList = []
+      for (let cue of lastusedHistory) {
+        this.storeLibrary.prepareCueMenuHistory(cue)
+      }
+    },
+    getMostPopularItems (array) {
+      // Create a map to store the count of each item
+      const itemCountMap = new Map()
+      // Count occurrences of each item in the array
+      array.forEach(item => {
+        if (itemCountMap.has(item)) {
+          itemCountMap.set(item, itemCountMap.get(item) + 1)
+        } else {
+          itemCountMap.set(item, 1)
+        }
+      })
+      // Convert the map to an array of [item, count] pairs and sort by count in descending order
+      const sortedItems = Array.from(itemCountMap.entries()).sort((a, b) => b[1] - a[1])
+      // limit to ten
+      const limitHistory = sortedItems.slice(0, 10)
+      // Return the sorted array of items with their counts
+      this.cuesHistoryList = []
+      for (let cue of limitHistory) {
+        this.storeLibrary.prepareCueMenuHistory(cue[0])
       }
     },
     flakeCuesList () {
@@ -302,6 +360,23 @@ export const cuesStore = defineStore('cues', {
       for (let dtg of listDatatypes) {
         this.sendSocket.send_message(dtg)
       }
+    },
+    filterCuesByToday (cues) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return cues.filter(cue => new Date(cue.value.lastUsed) >= today);
+    },
+    filterCuesByThisWeek (cues) {
+      const today = new Date();
+      const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+      startOfWeek.setHours(0, 0, 0, 0);
+      return cues.filter(cue => new Date(cue.value.lastUsed) >= startOfWeek);
+    },
+    filterCuesByThisMonth (cues) {
+      const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      return cues.filter(cue => new Date(cue.value.lastUsed) >= startOfMonth);
     }
   }
 })

@@ -21,7 +21,7 @@
         </div>
         <div id="past-vis">
           <bar-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'bar'" :chartData="chartData"></bar-chart>
-            <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line'" :chartData="chartData"></line-chart>
+            <line-chart v-if="storeBentobox.chartStyle[props.bboxid] === 'line' && chartData !== false" :chartData="chartData"></line-chart>
           </div>
       </div>
       <div id="bento-future" class="future-show" :class="{ active: futureBox }">
@@ -52,7 +52,11 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   /* computed */
   const chartData = computed(() => {
-    return storeAI.visData[props.bboxid]
+    if (storeAI.visData[props.bboxid]) {
+      return storeAI.visData[props.bboxid]
+    } else {
+      return false
+    }
     /* {
       // labels: dataLabel.value, // [ 'January', 'February', 'March' ],
       // datasets: [ { data: dataValues.value } ]
@@ -177,6 +181,8 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   position: relative;
   min-width: 10vw;
   min-height: 10vh;
+  width: 100%;
+  height: 16vh;
 }
 
 #bento-future {

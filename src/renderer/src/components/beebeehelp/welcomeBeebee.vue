@@ -44,26 +44,6 @@
                 </div>
                 <!--<bento-box :bboxid="commentaryBox"></bento-box>-->
               </div>
-              <!--div class="bb-commentary-spaces">
-                <div class="space-commentary-text">
-                  Click on space for detailed commentary for that context.
-                </div>
-                <div class="space-container-buttons">
-                  <div class="space-list" v-for="sis in spaceList">
-                    <button
-                        class="space-commentary-button"  @click="spaceCommentary(sis)"> {{ sis.name }}
-                      </button>
-                    </div>
-                </div>
-              </div>
-              <div class="bb-shortcuts">
-                <div class="shortcut-buttons-container">
-                  Shortcut links:
-                  <button class="shortcut-buttons" @click="openLibrary()">Library</button>
-                  <button class="shortcut-buttons" @click="openExperiments()">Experiments</button>
-                  <button class="shortcut-buttons" @click="uploadButton()">Upload</button>
-                </div>
-              </div>-->
           </div>
         </div>
         <div class="beebee">

@@ -1,0 +1,12 @@
+{
+  "name": "hop-models",
+  "description": "health oracle protocol",
+  "version": "0.4.4",
+  "main": "src/index.js",
+  "bin": "src/index.js",
+  "type": "module",
+  "dependencies": {
+    "crypto-browserify": "^3.12.1",
+    "simple-statistics": "^7.8.8"
+  }
+}

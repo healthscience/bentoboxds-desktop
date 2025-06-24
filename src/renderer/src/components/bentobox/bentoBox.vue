@@ -4,6 +4,9 @@
   </div>
   <div v-else>
   </div>
+  <div id="bentobox-feedback" v-if="bbFeedback.text.length > 0">
+    Feedback: {{ bbFeedback.text }}
+  </div>
   <div id="bentobox-quants" ref="bentoboxQuants" @mouseup.prevent="EndDrag()" @mousemove.prevent="OnDrag($event)">
     <div id="bentobox-tools">
       <box-tools :bboxid="props.bboxid"></box-tools>
@@ -165,6 +168,41 @@ import { libraryStore } from '@/stores/libraryStore.js'
   let event = ref('')
   let timerPress = ref(0)
 
+  /* computed */
+  const mapLive = computed(() => {
+    return storeBentobox.geoMap
+  })
+
+  const graphLive = computed(() => {
+    return storeBentobox.networkGraph
+  })
+
+  const bbFeedback = computed(() => {
+    if (storeAI.bboxFeedback[props.bboxid] !== undefined && storeAI.bboxFeedback[props.bboxid].text !== undefined) {
+      return storeAI.bboxFeedback[props.bboxid]
+    } else {
+      return { text: ''}
+    }
+  })
+
+  /* data flow work */
+    // const dataValues = ref([2, 4, 7])
+    const dataValues = computed(() => {
+    return storeAI.tempNumberData[props.bboxid]
+  })
+
+  const dataLabel = computed(() => {
+    return storeAI.tempLabelData[props.bboxid]
+  })
+
+  const chartData = computed(() => {
+    return storeAI.visData[props.bboxid]
+  })
+
+  const computeList = computed(() => {
+    return storeLibrary.publicLibrary.referenceContracts.compute
+  })
+  
   /* methods */
   const bentoboxQuant = (quant) => {
     if (quant === 'n') {
@@ -355,34 +393,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
   const selectPredModel = (model) => {
   }
 
-  /* computed */
-  const mapLive = computed(() => {
-    return storeBentobox.geoMap
-  })
-
-  const graphLive = computed(() => {
-    return storeBentobox.networkGraph
-  })
-
-
-  /* data flow work */
-    // const dataValues = ref([2, 4, 7])
-    const dataValues = computed(() => {
-    return storeAI.tempNumberData[props.bboxid]
-  })
-
-  const dataLabel = computed(() => {
-    return storeAI.tempLabelData[props.bboxid]
-  })
-
-  const chartData = computed(() => {
-    return storeAI.visData[props.bboxid]
-  })
-
-  const computeList = computed(() => {
-    return storeLibrary.publicLibrary.referenceContracts.compute
-  })
-  
   /*
   * predict future
   */
@@ -428,6 +438,15 @@ import { libraryStore } from '@/stores/libraryStore.js'
     display: grid;
     grid-template-columns: 1fr;
     align-self: center;
+  }
+
+  #bentobox-feedback {
+    display: grid;
+    height: 40px;
+    border: 1px solid rgb(84, 105, 224);
+    text-align: center;
+    font-weight: bold;
+
   }
 
   #bentobox-data-live button {

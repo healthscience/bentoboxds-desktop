@@ -18,8 +18,8 @@
               <button type="button" class="constract-action" @click="actionExpBoard(entry, entry[col])">{{ entry[col] }}</button>
               <div class="display-options" v-if="addOptions === true">
                 <button class="space-add" @click="addSpace(entry)">Space</button>
-                <button class="chat-add" @click="addChat(entry)">Chat</button>
-                <spaces-list v-if="shareSelect" :bboxid="entry.id"></spaces-list>
+                <!--<button class="chat-add" @click="addChat(entry)">Chat</button>-->
+                <cuespaces-list v-if="shareSelect" :bboxid=entry.id></cuespaces-list>
               </div>
               <div class="constract-action share-action" v-if="props.privacy === 'public'"><a href="#" @click="sharePubExp(entry)">share</a></div>
               <div class="constract-action"><a class="remove-warn" href="#" @click="removeExp(entry)">remove</a></div>
@@ -37,7 +37,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import SpacesList from '@/components/bentobox/tools/share/spacesList.vue'
+import CuespacesList from '@/components/bentobox/tools/share/spacesList.vue'
 import ShareProtocol from '@/components/bentobox/tools/shareForm.vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'

@@ -4,10 +4,10 @@
       <mobile-menu></mobile-menu>
     </div>
     <div class="bentobox-browser" v-else>
-      <header>
+      <header v-if="viewMinimal === false">
         <div class="bentobox-top" id="logo-bb">
-          <RouterLink to="/"><img alt="BentoBox-DS" class="logo" src="@/assets/logo.png" width="60" height="60" /></RouterLink>
-          <div class="logo-words">BentoBox-DS</div>
+          <RouterLink to="/"><img @click="viewMode()" alt="BentoBox-DS" class="logo" src="@/assets/logo.png" width="60" height="60" /></RouterLink>
+          <div class="logo-words">BentoBoxDS</div>
         </div>
         <div class="bentobox-top">
           <div class="bb-align"></div>
@@ -43,6 +43,14 @@
           <div id="self-auth-connect" class="bb-align" @click="selfAuth">{{ storeAccount.accountMenu }}</div>
         </div>
       </header>
+      <div id="min-view-mode" v-else>
+        <header>
+          <div class="bentobox-top" id="logo-bb">
+            <RouterLink to="/"><img @click="viewMode()" alt="BentoBox-DS" class="logo" src="@/assets/logo.png" width="60" height="60" /></RouterLink>
+            <div class="logo-words">BentoBoxDS</div>
+          </div>
+        </header>
+      </div>
     </div>
     <account-box v-if="storeAccount.accountStatus === true"></account-box>
   </div>
@@ -59,7 +67,7 @@ import { accountStore } from '@/stores/accountStore.js'
 
 import { ref, onMounted } from 'vue'
 
-const storeWebsocket = useSocketStore()
+  const storeWebsocket = useSocketStore()
   const storeAccount = accountStore()
 
   let mobileSize = ref(true)
@@ -83,9 +91,18 @@ const storeWebsocket = useSocketStore()
   }
 
   /* computed */
+  const viewMinimal = computed(() => {
+    return storeAccount.viewMode
+  })
+
   const HOPFlow = computed(() => {
     return storeAccount.HOPFlow
   })
+
+  /* method */
+  const viewMode = () => {
+    storeAccount.viewMode= !storeAccount.viewMode
+  }
 
 </script>
 
@@ -112,6 +129,13 @@ header {
   grid-template-columns: 1fr;
   line-height: 1.5;
   /* max-height: 10vh; */
+}
+
+#min-view-mode {
+  position: fixed;
+  display: grid;
+  grid-template-columns: 1fr;
+  z-index: 12;
 }
 
 .bentoxbox-top {

@@ -1,7 +1,7 @@
 <template>
     <div id="spaces-list">
         <select class="select-space-save" id="space-options-save" v-model="spaceSave" @change="selectBentoSpace()">
-        <option selected="" v-for="sp in spaceList" :value="sp.key">
+        <option selected="" v-for="sp in spaceList" :value="sp">
             {{ sp.value.concept.name }}
         </option>
         </select>
@@ -43,7 +43,6 @@ const storeBentobox = bentoboxStore()
   */
   const expLibrarySummary = computed(() => {
     if (storeAI?.boxLibSummary[props.bboxid] === undefined) {
-        console.log(' firs time use of nxp i bbox')
     } else {
       if (storeAI?.boxLibSummary[props.bboxid].data === undefined) {
       return false
@@ -72,23 +71,24 @@ const storeBentobox = bentoboxStore()
       bidPair = { bboxid: props.bboxid, contract: expLibrarySummary.value.key[0]}
     }
     // check object set in list
-    if (storeAI.bentoboxList[spaceSave.value] === undefined) {
-    storeAI.bentoboxList[spaceSave.value] = []
+    if (storeAI.bentoboxList[spaceSave.value.key] === undefined) {
+    storeAI.bentoboxList[spaceSave.value.key] = []
     }
-    if (storeBentobox.locationBbox[spaceSave.value] === undefined) {
-    storeBentobox.locationBbox[spaceSave.value] = []
+    if (storeBentobox.locationBbox[spaceSave.value.key] === undefined) {
+    storeBentobox.locationBbox[spaceSave.value.key] = []
     }
-    storeAI.bentoboxList[spaceSave.value].push(bidPair)
+    storeAI.bentoboxList[spaceSave.value.key].push(bidPair)
     clickAddbentoSpace(props.bboxid)
     // add location default if not already set?
-    storeBentobox.setLocationBbox(spaceSave.value, props.bboxid)
+    storeBentobox.setLocationBbox(spaceSave.value.key, props.bboxid)
     spaceSave.value = 0
   }
 
   const clickAddbentoSpace = (boxid) => {
-    // show the space list
-    // shareSelect.value = !shareSelect.value  emit to close dataModal
-    storeAI.prepareLibrarySummary(boxid)
+    // add to space but check if first time, if so send HOPquery
+    // HOPquery?
+    // then
+    storeAI.prepareLibrarySummary(boxid, 'space-add', spaceSave.value)
   }
 
 </script>

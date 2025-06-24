@@ -182,19 +182,19 @@ import { libraryStore } from '@/stores/libraryStore.js'
   })
 
   const chatPairs = computed(() => {
-   return storeAI.historyPair[storeAI.chatAttention]
+    return storeAI.historyPair[storeAI.chatAttention]
   })
 
   const chatHistory = computed(() => {
-   return storeAI.helpchatHistory
+    return storeAI.helpchatHistory
   })
 
   const chatAsk = computed(() => {
-   return storeAI.helpchatAsk
+    return storeAI.helpchatAsk
   })
 
   const aiResponse = computed(() => {
-   return storeAI.beebeeReply
+    return storeAI.beebeeReply
   })
 
   const beginChat = computed(() => {

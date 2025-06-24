@@ -180,6 +180,8 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   }
 
   const viewCue = (cueKey, cueR) => {
+    // update time stamps
+    storeCues.updateCueTimestamp(cueKey)
     // reset any context
     storeCues.glueHistory = []
     storeCues.cueMatchMarkersLive = [] 
@@ -189,6 +191,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     // check in other context e.g. flake
     storeCues.glueRelActive = ''
     storeCues.checkCueContext()
+    // storeCues.getMostPopularItems(storeCues.cueMenuHistory)
   }
 
   const viewCueHistory = (cueKey, cueH) => {
@@ -215,13 +218,17 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
         cueContract = cue
       }  
     }
-    storeAI.liveBspace = {
-      name: cueContract.value.concept.name,
-      spaceid: storeCues.activeCue,
-      cueid: storeCues.activeCue,
-      gluedown: 'down',
-      active: false,
-      expand: true
+    // any contract?
+    let cueLive = Object.keys(cueContract)
+    if (cueLive.length > 0) {
+      storeAI.liveBspace = {
+        name: cueContract.value.concept.name,
+        spaceid: storeCues.activeCue,
+        cueid: storeCues.activeCue,
+        gluedown: 'down',
+        active: false,
+        expand: true
+      }
     }
     storeAI.chatAttention = storeCues.activeCue
     storeBentobox.spaceList.push(storeCues.activeCue)
@@ -264,6 +271,10 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   const glueType = (glueType) => {
     storeCues.cueGluePrepare(glueType)
     activeGlueType.value = glueType  // Update active glue type
+  }
+
+  const viewMarker = (mid) => {
+    // do nothing for now
   }
 
 </script>

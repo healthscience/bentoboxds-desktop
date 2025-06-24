@@ -28,9 +28,11 @@
                 {{ cd.value.computational.name }}
               </div>
             </div>
-            <div class="refname">
-              <div class="refinfo-col1">Version & Date:</div>
+            <div class="refname"><!-- {{ DateTime.fromMillis(cd?.value?.time?.createTimestamp) }}-->
+              <div class="refinfo-col1">Version</div>
               <div class="refinfo-col2">1.0 **/**/****</div>
+              <div class="refinfo-col1">Date contributed:</div>
+              <div class="create-date" v-if="cd?.value?.time?.createTimestamp !== undefined">{{ DateTime.fromMillis(cd?.value?.time?.createTimestamp).toFormat('yyyy-MM-dd') }} </div>
             </div>
           </div>
           <div class="refcontract-summary">
@@ -94,6 +96,7 @@
           </div>
           <div class="refcontract-summary">
             <div> {{ cd.key }} </div>
+             <button @click="deleteRefC(cd.key, viewType)">delete</button>
           </div>
         </template>
         <template v-slot:body>
@@ -203,6 +206,7 @@
           </div>
           <div class="refcontract-summary">
             <div> {{ cd.key }} </div>
+            <button @click="deleteRefC(cd.key, viewType)">delete</button>
           </div>
         </template>
         <template v-slot:body>
@@ -225,6 +229,7 @@
               <div v-else class="refinfo-col2">
                 {{ cd.value.computational.name }}
               </div>
+              <button @click="deleteRefC(cd.key, viewType)">delete</button>
             </div>
             <div class="refname">
               <div class="refinfo-col1">Version & Date:</div>
@@ -265,6 +270,7 @@ import VisualiseView from '@/components/library/contracts/viewer/visualiseViewer
 // import BoardView from './boardViewer.vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { ref, computed } from 'vue'
+import { DateTime } from 'luxon'
 
   const storeLibrary = libraryStore()
 
@@ -320,6 +326,10 @@ import { ref, computed } from 'vue'
     } else {
       window.open(url, '_blank', 'noopener noreferrer')
     }
+  }
+
+  const deleteRefC =  (contID, type) => {
+    storeLibrary.removeRefContract(contID, 'public', type)
   }
 
 </script>

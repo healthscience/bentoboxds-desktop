@@ -11,6 +11,7 @@
 */
 // import EventEmitter from 'events'
 import hashObject from 'object-hash'
+import { DateTime, Interval } from 'luxon'
 
 class ChatUtility {
 
@@ -178,6 +179,33 @@ class ChatUtility {
     newPair.reply = bbReply
     return newPair
   }
+
+  /**
+  * 
+  * @method prepareChatMenu
+  *
+  */
+  prepareChatMenu = function (chatData) {
+    let menuList = []
+    if (chatData.length !== 0) {
+      for (let chat of chatData) {
+        menuList.push(chat.value.chat)
+      }
+    } else {
+      // first time
+      let firstChat = {}
+      firstChat.name = "latest"
+      firstChat.chatid = "0123456543210"
+      firstChat.active = true
+      firstChat.createTimestamp = DateTime.now().toMillis()
+      firstChat.lastTimestamp = DateTime.now().toMillis()
+      firstChat.useCount = 0
+      firstChat.favoriteCount = 0 
+      menuList.push(firstChat)
+    }
+    return menuList
+  }
+
 
 }
 

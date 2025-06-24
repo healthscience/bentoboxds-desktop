@@ -16,6 +16,7 @@ export const accountStore = defineStore('account', {
     storeBentoBox: bentoboxStore(),
     utilPeers: new PeersUtility(),
     utilSpacecontent: new SpaceUtility(),
+    viewMode: false,
     accountMenu: 'Sign-in',
     accountStatus: false,
     peerauth: false,

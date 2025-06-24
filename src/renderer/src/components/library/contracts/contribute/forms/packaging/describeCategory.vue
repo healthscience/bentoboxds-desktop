@@ -1,19 +1,15 @@
 <template>
   <div id="describe-category">
     Category
-    <label for="package-add-category">Select datatype:</label>
+    <label for="package-add-category">Select datatype: </label>
     <select class="select-categor-id" id="category-mapping-build" @change="categoryDTSelect" v-model="storeLibrary.newPackagingForm.category[props.catid].category">
       <option value="none" selected="">Please select</option>
-      <div v-for="dtl in storeLibrary?.publicLibrary?.referenceContracts?.datatype" :key="dtl.key" v-bind:value="dtl.key">
-        <option value=dtl.key>{{ dtl.value.concept.name }}</option>
-      </div>
+      <option v-for="dtl in referenceContracts" :key="dtl.key" v-bind:value="dtl.key" value=dtl.key>{{ dtl.value.concept.name }}</option>
     </select>
     <label for="package-add-category">Select column:</label>
     <select class="select-categor-id" id="category-mapping-build" @change="categorycolumnSelect" v-model="storeLibrary.newPackagingForm.category[props.catid].column">
       <option value="none" selected="">Select column</option>
-      <div v-for="dtl in storeLibrary?.newDatafile?.columns">
-        <option value=dtl.key>{{ dtl.name }}</option>
-      </div>
+      <option v-for="dtl in storeLibrary?.newDatafile?.columns" value=dtl.key>{{ dtl.name }}</option>
     </select>
     <label for="add-category-rule">Rule/code:</label>
     <input type="text"  id="mapping-rule-code" placeholder="" required @change="categoryruleSave" @paste="categoryruleSave" @keyup="categoryruleSave" v-model="storeLibrary.newPackagingForm.category[props.catid].rule" />
@@ -28,6 +24,11 @@ const storeLibrary = libraryStore()
 
 const props = defineProps({
     catid: Number
+  })
+
+  /* computed */
+  const referenceContracts = computed(() => {
+    return storeLibrary?.publicLibrary?.referenceContracts?.datatype
   })
 
   /* methods */

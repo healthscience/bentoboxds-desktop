@@ -2,14 +2,15 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { libraryStore } from '@/stores/libraryStore.js'
-import { cuesStore } from "@/stores/cuesStore.js"
+import { cuesStore } from '@/stores/cuesStore.js'
+import ChatUtilty from '@/stores/hopUtility/chatUtility.js'
 
 export const bentoboxStore = defineStore('bentostore', {
   state: () => ({
     storeLibrary: libraryStore(),
     storeAI: aiInterfaceStore(),
     storeCues: cuesStore(),
-    historyActive: false,
+    liveChatUtil: new ChatUtilty(),
     chatList: [
       {
         name:'latest', chatid:'0123456543210', active: true
@@ -95,149 +96,11 @@ export const bentoboxStore = defineStore('bentostore', {
       // prepare chat menu and pairs
       if (message.reftype.trim() === 'chat-history') {
         if (message.action.trim() === 'start') {
-          // set the saved chats for peer
+          // prepare chat dialogues
           let chatMenu = []
-          for (let cm of message.data) {
-            if(cm?.value?.chat) {
-              chatMenu.push(cm.value.chat)
-            }
-            // build datapair
-            if (cm?.value?.pair) {
-              // is setting for chat or space?
-              if ('space' in cm.value !== true ) {
-                // chat dialogue
-                this.storeAI.historyPair[cm.key] = cm.value.pair
-                // toolbars
-                this.boxtoolsShow[cm.key] = false
-                this.bbToolbarOpendata[cm.key] = false
-                this.openDataSettings[cm.key] = {}
-                this.openDataControls[cm.key] = {}
-                // loop over boxids for this chat
-                let pairCount = 0
-                for (let pair of cm?.value?.pair) {
-                  this.storeAI.beebeeChatLog[pair.reply.bbid] = true
-                  if (cm.value?.visData) {
-                    let hopDataChart = {}
-                    hopDataChart.datasets = [ { data: cm.value?.visData[pairCount]?.datasets[0]?.data } ]
-                    hopDataChart.labels = cm.value?.visData[pairCount]?.labels
-                    this.storeAI.visData[pair.reply.bbid] = hopDataChart
-                    if (cm.value?.hop !== undefined) {
-                      if (cm.value.hop.length === 0) {
-                        console.log('no HOP data')
-                      } else {
-                        let summaryHOP = cm.value?.hop[0]
-                        summaryHOP.bbid = pair.reply.bbid
-                        this.storeAI.hopSummary.push({ HOPid: pair.reply.bbid, summary: summaryHOP })
-                      }
-                    }
-                  }
-                  // set box detail setings
-                  this.boxToolStatus[pair.reply.bbid] = {}
-                  let boxSettings = 
-                  {
-                    opendatatools: { active: false },
-                    boxtoolshow: { active: false },
-                    vistoolsstatus: { active: false },
-                    scalezoom: 1,
-                    location: {},
-                    chartstyle: 'line'
-                  }
-                  this.boxToolStatus[pair.reply.bbid] = boxSettings
-                  this.devicesettings[pair.reply.bbid] = {}
-                  this.devicesettings[pair.reply.bbid] = this.settings
-                  this.chartStyle[pair.reply.bbid] = 'line'
-                  pairCount++
-                }
-              } else {
-                // console.log('space  no longer needed')
-                // BENTOSPACES setup on start
-                // add to menu list  no duplicate and TODO set one as active
-                if (this.spaceList[0].cueid !== cm.value.space.cueid) {
-                  this.spaceList.push(cm.value.space)
-                }
-                this.storeAI.liveBspace = cm.value.space
-                // prepare the bentobox location for space
-                if (cm.value.bboxlist.length > 0) {
-                  this.storeAI.bentoboxList[cm.value.space.cueid] = cm.value.bboxlist
-                  // set the default or save location of box in space
-                  for (let bbox of cm.value.bboxlist) {
-                    // setup default tempate i.e. prepare for adding to space
-                    const tW = 840
-                    const tH = 440
-                    let updateBox = {}
-                    updateBox.tW = tW
-                    updateBox.tH = tH
-                    updateBox.handlers = ["r", "rb", "b", "lb", "l", "lt", "t", "rt"]
-                    updateBox.left = 90 // ref(`calc(2% - ${tW / 2}px)`)
-                    updateBox.top = 90 // ref(`calc(8% - ${tH / 2}px)`)
-                    // updateBox.height = 'fit-content'
-                    // updateBox.width = 'fit-content'
-                    updateBox.maxW = '100%'
-                    updateBox.maxH = '100%'
-                    updateBox.minW = '20vw'
-                    updateBox.minH = '20vh'
-                    updateBox.fit = false
-                    updateBox.event = ''
-                    updateBox.dragSelector = '.drag-container-1, .drag-container-2'
-                    // check if location holder is already prepared?
-                    if (this.locationBbox[cm.value.space.cueid] === undefined) {
-                      this.locationBbox[cm.value.space.cueid] = {}
-                    }
-                    this.locationBbox[cm.value.space.cueid][bbox.bboxid] = updateBox
-                  }
-                } else {
-                  this.storeAI.bentoboxList[cm.value.space.cueid] = {}
-                }
-                // prepare the mediabox location for space
-                /* if (cm.value?.mboxlist) {
-                  this.locationMbox[cm.value.space.cueid] = []
-                  // turn object into array of keys
-                  let mediaboxKeys = Object.keys(cm.value.mboxlist)
-                  let mBoxList = []
-                  for (let mbkey of mediaboxKeys) {
-                    mBoxList.push({ tag: 'video', id: mbkey })
-                    // this.locationMbox[cm.value.space.cueid].push({ tag: 'video', id: mbkey })
-                  }
-                  this.videoMedia[cm.value.space.cueid] = mBoxList
-                  this.locationMbox[cm.value.space.cueid] = cm.value.mboxlist
-                }
-                */
-                // check for BentoBox location spaces info. already saved
-                if (cm?.value?.location) {
-                  // add to menu list
-                  // this.spaceList.push(cm.value.space)
-                  // set bbox settings
-                  this.storeAI.bentoboxList[cm.value.space.cueid] = cm?.value?.bboxlist
-                  // if location space not set set it
-                  if (cm.value.space.cueid in this.locationBbox) {
-                  } else {
-                    // this.locationBbox[cm.value.space.cueid] = {}
-                  }
-                  if (cm.value.bboxlist !== undefined) {
-                    if (cm.value.bboxlist.length > 0) {
-                      for (let boxsp of cm?.value.bboxlist) {
-                        for (let cord of cm?.value.location) {
-                          if (cord.bboxid === boxsp.bboxid) {
-                            if (cord.location !== undefined && Object.keys(cord.location).length > 0) {
-                              this.locationBbox[cm.value.space.cueid][boxsp.bboxid] = cord.location
-                            } else {
-                              // this.locationBbox[cm.value.space.cueid][boxsp.bboxid] = {}
-                            }
-                          }
-                        } 
-                      }
-                    }
-                  }
-                } else {
-                  console.log('no locat d oroords')
-                }
-
-              }
-            }
-          }
-          // back to  chat logic
-          if (chatMenu.length > 0) {
-            // only one set as active true  TEMP design to only set one on close
+          if (message.data.length !== 0) {
+            chatMenu = this.liveChatUtil.prepareChatMenu(message.data)
+            this.storeAI.chatAttention = chatMenu[0].chatid
             let setOneActive = []
             let chatAct = 0
             for (let chat of chatMenu) {
@@ -250,9 +113,14 @@ export const bentoboxStore = defineStore('bentostore', {
                 chat.active = false
                 setOneActive.push(chat)
               }
-            }
+              this.storeAI.setupChatHistory(chat)
+            } 
             this.chatList = setOneActive
+            // what items was last uses ie time or could be favourite ie most frequent use
+            this.storeAI.chatAttention = this.chatList[0].chatid
           } else {
+            let firstChatmenu = this.liveChatUtil.prepareChatMenu([])
+            this.chatList = firstChatmenu
             // save latest first time only
             let saveData = {}
             saveData.pair = []
@@ -267,15 +135,11 @@ export const bentoboxStore = defineStore('bentostore', {
             saveBentoBoxsetting.data = saveData
             saveBentoBoxsetting.bbid = ''
             this.storeAI.sendMessageHOP(saveBentoBoxsetting)
+            this.storeAI.chatAttention = this.chatList[0].chatid
+            this.storeAI.setupChatHistory(this.chatList[0])
           }
           // set the chat list live
           this.storeAI.historyList = true
-          this.storeAI.chatAttention = this.chatList[0].chatid
-          // if no chats offer up default chat
-          this.storeAI.setupChatHistory(this.chatList[0])
-          this.historyActive = true
-        } else if (message.action.trim() === 'save') {
-          // console.log('saved feedback')
         }
       } else if (message.reftype.trim() === 'agent-history') {
         this.storeAI.agentModelDefault = message.data
@@ -313,13 +177,17 @@ export const bentoboxStore = defineStore('bentostore', {
         if (this.storeLibrary.publicLibrary.referenceContracts !== undefined) {
           this.libraryCheck = true
           // expand cues via library
-          // this.storeLibrary.preparePublicCues(message.data)
           let updateCueExpand = []
           for (let cueContract of message.data) {
             let expandDTCue = this.storeLibrary.utilLibrary.expandCuesDTSingle(cueContract, this.storeLibrary.publicLibrary.referenceContracts)
             updateCueExpand.push(expandDTCue)
           }
           this.storeCues.cuesList = updateCueExpand
+          // filter for most current used time or frequency
+          // freq.
+          this.storeCues.getMostLastusedItems(this.storeCues.cuesList)
+          // time
+          // this.storeCues.getMostPopularItems(this.storeCues.cuesList)
         } else {
           this.storeCues.waitingCues = message.data
         }
@@ -333,6 +201,7 @@ export const bentoboxStore = defineStore('bentostore', {
         // this.storeCues.
       } else if (message.reftype.trim() === 'product-history') {
         this.prepareProductSpace(message.data)
+      } else if (message.reftype.trim() === 'bentobox-history') {
       }
     },
     prepareMediaSpace (mData) {

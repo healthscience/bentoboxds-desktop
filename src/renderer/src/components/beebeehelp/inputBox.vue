@@ -49,9 +49,6 @@ import { ref, computed, watch } from 'vue'
    })
 
    let agentsActive = ref(false)
-
-
-
   // For watching the entire object
   /*
   watch(
@@ -73,9 +70,6 @@ import { ref, computed, watch } from 'vue'
     },
     { immediate: true }
   ) */
-
-
-
 
   /* computed */
   const beebeeAIStatus = computed(() => {

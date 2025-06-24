@@ -19,7 +19,7 @@
       </template>
       <template #body>
         <div id="focus-bentobox">
-          <bento-box :bboxid="props.bboxid" :bbwidth="'90vw'"></bento-box>
+          <bento-box :bboxid="props.bboxid" :contractid="props.contractid" :bbwidth="'90vw'"></bento-box>
         </div>
       </template>
       <template #footer>
@@ -39,7 +39,8 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   const storeBentobox = bentoboxStore()
 
   const props = defineProps({
-    bboxid: String
+    bboxid: String,
+    contractid: String
   })
 
   let date = ref('')

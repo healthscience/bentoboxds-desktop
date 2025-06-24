@@ -69,7 +69,8 @@ export const libraryStore = defineStore('librarystore', {
       description: '',
       dtprefix: '',
       code: '',
-      hash: ''
+      hash: '',
+      mode: ''
     },
     newDatafile: {
       columns: [],
@@ -231,8 +232,8 @@ export const libraryStore = defineStore('librarystore', {
       messageHOP.reftype = message.data.type
       messageHOP.privacy = 'private'
       messageHOP.task = 'GET' */
-      // messageHOP.data = { query: 'devices', db: storeLibrary.describeSource.path, table: tableChoice.value.name }
-      //storeLibrary.sendMessage(messageHOP)
+      // messageHOP.data = { query: 'devices', db: this.describeSource.path, table: tableChoice.value.name }
+      //this.sendMessage(messageHOP)
     },
     confrimAddPublicLibrary (message) {
       let messageHOP = {}
@@ -364,6 +365,11 @@ export const libraryStore = defineStore('librarystore', {
           }
           this.storeCues.cuesList = updateCueExpand
           // this.storeCues.waitingCues = []
+          // filter for most current used time or frequency
+          // last used
+          this.storeCues.getMostLastusedItems(this.storeCues.cuesList)
+          // frequency
+          // this.storeCues.getMostPopularItems(this.storeCues.cuesList)
         }
       } else if (message.action === 'cue-contract') {
         if (message.task === 'save-complete') {
@@ -406,7 +412,12 @@ export const libraryStore = defineStore('librarystore', {
         this.storeCues.mediaMatch[mediaContract.value.concept.cueid].push(mediaContract)
       } else if (message.action === 'marker-contract') {
         let markerContract = message.data.data
-        this.storeCues.markerMatch[markerContract.value.concept.cueid].push(markerContract)
+        if (this.storeCues.markerMatch.length > 0) {
+          this.storeCues.markerMatch[markerContract.value.concept.cueid].push(markerContract)
+        } else {
+          // ask for marker contracts
+          this.sendMarkerMessage()
+        }
       } else if (message.action === 'research-contract') {
         // add to research list
         let researchContract = message.data.data
@@ -426,7 +437,7 @@ export const libraryStore = defineStore('librarystore', {
         newPair.question = questionStart
         newPair.reply = message.data
         // check if library is start?
-        if (this.storeAI.chatAttention.length !== 0) {
+        if (this.storeAI.chatAttention?.length !== 0) {
           this.storeAI.historyPair[this.storeAI.chatAttention].push(newPair)
         } else {
           this.storeAI.historyPair['library-start'] = []
@@ -481,6 +492,22 @@ export const libraryStore = defineStore('librarystore', {
         this.peerLedger = message.data
       }
     },
+    prepareCueMenuHistory (cueID) {
+      // match to cueContract
+      let cueIDcheck = typeof cueID
+      if (cueIDcheck === 'object') {
+        cueID = cueID.key
+      }
+      let cueContract = {}
+      for (let cue of this.storeCues.cuesList) {
+        if (cue.key === cueID) {
+          cueContract = cue
+        }  
+      }
+      let expandDTCue = this.utilLibrary.expandCuesDTSingle(cueContract, this.publicLibrary.referenceContracts)
+      // add to cues list
+      this.storeCues.cuesHistoryList.push(expandDTCue)
+    },
     prepareJoinNXPMessage (genContract, setControls, settingsInfo) {
       // let updateJoinSettings = this.utilLibrary.updateSettings(genContract, settings)
       setControls.opendata = settingsInfo
@@ -499,7 +526,6 @@ export const libraryStore = defineStore('librarystore', {
     },
     prepareLibrarySpaceMessage (contract, action) {
       // make bbid the hash of the private contract?
-
     },
     prepareLibraryChatMessage (contract, action) {
       // create a bbid
@@ -545,15 +571,20 @@ export const libraryStore = defineStore('librarystore', {
         // inform beebee feedback to try now library has loaded
       } else {
         let contractQuery = this.utilLibrary.matchNXPcontract(contractID, this.peerLibraryNXP)
-        let libMessageout = {}
-        libMessageout.type = 'library'
-        libMessageout.action = 'contracts'
-        libMessageout.reftype = 'experiment'
-        libMessageout.privacy = 'private'
-        libMessageout.task = 'assemble'
-        libMessageout.data = contractQuery
-        libMessageout.bbid = bbid
-        this.sendSocket.send_message(libMessageout)
+        let checkKeys = Object.keys(contractQuery)
+        if (checkKeys.length > 0) {
+          let libMessageout = {}
+          libMessageout.type = 'library'
+          libMessageout.action = 'contracts'
+          libMessageout.reftype = 'experiment'
+          libMessageout.privacy = 'private'
+          libMessageout.task = 'assemble'
+          libMessageout.data = contractQuery
+          libMessageout.bbid = bbid
+          this.sendSocket.send_message(libMessageout)
+        } else {
+          // provide feedback to peer
+        }
       }
     },
     prepareGenesisModContracts (message) {
@@ -582,7 +613,8 @@ export const libraryStore = defineStore('librarystore', {
       this.listPublicNXP = this.utilLibrary.preparePublicNXPlist(this.publicLibrary.referenceContracts)
     },
     updateHOPqueryContracts (HOPq) {
-      // let hashQuestion = hashObject(this.inputAskHistory[this.qcount])
+      // set feedback peer bentobox HOPquery
+      this.storeAI.bboxFeedback[HOPq.bbid] = { text: 'HOPquery in progress'}
       let aiMessageout = {}
       aiMessageout.type = 'library'
       aiMessageout.reftype = 'ignore'
@@ -606,6 +638,25 @@ export const libraryStore = defineStore('librarystore', {
       refContract.reftype = privacy
       refContract.task = 'DEL'
       refContract.data = data
+      this.sendSocket.send_message(refContract)
+    },
+    removeRefContract (key, privacy, type) {
+      const refContract = {}
+      refContract.type = 'library'
+      refContract.action = 'contracts'
+      refContract.reftype = type
+      refContract.task = 'DEL'
+      refContract.privacy = 'public'
+      refContract.data = key
+      this.sendSocket.send_message(refContract)
+    },
+    sendMarkerMessage () {
+      const refContract = {}
+      refContract.type = 'library'
+      refContract.action = 'marker'
+      refContract.privacy = 'public'
+      refContract.reftype = 'start-marker'
+      refContract.task = 'GET'
       this.sendSocket.send_message(refContract)
     },
     sendMessage (hopMessage) {
