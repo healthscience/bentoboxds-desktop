@@ -1,12 +1,30 @@
 'use strict'
 import log from 'electron-log'
+// import fs from 'fs-extra'
+import fs from 'fs'
 import path from 'path'
+import os from 'os'
 
 let currentLocation = __dirname
 let removeLocation = currentLocation.slice(0, -18)
 let tempLocation = removeLocation //  + 'resources'
 
-import { fork } from 'child_process';
+// check if hop models has been setup i.e. first time use
+let modelsHopPath = os.homedir() + '/' + '.test-models-hop'
+if (!fs.existsSync(modelsHopPath)) {
+  let modelsInstall = path.join(tempLocation, './models-hop')
+  fs.mkdirSync(modelsHopPath)
+  // now copy the models directory
+  fs.cp(modelsInstall, modelsHopPath, { recursive: true }, (err) => {
+    if (err) {
+      console.error(err)
+    }
+  })
+} else {
+  console.log('.models-hop folder already exists')
+}
+
+import { fork } from 'child_process'
 log.info(tempLocation)
 log.info('after first------')
 // const child = spawn('node', [(path.join(tempLocation, '/hop/src/index.js'))])

@@ -11,8 +11,15 @@ files:
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
 extraResources: 
-  from: hop/
-  to: ./hop
+  [
+    { 
+      from: 'hop/',
+      to: './hop' },
+    {
+      from: 'models-hop/',
+      to: './models-hop'
+    }
+  ]
 asarUnpack:
   - resources/**
 win:
