@@ -29,25 +29,14 @@ npm run build
 
 ### Run Unit Tests with [Vitest](https://vitest.dev/)
 
+A HOP instance will be start but that hop folder needs to be at same level of directory as bentoboxds. NB. Also some test assume data setup in HOP.
+
 ```sh
-npm run test:unit
+npm run test:headless   or npm run test:browser
 ```
 
 ### Run End-to-End Tests with [Cypress](https://www.cypress.io/)  also component testing (note turn off BasicSsl() in vite.config.js)
 
-```sh
-npm run test:e2e:dev
-```
-
-This runs the end-to-end tests against the Vite development server.
-It is much faster than the production build.
-
-But it's still recommended to test the production build with `test:e2e` before deploying (e.g. in CI environments):
-
-```sh
-npm run build
-npm run test:e2e
-```
 
 ### Lint with [ESLint](https://eslint.org/)
 
