@@ -1,19 +1,34 @@
-import { join } from 'path';
-import { homedir } from 'os';
+import os from 'os'
+import path from 'path';
 
-const avgPath = join(homedir(), '.hop-models', 'statistics', 'average.js');
-const sumPath = join(homedir(), '.hop-models', 'statistics', 'sum.js');
-const linregPath = join(homedir(), '.hop-models', 'statistics', 'linear-regression.js');
-const autoregPath = join(homedir(), '.hop-models', 'statistics', 'auto-regression.js');
+// home folder independent of OS
+let homedir = os.homedir();
+let splitLast = homedir.split(`\\`)
+homedir = splitLast[2]
 
-const { default: AverageModel } = await import(avgPath);
-const { default: SumModel } = await import(sumPath);
-const { default: LinearRegression } = await import(linregPath);
-const { default: AutoRegression } = await import(autoregPath);
+let exports = {};
 
-export {
-  AverageModel,
-  SumModel,
-  LinearRegression,
-  AutoRegression
-};
+if (os.platform() === 'win32') {
+  console.log('window path');
+  const avgPath = '/Users/' + homedir +'/hop-models/statistics/average.js';
+  const sumPath = '/Users/' + homedir +'/hop-models/statistics/sum.js';
+  const linregPath = '/Users/' + homedir +'/hop-models/statistics/linear-regression.js';
+  const autoregPath = '/Users/' + homedir +'/hop-models/statistics/auto-regression.js';
+
+  exports = {
+    AverageModel: (await import(avgPath)).default,
+    SumModel: (await import(sumPath)).default,
+    LinearRegression: (await import(linregPath)).default,
+    AutoRegression: (await import(autoregPath)).default
+  };
+} else {
+  console.log('non windows');
+  exports = {
+    AverageModel: (await import('./statistics/average.js')).default,
+    SumModel: (await import('./statistics/sum.js')).default,
+    LinearRegression: (await import('./statistics/linear-regression.js')).default,
+    AutoRegression: (await import('./statistics/auto-regression.js')).default
+  };
+}
+
+export default exports;

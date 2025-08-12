@@ -1,3 +1,4 @@
+import os from 'os'
 import { createHash } from 'crypto-browserify';
 
 export default class BaseModel {
@@ -25,7 +26,13 @@ export default class BaseModel {
 
   async initWasm() {
     if (!this.wasmWrap) {
-      const wasmWrapper = await import('../wasm/wasm-wrapper.js');
+      let wasmWrapper = {};
+      if (os.platform() === 'win32') {
+        let pathWrap = path.join(os.homedir(), 'hop-models', 'wasm', 'wasm-wrapper.js');
+        wasmWrapper = await import(pathWrap);
+      } else {
+        wasmWrapper = await import('../wasm/wasm-wrapper.js');
+      }
       this.wasmWrap = wasmWrapper.default;
     }
     return this.wasmWrap;
