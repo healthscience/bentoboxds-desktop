@@ -1,8 +1,8 @@
 <template>
   <Teleport to="body">
     <modal-Diary :show="bentoDiaryStatus" @close="closeBentoDiary">
-      <div id="simpleblock" ref="simpleblock">ddfdf</div>
-      Smart diary please
+      <div id="simpleblock" ref="simpleblock"></div>
+        Old world calendar
       <div id="ecdiary" ref="ecdiary" class="col">diaryplease</div>
       <template #header>
         <div id="Diary-modal-header">
@@ -14,7 +14,7 @@
           >
             Close
           </button>
-          <h3>BentoDiary COMING SOON</h3>
+          <h3>Digital Solar Time</h3>
           <div id="return-modal-close" @click="closeBentoDiary">return</div>
         </div>
       </template>
@@ -42,6 +42,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
 
   const bentoDiaryStatus = computed(() => {
+    console.log('bentoDiaryStatus', storeAI.bentodiaryState)
     return storeAI.bentodiaryState
   })
 

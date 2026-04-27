@@ -47,6 +47,7 @@
         </div>
         <datastore-list v-if="activeTab === 'datastores'"></datastore-list>
         <aiagents-list v-if="activeTab === 'aiagents'"></aiagents-list>
+        <sovereign-keys v-if="activeTab === 'sovereign'"></sovereign-keys>
         <div class="list-space" id="wallet-list" v-if="activeTab === 'sovereign'">
         </div>
       </div>
@@ -59,6 +60,7 @@ import { ref } from 'vue'
 import PeerList from '@/components/toolbars/account/tabs/peerList.vue'
 import DatastoreList from '@/components/toolbars/account/tabs/datastoreList.vue'
 import AiagentsList from '@/components/toolbars/account/tabs/aiagentsList.vue'
+import SovereignKeys from '@/components/toolbars/account/tabs/sovereignKeys.vue'
 import { accountStore } from '@/stores/accountStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 

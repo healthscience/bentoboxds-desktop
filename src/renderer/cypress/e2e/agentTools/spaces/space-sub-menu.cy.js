@@ -13,23 +13,37 @@ describe('Space meun select and submenu tests', () => {
 
   it('click spaces button, sub menu with three sections available', () => {
     // Step 1: Verify the base layout
-    cy.get('#app').find('.bentobox-main-nav').should('be.visible');
-    cy.get('.bentobox-main-nav').find('.bentobox-browser').should('be.visible');
+    cy.get('#beebee-agent').should('be.visible');
     // Step 2: Click on the Cues button
-    cy.get('#space-button-menu').should('be.visible').click();
-    cy.wait(3000)
-    // Step 3: Verify that the Cues modal is presented
-    cy.get('#space-menu').should('be.visible');
-    cy.get('#cues-history').should('exist');
-    cy.get('#cues-holder').should('exist');
+    cy.get('#space-button-menu')
+      .should('be.visible')
+      .click();
+    // cy.wait(1000)
+    // Wait for the store state to update and the button to become active
+    cy.get('#active-space-history').should('be.visible');
+    cy.get('#space-menu').should('exist')
+    // Store the cues holder element reference
+        // Verify that the space menu is visible
+    cy.get('#cues-history').should('be.visible')
     cy.get('#marker-holder').should('exist');
-    cy.get('#cues-holder').click()
-    cy.wait(3000)
+    cy.get('#cues-holder').should('be.visible').as('cuesHolder');
+    // Click the cues holder and wait for the cues list to appear
+    cy.get('#cues-holder').click();
+    cy.wait(1000)
+    cy.get('#show-cues').should('be.visible');
     cy.get('.cues-list').should('have.length.greaterThan', 0);
     cy.get('.cues-list').first().find('.flat-history').click()
-    cy.wait(2000)
+    cy.wait(1000)
     cy.get('.modal-mask').should('be.visible');
-      cy.get('.modal-container').should('be.visible');
+    cy.get('.modal-container').should('be.visible');
+    // close the modal
+    cy.get('.modal-default-button').click();
+    cy.wait(1000)
+    cy.get('.modal-mask').should('not.exist');
+    // click cues to close
+    cy.get('#cues-holder').click();
+    cy.wait(1000)
+    cy.get('#show-cues').should('not.exist');
   });
 
   after(() => {

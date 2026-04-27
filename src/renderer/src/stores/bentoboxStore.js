@@ -13,7 +13,7 @@ export const bentoboxStore = defineStore('bentostore', {
     liveChatUtil: new ChatUtilty(),
     chatList: [
       {
-        name:'latest', chatid:'0123456543210', active: true
+        name:'latest', chatid:'chat', active: true
       }
     ],
     spaceList: [
@@ -22,7 +22,10 @@ export const bentoboxStore = defineStore('bentostore', {
       }
     ],
     chartStyle: {},
+    bentoboxData: {},
     bbToolbarOpendata: {},
+    beebeeChatLog: {},
+    expandBentobox: {},
     boxToolStatus: {},
     /* {
       opendatatools: { active: false },
@@ -31,6 +34,7 @@ export const bentoboxStore = defineStore('bentostore', {
       scalezoom: 1,
       location: {}
     } */
+    liveDateTime: {},
     networkGraph: false,
     geoMap: false,
     devicesettings: {},
@@ -94,54 +98,7 @@ export const bentoboxStore = defineStore('bentostore', {
     },
     processReply (message) {
       // prepare chat menu and pairs
-      if (message.reftype.trim() === 'chat-history') {
-        if (message.action.trim() === 'start') {
-          // prepare chat dialogues
-          let chatMenu = []
-          if (message.data.length !== 0) {
-            chatMenu = this.liveChatUtil.prepareChatMenu(message.data)
-            this.storeAI.chatAttention = chatMenu[0].chatid
-            let setOneActive = []
-            let chatAct = 0
-            for (let chat of chatMenu) {
-              if (chat.active === true && chatAct === 0) {
-                chatAct++
-                setOneActive.push(chat)
-                // set attention of chat
-                this.storeAI.chatAttention = chat.chatid
-              } else {
-                chat.active = false
-                setOneActive.push(chat)
-              }
-              this.storeAI.setupChatHistory(chat)
-            } 
-            this.chatList = setOneActive
-            // what items was last uses ie time or could be favourite ie most frequent use
-            this.storeAI.chatAttention = this.chatList[0].chatid
-          } else {
-            let firstChatmenu = this.liveChatUtil.prepareChatMenu([])
-            this.chatList = firstChatmenu
-            // save latest first time only
-            let saveData = {}
-            saveData.pair = []
-            saveData.chat = this.chatList[0]
-            saveData.visData = []
-            saveData.hop = []
-            let saveBentoBoxsetting = {}
-            saveBentoBoxsetting.type = 'bentobox'
-            saveBentoBoxsetting.reftype = 'chat-history'
-            saveBentoBoxsetting.action = 'save'
-            saveBentoBoxsetting.task = 'save'
-            saveBentoBoxsetting.data = saveData
-            saveBentoBoxsetting.bbid = ''
-            this.storeAI.sendMessageHOP(saveBentoBoxsetting)
-            this.storeAI.chatAttention = this.chatList[0].chatid
-            this.storeAI.setupChatHistory(this.chatList[0])
-          }
-          // set the chat list live
-          this.storeAI.historyList = true
-        }
-      } else if (message.reftype.trim() === 'agent-history') {
+      if (message.reftype.trim() === 'agent-history') {
         this.storeAI.agentModelDefault = message.data
         // look for onstart model and ass beebee to start via HOP
         let onstartModel = {}
@@ -188,6 +145,24 @@ export const bentoboxStore = defineStore('bentostore', {
           this.storeCues.getMostLastusedItems(this.storeCues.cuesList)
           // time
           // this.storeCues.getMostPopularItems(this.storeCues.cuesList)
+          // Add cue space chats to chatList
+          for (let cue of updateCueExpand) {
+            const cueId = cue.key
+            const name = cue.value.concept.name
+            const existingIndex = this.chatList.findIndex(c => c.chatid === cueId)
+            if (existingIndex === -1) {
+              this.chatList.push({
+                name,
+                chatid: cueId,
+                context: 'chatspace',
+                active: false,
+                createTimestamp: cue.value.computational?.timestamp || Date.now(),
+                lastTimestamp: cue.value.computational?.timestamp || Date.now(),
+                useCount: 0,
+                favoriteCount: 0
+              })
+            }
+          }
         } else {
           this.storeCues.waitingCues = message.data
         }
@@ -201,6 +176,18 @@ export const bentoboxStore = defineStore('bentostore', {
         // this.storeCues.
       } else if (message.reftype.trim() === 'product-history') {
         this.prepareProductSpace(message.data)
+      } else if (message.reftype.trim() === 'chat-history') {
+        // Load saved chat into chatList
+        const savedChat = message.data
+        if (savedChat && savedChat.chatid) {
+          const existingIndex = this.chatList.findIndex(c => c.chatid === savedChat.chatid)
+          if (existingIndex === -1) {
+            this.chatList.push(savedChat)
+          } else {
+            // Update existing
+            this.chatList[existingIndex] = savedChat
+          }
+        }
       } else if (message.reftype.trim() === 'bentobox-history') {
       }
     },

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+// import init, { SovereignKeypair } from '@/stores/hopUtility/hop_crypto.js'
 import { useSocketStore } from '@/stores/socket.js'
 import { cuesStore } from "@/stores/cuesStore.js"
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
@@ -16,9 +17,12 @@ export const accountStore = defineStore('account', {
     storeBentoBox: bentoboxStore(),
     utilPeers: new PeersUtility(),
     utilSpacecontent: new SpaceUtility(),
+    anchorStatus: false,
+    HOPlock: false,
     viewMode: false,
     accountMenu: 'Sign-in',
     accountStatus: false,
+    orbitLive: false,
     peerauth: false,
     socketLive: false,
     HOPFlow: false,
@@ -31,22 +35,118 @@ export const accountStore = defineStore('account', {
     beebeeConnectFeedback: '',
     publickeyDrive: [],
     publicKeysList: [],
-    sharePubkey: '',
-    shareBoardNXP: {}
+    sharePubkey: { key: '' },
+    shareBoardNXP: {},
+    sovereignId: null,
+    genesisSignature: null,
+    genesisIntent: null,
+    incomingWasmBuffer: null
   }),
   actions: {
-    processReply (received) {
-      if (received.action === 'hop-verify') {
+    sendMessageHOP (message) {
+      this.sendSocket.init_chat()
+      this.sendSocket.sendMessage(message)
+    },
+    completeHandshake (data) {
+      // If we have the WASM tools loaded, we sign here
+      // For now, we'll emit the intent back to HOP to handle the heavy lifting
+      // or wait for the WASM module to be initialized in the browser context
+      let authMessage = {
+        type: 'hop-auth',
+        reftype: 'genesis-handshake',
+        action: 'sign-and-verify',
+        data: {
+          intent: data.intent
+        }
+      }
+      this.sendMessageHOP(authMessage)
+    },
+    async restoreIdentity() {
+      const savedSeed = await storage.get('user_seed'); // From LocalStorage
+      
+      // Don't ask HOP for a NEW key. 
+      // Send the seed so HOP recreates the OLD key.
+      const brainIdentity = await hop.loadIdentity(savedSeed); 
+
+      if (brainIdentity.publicKey === this.savedPublicKey) {
+        // SUCCESS: The brain is now wearing the correct "Identity Suit"
+        this.activateNetwork(); 
+      } else {
+        // FAIL: Tamper detected or corrupted seed
+        this.triggerNuclearReset();
+      }
+    },
+    async activateNetwork(pubKeyHEX) {
+      // 1. Ensure we have keys from Genesis/SelfAuth
+      // if (!this.identity.publicKey) return throw new Error("Genesis required");
+
+      // 2. Signal the 'Brain' (HOP) to verify and start
+      // This is where we tell HOP: "The keys are ready, go punch a hole"
+      let verifyMessage = {
+        type: 'hop-auth',
+        reftype: 'peer-handshake',
+        action: 'check-verify',
+        data: {
+          publicKey: pubKeyHEX,
+          wasmHash: this.sovereignWasmHash,
+          autoStart: true 
+        }
+      }
+      this.sendMessageHOP(verifyMessage)
+      /*
+      const isReady = await hop.initialize({
+        publicKey: this.identity.publicKey,
+        wasmHash: this.wasmHash,
+        // We pass the 'Start' signal specifically here
+        autoStart: true 
+      });
+
+      if (isReady) {
+        this.status = 'CONNECTING';
+        // HOP now manages the 'Life-Strap' data flow back to us
+      } */
+    },
+    async processReply (received) {
+      if (received.action === 'hop-anchor') {
+        this.anchorStatus = true
+      } else if (received.action === 'hop-locked') {
+        this.anchorStatus = false
+        this.HOPlock = true
+        this.verifyFeedback = 'HOP is locked'
+      } else if (received.action === 'crypto-wasm-pubkey') {
+        // set the UI to re enter password again before entry to BentoBoxDS
+        this.anchorStatus = false
+        this.HOPlock = true
+      } else if (received.action === 'unlocked-verify-complete') {
+        // pull BentoBoxDS experience 'on the fly'
+        this.storeAI.startChat = false
+        this.orbitLive = true
+        // set to account tools
+        this.accountStatus = false
+        this.accountMenu = 'account'
+        this.peerauth = true
+        this.anchorStatus = false
+        this.HOPlock = false
+      } else if (received.action === 'hop-wrong-password') {
+        this.accountFeedback = received.data.feedback
+      } else if (received.action === 'hop-holepunch-live') {
         // set token for subsequent HOP messages
         this.sendSocket.jwt = received.data.jwt
         // reply is verified
         this.HOPFlow = true
         this.peerauth = true
+        
+        // Store sovereign identity if returned
+        if (received.data.pubKey) {
+          this.sovereignId = received.data.pubKey
+          this.genesisSignature = received.data.signature
+        }
+
         this.storeAI.startChat = false
         this.accountStatus = false
         this.accountMenu = 'account'
         // get start public library
-        this.storeLibrary.startLibrary()
+        // this.storeLibrary.startLibrary()
         // get starting account info.
         let saveBentoBoxsetting = {}
         saveBentoBoxsetting.type = 'bentobox'
@@ -55,7 +155,28 @@ export const accountStore = defineStore('account', {
         saveBentoBoxsetting.task = 'start'
         saveBentoBoxsetting.data = ''
         saveBentoBoxsetting.bbid = ''
-        this.storeAI.sendMessageHOP(saveBentoBoxsetting) 
+        // this.storeAI.sendMessageHOP(saveBentoBoxsetting) 
+      } else if (received.action === 'crypto-wasm-binary') {
+        // 1. Decode Base64 to a binary string
+        const binaryString = window.atob(received.data);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        
+        // 2. Map characters to bytes
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        try {
+            // 3. Feed the raw bytes to the WASM engine
+            await init({ module_or_path: bytes.buffer });
+            // 4. Now generate the identity
+            this.persistSovereign(); 
+        } catch (err) {
+            console.error('❌ WASM Initialization failed:', err);
+        }
+      } else if (received.action === 'sign-verify-complete') {
+        console.log('sign in verify complete HOP received')
       } else if (received.action === 'hyperbee-pubkeys') {
         this.publicKeysList = received.data
       } else if (received.action === 'drive-pubkey') {
@@ -83,6 +204,31 @@ export const accountStore = defineStore('account', {
       } else if (received.action === 'network-peer-live') {
         this.updateWarmPeerLive(received.data)
       }
+    },
+    persistSovereign () {
+      console.log('Anchoring Sovereign Identity...');
+      // Generate the pair from the initialized WASM
+      const pair = new SovereignKeypair();
+      const pubKey = pair.get_public_key(); 
+      // Convert Uint8Array to Hex string for LocalStorage
+      const pubKeyHex = Array.from(pubKey)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      // ANCHOR: Now your Sovereign Tab will find this on refresh!
+      localStorage.setItem('hop_sovereign_pubkey', pubKeyHex);
+      // NOTE: We will handle private key encryption in the next 'Stitch'
+      localStorage.setItem('hop_sovereign_privkey', 'REGEN_REQUIRED_FOR_SESSIONS'); 
+      // Notify the UI to refresh the Sovereign status
+      this.keyExists = true;
+      // set to main experience interface
+      this.accountMenu = 'account'
+      this.accountStatus = false  // !this.accountStatus
+      this.storeAI.startChat = false
+      this.peerauth = true
+      this.orbitLive = true
+      // inform HOP
+      this.activateNetwork(pubKeyHex)
     },
     addPeertoNetwork (peer) {
       // try to see if other peer is live on network
@@ -260,6 +406,8 @@ export const accountStore = defineStore('account', {
           shareInfo.reftype = 'null'
           shareInfo.privacy = 'private'
           shareInfo.data = topicSet
+          console.log('share protocol')
+          console.log(shareInfo)
           this.sendMessageHOP(shareInfo)
         } else {
           // start normal first time warm peer direct connect
@@ -339,7 +487,7 @@ export const accountStore = defineStore('account', {
       dataShare.type = 'private-chart'
       dataShare.display = 'html'
       dataShare.bbid = boxid
-      dataShare.data = this.storeAI.visData[boxid]
+      dataShare.data = this.storeBentoBox.bentoboxData[boxid]
       shareContext.hop = sfSummary.summary
       shareContext.publickey = this.sharePubkey.key
       shareContext.data = dataShare

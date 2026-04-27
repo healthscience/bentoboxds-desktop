@@ -1,5 +1,7 @@
 <template>
   <div id="time-control">
+    <!-- heli clock controls need -->
+     <!--<heli-sectors></heli-sectors>-->
     <div id="calendar-live">
       <div v-if="selectedTimeBundle === 'single'">
         <a class="date-live-select" ref="#" @click.prevent="viewCalendarSeettings()">{{ boxDate }} v</a>
@@ -70,15 +72,18 @@
 </template>
 
 <script setup>
+import HeliSectors from '@/components/bentobox/tools/heli/selectHeli.vue'
 import { DateTime, Interval } from 'luxon'
 import { ref, computed, onMounted, onBeforeMount, shallowRef } from 'vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
+import { teachingStore } from '@/stores/teachingStore.js'
 
   const storeAI = aiInterfaceStore()
   const storeLibrary = libraryStore()
   const storeBentobox = bentoboxStore()
+  const storeTeaching = teachingStore()
 
   const props = defineProps({
     bboxid: String
@@ -138,29 +143,52 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
     let timeCaptured = DateTime.fromJSDate(dateChange)
     let startDay = timeCaptured.startOf('day')
     mutDate.value = startDay.toMillis()
+    
+    // Log for teaching mode
+    storeTeaching.logAction(
+      'CalendarTools',
+      'handleDate',
+      { 
+        date: dateChange,
+        timestamp: mutDate.value
+      }
+    )
   }
 
   const updateHOPquery = () => {
     // prepare update for HOP
     // what time period is active, single, pick or range? Or update via open data settings?
     let hopTime = []
+    let dateSelection = {}
+    
     if (selectedTimeBundle.value === 'single') {
       let startDay = mutDate.value
       hopTime.push(startDay)
+      dateSelection = { type: 'single', date: boxDate.value }
     } else if (selectedTimeBundle.value === 'range') {
       // need to expand our range
-      let i = Interval.fromDateTimes(boxDaterange.value[0], boxDaterange.value[1]).splitBy({ day: 1 })
+      let startDayDate = DateTime.fromJSDate(boxDaterange.value[0], {zone:"uct"}) //, {zone:"uct"}).startOf('day')
+      let endDayDate = DateTime.fromJSDate(boxDaterange.value[1], {zone:"uct"}) //.endOf('day')
+      const intervals = Interval.fromDateTimes(
+        startDayDate.startOf("day"), 
+        endDayDate.endOf("day"))
+        .splitBy({ day: 1 }).map(d => d.start)
+      // add last date to include that
       // let arryDates = i.map(d => d.start)
-      for (let date of i) {
+      for (let date of intervals) {
         let luxTime = date // DateTime.local(date)
-        hopTime.push(date.e.ts)
+        hopTime.push(date.ts)
       }
+      // add last date too
+      // hopTime.push(endDayDate)
+      dateSelection = { type: 'range', startDate: boxDaterange.value[0], endDate: boxDaterange.value[1] }
     } else if (selectedTimeBundle.value === 'multi') {
       for (let date of boxDaterange.value) {
         let luxTime =  DateTime.fromJSDate(date)
         let startDay = luxTime.startOf('day')
         hopTime.push(startDay.toMillis())
       }
+      dateSelection = { type: 'multi', dates: boxDaterange.value }
     }
     // get the library contracts
     storeAI.prepareLibrarySummary(props.bboxid, '', '')
@@ -199,8 +227,15 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
         let timeMills = hopTime
         computeChanges.controls = { device: selectedDevice, date: timeMills[0], rangedate: timeMills, tidy: tidyOp.value, category: false }
       }
+      
     }
-
+    // set in library to give other view access to latest date / time settings
+    if (storeBentobox.liveDateTime[props.bboxid] === undefined) {
+      storeBentobox.liveDateTime[props.bboxid] = {}
+    }
+    storeBentobox.liveDateTime[props.bboxid] = { date: hopTime[0], rangedate: hopTime }
+    console.log('acitve time date per box active---------')
+    console.log(storeBentobox.liveDateTime)
     // any settings changes?
     moduleUpdate.compute = computeChanges
     // prepare HOPquery
@@ -223,6 +258,19 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
       storeLibrary.updateHOPqueryContracts(HOPcontext)
     }
     setDateStatus.value = false
+    
+    // Log for teaching mode
+    storeTeaching.logAction(
+      'CalendarTools',
+      'updateHOPquery',
+      { 
+        timeBundle: selectedTimeBundle.value,
+        dates: hopTime,
+        dateSelection: dateSelection,
+        bboxid: props.bboxid
+      },
+      { success: true }
+    )
   }
 
   const setShiftTimeData = (seg) => {

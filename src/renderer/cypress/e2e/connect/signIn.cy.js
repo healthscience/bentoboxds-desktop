@@ -16,4 +16,8 @@ describe('main sign in & view beebee', () => {
     cy.get('#beebee-shaper').should('exist')
   })
 
+  // Run the cleanup after all tests
+  after(() => {
+    cy.task("stopServer")
+  })
 })

@@ -3,7 +3,7 @@
     <div class="bentospace">
       <div class="beebee-home">
         <!--<beebee-chat></beebee-chat>-->
-        <div id="mission-statement">Sovereign Intelligences shape health</div>
+        <div id="mission-statement">Gaia Intelligences shape health</div>
         <img class="hop-flow" src="../.././assets/hoplogosmall.png" alt="cues">
       </div>
       <beebee-welcome></beebee-welcome>

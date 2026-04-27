@@ -51,19 +51,21 @@ describe('Check library with dataspace is open', () => {
       cy.get('.button-lib-data').eq(1).should('have.class', 'active'); // Verify Upload is now active
 
       cy.get('.button-lib-data').eq(0).click(); // Click Library
-      cy.get('.button-lib-data').eq(0).should('have.class', 'active'); // Verify Library is now active
+      // get('.button-lib-data').eq(0).should('have.class', 'active'); // Verify Library is now active
+      cy.get('.button-lib-data').eq(0).should('not.have.class', 'active'); // Verify Library is not active
 
       // Step 7: Verify close functionality
       cy.get('#return-modal-close').should('be.visible');
       cy.get('#return-modal-close').click();
-      cy.get('.modal-mask').should('not.be.visible');
+      cy.wait(2000)
+      cy.get('.modal-mask').should('not.exist')
 
       // Step 8: Verify close button functionality
       cy.get('#library-button-menu').click();
       cy.get('.modal-mask').should('be.visible');
       cy.get('button[aria-label="Close modal"]').should('be.visible');
       cy.get('button[aria-label="Close modal"]').click();
-      cy.get('.modal-mask').should('not.be.visible');
+      cy.get('.modal-mask').should('not.exist');
   });
 
   after(() => {

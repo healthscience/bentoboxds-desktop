@@ -1,68 +1,96 @@
 <template>
-  <div id="compute-form-view">
-    <div class="compute-form-item">
-      <span class="required_notification">All fields required</span>
-    </div>
-    <div class="compute-form-item">
-      <label for="compute-add-source">Compute Primary?</label>
-      <select class="select-compute-source" @change="primarySave" v-model="storeLibrary.newComputeForm.primary" id="">Please select
+  <div class="new-compute-form">
+    <lib-form-item label="Compute Primary?" id="compute-add-source">
+      <select class="lib-select" v-model="storeLibrary.newComputeForm.primary">
         <option value="yes">YES</option>
         <option value="no">NO</option>
       </select>
-    </div>
-    <div class="compute-form-item">
-      <label for="compute-add-name">Name:</label>
-      <input id="compute-mapping-name" @input="nameSave" @paste="nameSave" @keyup="nameSave" v-model="storeLibrary.newComputeForm.name" placeholder="compute mapping name" required="" type="text">
-    </div>
-    <div class="compute-form-item">
-      <label for="compute-add-description">Description:</label>
-      <textarea name="message" cols="40" rows="6" @input="descSave" @paste="descSave" @keyup="descSave" v-model="storeLibrary.newComputeForm.description" required="" id="compute-mapping-description"></textarea>
-    </div>
-    <div class="compute-form-item">
-      <label for="compute-add-datatype">datatype prefix:</label>
-      <input id="compute-refcontract-dt" placeholder="datatype ref contract" @input="dtprefixSave" @paste="dtprefixSave" @keyup="dtprefixSave" v-model="storeLibrary.newComputeForm.dtprefix" required="" type="text">
-    </div>
-    <div class="compute-form-item">
-      <label for="compute-add-name">location of code:</label>
-      <input id="compute-code-name" placeholder="compute code" @input="codeSave" @paste="codeSave" @keyup="codeSave" v-model="storeLibrary.newComputeForm.code" required="" type="text">
-    </div>
-    <div class="compute-form-item">
-      <label for="compute-add-hash">hash of code:</label>
-      <input id="compute-code-hash" placeholder="compute hash" @input="hashSave" @paste="hashSave" @keyup="hashSave" v-model="storeLibrary.newComputeForm.hash" required="" type="text">
-    </div>
-        <div class="compute-form-item">
-      <label for="compute-add-mode">mode of compute:</label>
-      <input id="compute-code-mode" placeholder="compute mode" @input="modeSave" @paste="modeSave" @keyup="modeSave" v-model="storeLibrary.newComputeForm.mode" required="" type="text">
-    </div>
+    </lib-form-item>
+
+    <lib-form-item label="Name" id="compute-mapping-name" required>
+      <input 
+        id="compute-mapping-name" 
+        v-model="storeLibrary.newComputeForm.name" 
+        class="lib-input"
+        placeholder="compute mapping name" 
+        type="text"
+      >
+    </lib-form-item>
+
+    <lib-form-item label="Description" id="compute-mapping-description" required>
+      <textarea 
+        id="compute-mapping-description"
+        v-model="storeLibrary.newComputeForm.description" 
+        class="lib-textarea"
+        rows="4"
+        placeholder="Describe the compute mapping..."
+      ></textarea>
+    </lib-form-item>
+
+    <lib-form-item label="Datatype Prefix" id="compute-refcontract-dt" required>
+      <input 
+        id="compute-refcontract-dt" 
+        v-model="storeLibrary.newComputeForm.dtprefix" 
+        class="lib-input"
+        placeholder="datatype ref contract" 
+        type="text"
+      >
+    </lib-form-item>
+
+    <lib-form-item label="Location of Code" id="compute-code-name" required>
+      <input 
+        id="compute-code-name" 
+        v-model="storeLibrary.newComputeForm.code" 
+        class="lib-input"
+        placeholder="compute code location" 
+        type="text"
+      >
+    </lib-form-item>
+
+    <lib-form-item label="Hash of Code" id="compute-code-hash" required>
+      <input 
+        id="compute-code-hash" 
+        v-model="storeLibrary.newComputeForm.hash" 
+        class="lib-input"
+        placeholder="compute hash" 
+        type="text"
+      >
+    </lib-form-item>
+
+    <lib-form-item label="Mode of Compute" id="compute-code-mode" required>
+      <input 
+        id="compute-code-mode" 
+        v-model="storeLibrary.newComputeForm.mode" 
+        class="lib-input"
+        placeholder="compute mode" 
+        type="text"
+      >
+    </lib-form-item>
   </div>
 </template>
 
 <script setup>
 import { libraryStore } from '@/stores/libraryStore.js'
+import LibFormItem from '@/components/library/shared/LibFormItem.vue'
 
-  const storeLibrary = libraryStore()
-  
+const storeLibrary = libraryStore()
 </script>
 
 <style scoped>
-
-@media (min-width: 1024px) {
-  #compute-form-view {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .compute-form-item {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    padding-top: 1em;
-  }
-
-  .compute-form-item label {
-    border: 0px solid red;
-    margin-right: 1em;
-    justify-self: end;
-  }
+.lib-input, .lib-textarea, .lib-select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: var(--sov-border-radius);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--sov-bg-soft);
+  color: var(--sov-text);
+  font-family: inherit;
+  transition: var(--sov-transition-med);
 }
 
+.lib-input:focus, .lib-textarea:focus, .lib-select:focus {
+  outline: none;
+  border-color: var(--sov-accent);
+  box-shadow: 0 0 0 3px var(--sov-accent-glow);
+}
 </style>

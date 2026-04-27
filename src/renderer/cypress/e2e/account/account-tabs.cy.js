@@ -27,7 +27,7 @@ describe('Space meun select and submenu tests', () => {
     cy.get('#peers-tab').should('exist')
     cy.get('#datastores-tab').should('exist')
     cy.get('#aiagents-tab').should('exist')
-    cy.get('#wallets-tab').should('exist')
+    cy.get('#sovereign-tab').should('exist')
     cy.get("#disconnect-button").should('exist')
     // click on each tab and test the content
     cy.get('#list-content').should('exist')
@@ -38,7 +38,7 @@ describe('Space meun select and submenu tests', () => {
     cy.get('#aiagents-tab').click()
     cy.wait(1000)
     cy.get('#aiagents-lists').should('exist')
-    cy.get('#wallets-tab').click()
+    cy.get('#sovereign-tab').click()
     cy.wait(1000)
     cy.get('#wallet-list').should('exist')
   });

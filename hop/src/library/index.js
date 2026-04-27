@@ -14,11 +14,13 @@ import LibraryManager from 'library-hop'
 
 class LibraryRoute extends EventEmitter {
 
-  constructor(Holepunch) {
+  constructor(wiringIn) {
+    console.log('lib route')
     super()
+    this.wiring = wiringIn
     this.live = true
-    this.libManager = new LibraryManager(Holepunch)
-    this.liveHolepunch = Holepunch
+    this.libManager = new LibraryManager(this.wiring)
+    this.holepunchLive = this.wiring.network
     this.wsocket = {}
     this.wlist = []
     this.libraryListen()
@@ -51,16 +53,33 @@ class LibraryRoute extends EventEmitter {
   *
   */
   libraryListen = async function () {
+    this.libManager.on('lifestrap-genesis', (data) => {
+      //  bring to be  key ids, life-strap, dialogue, make be resonAgent and its neat-hop  But get lifestap key back first quickly
+      this.wiring.bbai.liveBBAI.bringToBe('genesis', data.data)
+      // keep beebee in bentoboxds 
+      this.wsocket.send(JSON.stringify(data))
+    })
+
+    this.libManager.on('lifestrap-awaken', (data) => {
+      //  bring to be  key ids, life-strap, dialogue, make be resonAgent and its neat-hop  But get lifestap key back first quickly
+      if (data.data.length > 0) {
+        this.wiring.bbai.liveBBAI.bringToBe('woken', data.data[0])
+      }
+      // keep beebee in bentoboxds
+      console.log('lifestrap-awaken  prep ssend')
+      this.wsocket.send(JSON.stringify(data))
+    })
+
     this.libManager.on('libmessage', (data) => {
       this.bothSockets(data)
     })
     // initial connection with warm peer
     this.libManager.on('complete-warmpeer', async (pubkey) => {
       // get latest list and pass on to holepunch-hop
-      let updatePeersNetwork = await this.liveHolepunch.BeeData.getPeersHistory()
-      this.liveHolepunch.Peers.latestPeerNetwork(updatePeersNetwork)
+      let updatePeersNetwork = await this.holepunchLive.BeeData.getPeersHistory('peer')
+      this.holepunchLive.Peers.latestPeerNetwork(updatePeersNetwork)
       // pass on publick key of peer
-      this.liveHolepunch.warmPeerPrepare(pubkey, false)
+      this.holepunchLive.warmPeerPrepare(pubkey, false)
     })
     // invite topic for future reconnect update
     this.libManager.on('complete-topic-save', (data) => {
@@ -79,7 +98,7 @@ class LibraryRoute extends EventEmitter {
       peerNotify.data = data
       this.wsocket.send(JSON.stringify(peerNotify))
       // write back to other peer
-      this.liveHolepunch.topicSaveReturn(data)
+      holepunchLive.topicSaveReturn(data)
     })
     // message for SafeFlow
     this.libManager.on('libsafeflow', (data) => {

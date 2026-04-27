@@ -25,7 +25,7 @@
     <bento-box :bboxid="props.bboxid" :contractid="props.contractid" :bbwidth="bentoboxWidth"></bento-box>
     <button id="bb-remove" @click="removeBboxSpace">remove</button>
   </vue-resizable>
-  <bentobox-focus v-if="storeAI.expandBentobox[props.bboxid] === true" :bboxid="props.bboxid" :contractid="props.contractid"></bentobox-focus>
+  <bentobox-focus v-if="storeBentobox.expandBentobox[props.bboxid] === true" :bboxid="props.bboxid" :contractid="props.contractid"></bentobox-focus>
 </template>
 
 <script setup>
@@ -87,7 +87,7 @@ import { mapminiStore } from '@/stores/mapStore.js'
   }) */
 
   const chartData = computed(() => {
-    return storeAI.visData[props.bboxid]
+    return storeBentobox.bentoboxData[props.bboxid]
     /* {
       // labels: dataLabel.value, // [ 'January', 'February', 'March' ],
       // datasets: [ { data: dataValues.value } ]

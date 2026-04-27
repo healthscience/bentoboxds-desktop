@@ -10,7 +10,6 @@
 * @version    $Id$
 */
 // import EventEmitter from 'events'
-import hashObject from 'object-hash'
 import { DateTime } from 'luxon'
 
 class CuesUtility {

@@ -34,6 +34,6 @@ import { libraryStore } from '@/stores/libraryStore.js'
 }
 
 .auth-info label {
-  border: 1px solid red;
+  border: 0px solid red;
 }
 </style>

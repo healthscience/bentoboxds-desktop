@@ -89,7 +89,7 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   /* methods */
   const setupLibrary = () => {
     // setup default time datatype contract, observation compute contract and chartjs visualise contract
-    storeLibrary.defaultLibContracts()
+    // storeLibrary.defaultLibContracts()
   }
 
   const cuesHolistic = () => {

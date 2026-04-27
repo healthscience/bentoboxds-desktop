@@ -104,7 +104,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
 #media-paper-list {
   height: 200px;
-  border: 1px solid red;
+  border: 0px solid red;
 }
 @media (min-width: 1024px) {
 

@@ -32,7 +32,7 @@ fork(path.join(tempLocation, '/hop/src/index.js'))
 // const { execSync } = require('child_process')
 // execSync('sleep 2') // block process for 1 second.
 
-import { app, shell, protocol, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, protocol, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 // import iconImg from '../../public/logo-512x512.png'
@@ -62,7 +62,7 @@ function createWindow() {
       nodeIntegration: true,
       webSecurity: false,
       allowRunningInsecureContent: true,
-      devTools: false
+      devTools: true
     }
   })
 
@@ -82,6 +82,7 @@ function createWindow() {
     return { action: 'deny' }
   })
 
+
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -98,6 +99,24 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
+
+
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    console.log(`Permission request for: ${permission}`);
+    if (permission === 'geolocation') {
+      callback(true) // Automatically approve geolocation requests
+    } else {
+      callback(false)
+    }
+  });
+
+  session.defaultSession.setPermissionCheckHandler((webContents, permission, origin) => {
+    if (permission === 'geolocation') {
+      return true;
+    }
+    return false;
+  });
+
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -110,9 +129,10 @@ app.whenReady().then(() => {
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    })
   })
-})
+
 
 ipcMain.on('message-from-vue', (event, arg) => {
   // console.log('message-from-vue')

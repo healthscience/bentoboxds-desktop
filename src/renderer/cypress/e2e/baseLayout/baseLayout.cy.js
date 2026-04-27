@@ -16,7 +16,7 @@ describe('base layout browser - desktop', () => {
   it('mission image and text', () => {
     cy.get('#app').find('#space-shaper').should('be.visible')
     cy.get('.beebee-home').find('#mission-statement').should('be.visible')
-    cy.contains("#mission-statement", 'Sovereign Intelligences shape health').should('exist')
+    cy.contains("#mission-statement", 'Gaia Intelligences shape health').should('exist')
   })
 
   it('no HOP connection feedback message', () => {

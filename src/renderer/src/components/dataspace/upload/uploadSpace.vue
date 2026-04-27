@@ -48,36 +48,39 @@ import FileHander from '@/components/dataspace/upload/utils/fileHandler.js'
 // File Management
 import useFileList from '@/components/dataspace/upload/compositions/fileList.js'
 
-const { files, addFiles, removeFile } = useFileList()
+  const { files, addFiles, removeFile } = useFileList()
 
-	/* computed */
+  /* computed */
 	const uploadStatus = computed(() => {
     return storeLibrary.uploadStatus
   })
 
-	/* methods */
-	function onInputChange(e) {
-		file.value = e.target.files[0]
-		let fileName = file.value.name
-		storeLibrary.fileBund.name = fileName
-		let addF = addFiles(e.target.files)
-		//e.target.value = null // reset so that selecting the same file again will still cause it to fire this change
-	}
+  /* methods */
+  function onInputChange(e) {
+	console.log('file input -------name--------')
+	console.log(e.target.files[0])
+	file.value = e.target.files[0]
+	let fileName = file.value.name
+	storeLibrary.fileBund.name = fileName
+	console.log(storeLibrary.fileBund)
+	let addF = addFiles(e.target.files)
+	//e.target.value = null // reset so that selecting the same file again will still cause it to fire this change
+  }
 
-	const closedataBox = () => {
+  const closedataBox = () => {
     storeAI.dataBoxStatus = !storeAI.dataBoxStatus
     storeLibrary.uploadStatus = false
   }
 
 
-// Uploader
-// import createUploader from '@/components/dataspace/upload/compositions/fileUploader.js'
-// const { uploadFiles } = createUploader('url')
-const removeFileEvent = (file) => {
-	removeFile(file)
-}
+  // Uploader
+  // import createUploader from '@/components/dataspace/upload/compositions/fileUploader.js'
+  // const { uploadFiles } = createUploader('url')
+  const removeFileEvent = (file) => {
+    removeFile(file)
+  }
 
-const checkElectron = () => {
+  const checkElectron = () => {
     // Renderer process
 	if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
 			return true
@@ -91,9 +94,11 @@ const checkElectron = () => {
 			return true
 	}
 	return false
-}
+  }
 
-const saveFiles = (files) => {
+  const saveFiles = (files) => {
+	// inform beebee files uploaded
+	storeLibrary.uploadFileStatus = true
 	for (let file of files) {
 		let fileSize = file.file.size
 		let largeFileStatus = false
@@ -124,14 +129,15 @@ const saveFiles = (files) => {
 		fileBundle.path = file.file.url
 		fileBundle.type = file.file.type
 		storeLibrary.fileBundleList.push(fileBundle)
+		console.log('after push to list files')
 		// give summary back to peer
 		if (file.file.type === 'text/csv') {
 			storeLibrary.csvpreviewLive = true
 			// use hander large or small?
 			if (largeFileStatus === false) {
-				HandleLargeFiles.csvHandler(file, storeAI, storeLibrary, hashObject, fileBundle)
+			  HandleLargeFiles.csvHandler(file, storeAI, storeLibrary, hashObject, fileBundle)
 			} else {
-				HandleLargeFiles.handleLargeFile(file.file, 'csv', storeLibrary )
+			  HandleLargeFiles.handleLargeFile(file.file, 'csv', storeLibrary )
 			}
 		} else if (file.file.type === 'image/png') {
 			storeLibrary.imagepreviewLive = true
@@ -167,7 +173,7 @@ const saveFiles = (files) => {
 				storeLibrary.newPackagingForm.apicolumns = null
 				storeLibrary.newDatafile.columns = null
 				storeLibrary.newDatafile.path = 'image/png'
-				storeLibrary.newDatafile.file = 'image/png'
+				storeLibrary.newDatafile.file = fileBundle.name
 			}
 
 
@@ -186,7 +192,7 @@ const saveFiles = (files) => {
 			messageHOP.task = 'PUT'
 			messageHOP.data = fileSave
 			// send to HOP
-			// storeLibrary.sendMessage(messageHOP)
+			storeLibrary.sendMessage(messageHOP)
 			}
 			readerImage.onerror = function() {
 				console.log(readerImage.error)
@@ -249,7 +255,14 @@ const saveFiles = (files) => {
 					reader3.onload = function () {
 					let rawData = reader3.result
 					const lines = JSON.parse(rawData)
+					// need to call beebee agent if new json file structure
+					console.log('json lines')
+					console.log(lines)
+					if (lines.data !== undefined) {
 					storeLibrary.linesLimit = lines.slice(0, 20)
+					} else {
+						storeLibrary.linesLimit = lines.data.slice(0, 20)
+					}
 					// for chat interface
 					if (storeAI.dataBoxStatus !== true) {
 						// TODO send to beebee via socket but for now create reply here
@@ -296,7 +309,7 @@ const saveFiles = (files) => {
 							storeLibrary.newPackagingForm.apicolumns = headerLocal
 							storeLibrary.newDatafile.columns = columnStructure
 							storeLibrary.newDatafile.path = 'json'
-							storeLibrary.newDatafile.file = 'json'
+							storeLibrary.newDatafile.file = fileBundle.name
 						}
 					}
 			} else {
@@ -348,16 +361,16 @@ const saveFiles = (files) => {
 		removeFile(file)
   }
 
-	const localHeaderExtract = (lineOne) => {
-		let headerInfo = lineOne.split(',')
-		return headerInfo
-	}
-	// need to close databox if enter from chat
-	if (storeLibrary.libraryStatus === false) {
-		storeAI.dataBoxStatus = false
+  const localHeaderExtract = (lineOne) => {
+    let headerInfo = lineOne.split(',')
+	  return headerInfo
+  }
+  // need to close databox if enter from chat
+  if (storeLibrary.libraryStatus === false) {
+	storeAI.dataBoxStatus = false
     storeLibrary.uploadStatus = false
     storeLibrary.libraryStatus = false
-	}
+  }
 }
 </script>
 

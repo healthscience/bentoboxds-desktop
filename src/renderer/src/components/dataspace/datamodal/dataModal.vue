@@ -36,7 +36,7 @@ const emit = defineEmits(['close'])
 <style scoped>
 .modal-mask {
   position: fixed;
-  z-index: 599;
+  z-index: 1500;
   top: 0;
   left: 0;
   width: 100%;

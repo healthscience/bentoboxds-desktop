@@ -62,11 +62,13 @@
 
 <script setup>
 import hashObject from 'object-hash'
+import { useChatStore } from '@/stores/chatStore.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { ref, computed } from 'vue'
 import { DateTime } from 'luxon' // Import Luxon
 
+const storeChat = useChatStore()
 const storeAI = aiInterfaceStore()
 const storeBentobox = bentoboxStore()
 
@@ -134,18 +136,18 @@ const hoverCheck = (sis) => {
 }
 
 const selectChat = (chat) => {
+  // Always switch the active conversation in main view, no modal toggling
   storeAI.chatAttention = chat.chatid
-  // setup historypair
   storeAI.setupChatHistory(chat)
-  // make button green
+
+  // Update active state and timestamps in the list
   let chatLiveList = []
   for (let chi of storeBentobox.chatList) {
     if (chi.chatid === chat.chatid) {
       chi.active = true
-      chi.createTimestamp = DateTime.now().toMillis()
-      chi.lastTimestamp = DateTime.now().toMillis() // Update last used timestamp
-      chi.useCount++
-      chi.useCount = chi.useCount,
+      chi.createTimestamp = chi.createTimestamp || DateTime.now().toMillis()
+      chi.lastTimestamp = DateTime.now().toMillis()
+      chi.useCount = (chi.useCount || 0) + 1
       chatLiveList.push(chi)
     } else {
       chi.active = false
@@ -161,8 +163,10 @@ const newChatchannel = () => {
 
 const saveChatname = () => {
   saveChat.value = !saveChat.value
-  // uuid for chat
-  let chatID = hashObject(newChatname.value + new Date())
+  // robust uuid for chat (namespace with prefix when available)
+  let chatID = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? `chat:${crypto.randomUUID()}`
+    : hashObject(newChatname.value + Date.now() + Math.random())
   let newChatItem = {}
   newChatItem.name = newChatname.value
   newChatItem.chatid = chatID
@@ -196,9 +200,13 @@ const saveChatHistory = (chat) => {
   saveBentoBoxsetting.reftype = 'chat-history'
   saveBentoBoxsetting.action = 'save'
   saveBentoBoxsetting.task = 'save'
-  saveBentoBoxsetting.data = chat
-  saveBentoBoxsetting.bbid = ''
-  storeAI.prepareChatBentoBoxSave(saveBentoBoxsetting)
+  // Map to historyPair bucket key: space chats use cue/space id; main/manual use 'chat'
+  const isSpaceChat = chat && chat.context === 'chatspace'
+  const effectiveChatId = isSpaceChat ? chat.chatid : 'chat'
+  // Pass through the UI chat id so we can merge pairs saved under chat:<uuid>
+  saveBentoBoxsetting.data = { ...chat, uiChatId: chat.chatid, chatid: effectiveChatId }
+  saveBentoBoxsetting.bbid = effectiveChatId
+  storeChat.prepareChatBentoBoxSave(saveBentoBoxsetting)
 }
 
 const deleteChatHistory = (chat) => {

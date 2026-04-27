@@ -164,7 +164,7 @@ let selectedLibrary = ref('')
       // referenceLive.value = 'datatype'
       // ask network library for contracts via HOP
       storeLibrary.sendMessage('get-library')
-      storeLibrary.sendMessage('get-results')
+      // storeLibrary.sendMessage('get-results')
     }
 
     const repLibrary = () => {
@@ -227,6 +227,7 @@ let selectedLibrary = ref('')
     // a computed ref
     const libraryCheck = computed(() => {
       // any entries in the library?
+      console.log('libraryCheck', storeLibrary.publicLibrary)
       if (Object.keys(storeLibrary.publicLibrary).length > 0) {
        return true
       } else {

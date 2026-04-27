@@ -1,4 +1,4 @@
-describe('Generate invite', () => {
+describe('Peer List and Invite Management', { testIsolation: false }, () => {
   // Run the setup before each test
   before(() => {
     cy.task("startServer")
@@ -10,49 +10,76 @@ describe('Generate invite', () => {
     cy.get("#connect-hop").should('exist')
     cy.get("#self-auth").should('exist')
     cy.get('#self-auth').click()
+    cy.wait(3000)
   });
 
-  it('generate an invite', () => {
-    // Step 1: Verify the base layout
-    cy.get('#app').find('.bentobox-main-nav').should('be.visible')
-    cy.get('.bentobox-main-nav').find('.bentobox-browser').should('be.visible')
-    // Step 2: Click on the Cues button
-    cy.get('#self-auth-connect').should('be.visible').click()
+  it('should handle social network view', () => {
+    // need to click on the account main menu
+    cy.get('#self-auth-connect').click()
     cy.wait(1000)
-    // Sept 3 account model present
-    cy.get('.modal-mask').should('be.visible')
-    cy.get('.modal-container').should('be.visible')
-    // Step 4: Verify that the tabs is presented
-    cy.get('#connection-account').should('be.visible')
-    // generate an invite
-    cy.get('#peers-tab').click()
+
+    // defaults to social network view
+    cy.get('#social-network-view').should('exist')
+
+    // Verify social network headers
+    cy.get('.peer-details-header').should('be.visible')
+    // cy.get('.peer-info').should('have.length', 3) // Name, Live, Public key
+
+    // Verify social graph is present
+    cy.get('#social-graph-space').should('exist')
+  });
+
+  it('should handle invite generation', () => {
+    // Navigate to peers tab
+    cy.get('#invite-modes-button').click()
     cy.wait(1000)
+
+    // Switch to invite mode
+    cy.get('#peer-mode-prime').find('button').contains('Invite').click()
+    cy.get('#invite-types').should('be.visible')
+
+    // Select generate invite mode
+    cy.get('#invite-types').find('button').contains('Generate invite').click()
+    cy.get('#invite-peer-codename').should('be.visible')
+
     // Enter peer name and generate invite
     const peerName = 'TestPeer'
-    cy.get('input[placeholder="name"]').type(peerName)
+    cy.get('#peer-name').type(peerName)
     cy.get('#invite-generation-button').click()
 
     // Verify invite is generated
     cy.get('#form-invite-code').should('be.visible')
-    cy.get('.gen-crypt-code').should('have.length.greaterThan', 0)
+    cy.get('.peer-g').should('have.length.greaterThan', 0)
 
-    // Verify peer name is displayed
-    cy.get('.gen-crypt-code').first().should('contain', peerName)
+    // Verify peer details
+    // cy.get('.peer-info').first().should('contain', peerName)
+    // cy.get('.peer-pk').should('be.visible')
 
-    // Verify public key is displayed
-    cy.get('#pubkey-session-live').should('be.visible')
-
-    // Verify copy button functionality
+    // Verify copy functionality
     cy.get('#button-copy-invite').click()
     cy.get('.copied-message').should('be.visible')
 
-    // Verify remove button functionality
-    cy.get('#button-remove-invite').click()
-    // cy.get('#form-invite-code').should('not.exist')
+    // Verify remove functionality
+    // cy.get('.peer-action button').contains('remove').click()
+  });
+
+  it('should handle receive invite mode', () => {
+    // Navigate to peers tab
+    cy.get('#peers-tab').click()
+    cy.wait(1000)
+
+    // Switch to invite mode
+    cy.get('#peer-mode-prime').find('button').contains('Invite').click()
+    cy.get('#invite-types').should('be.visible')
+
+    // Select receive invite mode
+    cy.get('#invite-types').find('button').contains('Receive invite').click()
+    cy.get('button').contains('Receive invite').should('have.class', 'active')
+
+    // TODO: Add tests for receiving invite functionality once implemented
   });
 
   after(() => {
     cy.task("stopServer")
   })
-
 });

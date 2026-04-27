@@ -3,6 +3,8 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import LibraryUtility from '@/stores/hopUtility/libraryUtility.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { useSocketStore } from '@/stores/socket.js'
+import { teachingStore } from '@/stores/teachingStore.js'
+import { besearchStore } from '@/stores/besearchStore.js'
 import hashObject from 'object-hash'
 import ChatUtilty from '@/stores/hopUtility/chatUtility.js'
 import { cuesStore } from "@/stores/cuesStore.js"
@@ -17,11 +19,22 @@ export const libraryStore = defineStore('librarystore', {
     joinFeedback: false,
     storeCues: cuesStore(),
     storeAI: aiInterfaceStore(),
-    storeBentoBox: bentoboxStore(),
+    storeBentobox: bentoboxStore(),
     utilLibrary: new LibraryUtility(),
     sendSocket: useSocketStore(),
     liveChatUtil: new ChatUtilty(),
+    storeBesearch: new besearchStore(),
+    storeTeach: teachingStore(),
     startPubLibrary: false,
+    straps: [],
+/*      {
+        id: "ls_swim_2026",
+        name: "swim for longevity",
+        origin_input: "I want to swim 400m...",
+        contract_key: "HOP_777_888",
+        active_cues: ["capacity-orbits", "context-chlorine"],
+        bioregion_anchor: "Local-Pool-01"
+      }*/
     replicateFeedback: {},
     libraryMessage: '',
     uploadStatus: false,
@@ -58,7 +71,7 @@ export const libraryStore = defineStore('librarystore', {
       primary: Boolean,
       name: '',
       description: '',
-      wiki: '',
+      wiki: 'https://en.wikipedia.org/wiki/',
       rdf: 'https://dbpedia.org/page/',
       measurement: '',
       datatypeType: ''
@@ -123,6 +136,8 @@ export const libraryStore = defineStore('librarystore', {
       }
     },
     joinOptions: {},
+    uploadFileStatus: false,
+    uploadHolder: [],
     fileBund: {},
     fileBundleList: [],
     linesLimit: {},
@@ -222,6 +237,16 @@ export const libraryStore = defineStore('librarystore', {
       this.sendMessage('get-library')
       this.sendMessage('get-results')
     },
+    createLifeStrap (lsData) {
+      let messageHOP = {}
+      messageHOP.type = 'library'
+      messageHOP.action = 'lifestrap'
+      messageHOP.reftype = 'new'
+      messageHOP.privacy = 'private'
+      messageHOP.task = 'PUT'
+      messageHOP.data = lsData
+      this.sendSocket.send_message(messageHOP)
+    },
     joinNXPprocess (message) {
       // need to query source table?? (just to check?) need to query devices to get list personal to peer
       this.sendMessage(message)
@@ -234,6 +259,36 @@ export const libraryStore = defineStore('librarystore', {
       messageHOP.task = 'GET' */
       // messageHOP.data = { query: 'devices', db: this.describeSource.path, table: tableChoice.value.name }
       //this.sendMessage(messageHOP)
+    },
+    contractInfoGetAsk (contextBundle) {
+      // if ask is reference contracts then a module contract is needed if that is not availble then look up network experiment, parse out relevant module contract and parse out reference contract(s)
+      let contractData = {}
+      if (contextBundle.asked.style) {
+        if (contextBundle.asked.style === 'reference') {
+          // what contract is provided?
+          if (contextBundle.context.type === 'reference-contract') {
+            // get module contract
+            contractData = this.utilLibrary.getContractInfo(contextBundle.context.contractid, 'reference-contract', this.publicLibrary.referenceContracts)
+          } else if (contextBundle.context.type === 'module-contract') {
+            contractData = this.utilLibrary.getContractInfo(contextBundle.context.contractid, 'module-contract', this.publicLibrary.networkExpModules)
+          } else if (contextBundle.context.type === 'network-experiment') {
+            let contractNXP = this.utilLibrary.getContractInfo(contextBundle.context.contractid, 'network-experiment', this.peerLibraryNXP)
+            // next need to extract out compute module and then get compute reference contract
+            for (let mod of contractNXP.modules) {
+              if (mod.value.style === contextBundle.asked.type) {
+                console.log('found compute module')
+                console.log(mod)
+                contractData = this.utilLibrary.extractRefContract(mod.key, contextBundle.asked.type, mod)
+              }
+            }
+          }
+        } else if (contextBundle.asked.style === 'network-experiment') {
+          contractData = this.utilLibrary.getContractInfo(contextBundle.context, '', this.publicLibrary.networkExpModules)
+        } else if (contextBundle.asked.style === 'module') {
+          contractData = this.utilLibrary.getContractInfo(contextBundle.context, '', this.publicLibrary.networkExpModules)
+        }
+      }
+      return contractData
     },
     confrimAddPublicLibrary (message) {
       let messageHOP = {}
@@ -309,26 +364,26 @@ export const libraryStore = defineStore('librarystore', {
             this.devicesJoin = message.data.devices
           }
           // set open data x and y axis , category, device etc.
-          this.storeBentoBox.openDataSettings[this.liveBBox] = {}
+          this.storeBentobox.openDataSettings[this.liveBBox] = {}
           // what is data
           let desribesD = Object.keys(message.data)
           for (let dd of desribesD) {
             if (dd === 'headers') {
               this.newDatafile.columns = message.data.headers
-              this.storeBentoBox.openDataSettings[this.liveBBox].yaxis = this.newDatafile.columns
+              this.storeBentobox.openDataSettings[this.liveBBox].yaxis = this.newDatafile.columns
             }
             if (dd === 'tables') {
               this.newDatafile.devicecolumns = message.data.tables.headers
-              this.storeBentoBox.openDataSettings[this.liveBBox].yaxis = this.newDatafile.devicecolumns
+              this.storeBentobox.openDataSettings[this.liveBBox].yaxis = this.newDatafile.devicecolumns
             }
             if (dd === 'devices') {
               this.newDatafile.device = message.data.devices
-              this.storeBentoBox.openDataSettings[this.liveBBox].devices = this.newDatafile.device
+              this.storeBentobox.openDataSettings[this.liveBBox].devices = this.newDatafile.device
             }
           }
         }
       } else if (message.type === 'library-open') {
-      } else if (message.type === 'publiclibrary') {
+      } else if (message.action === 'publiclibrary-ref') {
         let typeRefcontracts = Object.keys(message.referenceContracts)
         // look over and see if the library has been setup?
         let setupContracts = []
@@ -356,7 +411,7 @@ export const libraryStore = defineStore('librarystore', {
           }
         }
         // check if start cues are here and needing processed
-        if (this.storeBentoBox.libraryCheck === false) {
+        if (this.storeBentobox.libraryCheck === false) {
           // yes go ahead and expand cues
           let updateCueExpand = []
           for (let cueContract of this.storeCues.waitingCues) {
@@ -389,6 +444,37 @@ export const libraryStore = defineStore('librarystore', {
           }
           this.storeCues.cuesList = updateCueList
         }
+      } else if (message.action === 'beebeelearn-contract' || message.action === 'teach-history') {
+        // pass on to chat store
+        this.storeTeach.processReply(message)
+      } else if (message.action === 'besearch-contract') {
+        // pass on to besearch store
+        this.storeBesearch.processReply(message)
+        // set MOCK  lifestrap TEMP
+        // this.storeAI.initializeSovereignSession()
+      } else if (message.action === 'life-strap') {
+        if (message.task === 'save-complete') {
+          // save complete
+        } else if (message.task === 'bringtobe-start') {
+          // check if any saved if yes, top peer priority make 'to be'
+          if (message.data.length > 0) {
+            // conver index to hex and add to lifestrap list
+            let hexContract = {}
+            for (let inStrap of message.data) {
+              hexContract = this.utilLibrary.convertBinaryToHex(inStrap)
+              this.straps.push(hexContract)
+              this.storeAI.initializeSovereignSession(hexContract.key)
+            }
+          }
+        }
+      } else if (message.action === 'lifestrap-genesis') {
+        // convert key binary to hex
+        let hexConract = this.utilLibrary.convertBinaryToHex(message.data)
+        // add to lifestrap list & set lsID as chatID for first message in new lifestraps
+        this.straps.push(hexConract)
+        this.storeAI.initializeSovereignSession(hexConract.key)
+      } else if (message.action === 'lifestrap-contract') {
+        console.log('lifestrap-contract') //  TODO
       } else if (message.action === 'model-contract') {
         // first time save for update?
         if (message.task === 'save-complete') {
@@ -567,7 +653,7 @@ export const libraryStore = defineStore('librarystore', {
     prepareLibraryViewFromContract (bbid, contractID) {
       if (this.peerLibraryNXP.length === 0) {
         // empty call library to get nxps
-        this.startLibrary()
+        // this.startLibrary()
         // inform beebee feedback to try now library has loaded
       } else {
         let contractQuery = this.utilLibrary.matchNXPcontract(contractID, this.peerLibraryNXP)
@@ -622,6 +708,8 @@ export const libraryStore = defineStore('librarystore', {
       aiMessageout.task = 'update-hopquery'
       aiMessageout.data = HOPq
       aiMessageout.bbid = HOPq.bbid
+      console.log('open data update')
+      console.log(aiMessageout)
       this.sendSocket.send_message(aiMessageout)
       this.storeAI.helpchatHistory.push(aiMessageout)
       this.storeAI.qcount++
@@ -630,6 +718,22 @@ export const libraryStore = defineStore('librarystore', {
       let genesisContract = this.utilLibrary.matchPublicNXPcontract(gid.id, this.publicLibrary.networkExpModules)
       return genesisContract
     },
+    removeLSContract (hexKey, privacy) {
+      // remove from component
+      for (let i = 0; i < this.straps.length; i++) {
+        if (this.straps[i].key === hexKey) {
+          this.straps.splice(i, 1)
+        }
+      }
+      const refContract = {}
+      refContract.type = 'library'
+      refContract.action = 'lifestrap'
+      refContract.privacy = 'private'
+      refContract.reftype = 'private'
+      refContract.task = 'DEL'
+      refContract.data = hexKey
+      this.sendSocket.send_message(refContract)
+    },    
     removeExpModContract (data, privacy) {
       const refContract = {}
       refContract.type = 'library'
@@ -659,6 +763,16 @@ export const libraryStore = defineStore('librarystore', {
       refContract.task = 'GET'
       this.sendSocket.send_message(refContract)
     },
+    syncLibraryFirst () {
+      // prepare defalut data types  or start from scratch using library tools. 
+      const refContract = {}
+      refContract.type = 'library'
+      refContract.action = 'genesis-datatypes-cues'
+      refContract.privacy = 'public'
+      refContract.reftype = 'make'
+      refContract.task = 'MAKE'
+      this.sendSocket.send_message(refContract)
+    },
     sendMessage (hopMessage) {
       if (hopMessage === 'get-library') {
         // peer library start contracts
@@ -668,15 +782,15 @@ export const libraryStore = defineStore('librarystore', {
         refContract.privacy = 'public' // 'public library'
         refContract.reftype = 'public' // 'public library'
         refContract.task = 'GET'
-        // refContract.jwt = this.state.jwttoken
         this.sendSocket.send_message(refContract)
-        const refContract2 = {}
+        /* const refContract2 = {}
         refContract2.type = 'library'
         refContract2.action = 'contracts'
         refContract2.privacy = 'private' // 'privatelibrary'
         refContract2.reftype = 'private' // 'privatelibrary'
         refContract2.task = 'GET'
         this.sendSocket.send_message(refContract2)
+        */
       } else if (hopMessage === 'get-public-library') {
         // peer library start contracts
         const refContract = {}

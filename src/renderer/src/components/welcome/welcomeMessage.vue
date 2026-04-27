@@ -1,23 +1,23 @@
 <template>
   <div class="beebee-welcome" v-if="storeAI.startChat === true">
-    <div id="message-question">What can be done?</div>
+    <div id="message-question">Life-Strap health stories</div>
     <div id="bb-features">
       <div class="message-bb">
         <header>Tools</header>
         <div class="message-learn">
-          Have agency over data and knowledge
+          Have agency over data and Agents
         </div>
       </div>
       <div class="message-bb">
         <header>BeeBee Oracle</header>
         <div class="message-learn">
-          Ask question of the health oracle
+          A guide to network knowledge
         </div>
       </div>
       <div class="message-bb">
-        <header>Share</header>
+        <header>Emulations</header>
         <div class="message-learn">
-          Guide coherence & collective intelligences
+          Build worlds that emulate life, cell to a bioregion
         </div>
       </div>
     </div>

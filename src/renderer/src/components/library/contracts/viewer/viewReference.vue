@@ -1,463 +1,215 @@
 <template>
-  <div id="cnrl-view"> REFERENCE VIEWER
-    <div v-for="cd in referenceData" :key="cd.value.refcontract">
-      <question-view v-if="viewType === 'question-view'">
-        <template v-slot:header>
-          <div id="refcontract-summary">
-            <div class="refname">
-              <div class="refinfo-col1">Ref. contract name: {{ cd.value.refcontract }}</div>
-              <div class="refinfo-col1">key: {{ cd.key }}</div>
+  <div class="view-reference">
+    <div v-if="referenceData.length === 0" class="no-data">
+      No reference contracts found.
+    </div>
+    
+    <div v-for="cd in referenceData" :key="cd.key" class="reference-item">
+      <lib-card>
+        <template #header>
+          <div class="card-header-content">
+            <div class="header-main">
+              <span class="contract-label">Ref. Contract:</span>
+              <span class="contract-name">{{ cd.value.refcontract || cd.value.concept?.name || cd.value.computational?.name }}</span>
+            </div>
+            <div class="header-meta">
+              <span class="version-tag">v1.0</span>
+              <span v-if="cd.value.time?.createTimestamp" class="date-tag">
+                {{ DateTime.fromMillis(cd.value.time.createTimestamp).toFormat('yyyy-MM-dd') }}
+              </span>
             </div>
           </div>
         </template>
-        <template v-slot:body>
-          <div v-if="cd.value.concept.name" class="refinfo-col2">
-            {{ cd.value.concept.name }}
+
+        <div class="card-body-content">
+          <!-- Question View -->
+          <div v-if="viewType === 'question-view'" class="view-section">
+            <div class="info-row">
+              <span class="info-label">Question:</span>
+              <span class="info-value">{{ cd.value.concept?.name }}</span>
+            </div>
+          </div>
+
+          <!-- Datatype View -->
+          <div v-else-if="viewType === 'datatype-view'" class="view-section">
+            <div class="info-row">
+              <span class="info-label">Description:</span>
+              <span class="info-value">{{ cd.value.concept?.description }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Measurement:</span>
+              <span class="info-value">{{ cd.value.concept?.measurement }}</span>
+            </div>
+            <div class="links-row">
+              <a v-if="cd.value.concept?.wiki" href="#" @click.prevent="openWikipedia(cd.value.concept.wiki)" class="lib-link">
+                Wikipedia
+              </a>
+              <a v-if="cd.value.concept?.rdf" href="#" @click.prevent="openRDF(cd.value.concept.rdf)" class="lib-link">
+                RDF Data
+              </a>
+            </div>
+          </div>
+
+          <!-- Packaging View -->
+          <div v-else-if="viewType === 'packaging-view'" class="view-section">
+             <div class="info-row">
+              <span class="info-label">Package Name:</span>
+              <span class="info-value">{{ cd.value.concept?.name || cd.value.computational?.name }}</span>
+            </div>
+            <!-- Add more packaging specific fields here -->
+          </div>
+
+          <div class="key-section">
+            <span class="key-label">Key:</span>
+            <code>{{ cd.key }}</code>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="card-actions">
+            <lib-button variant="danger" @click="deleteRefC(cd.key, viewType)">
+              Delete Contract
+            </lib-button>
           </div>
         </template>
-      </question-view> 
-      <datatype-view v-if="viewType === 'datatype-view'"> 
-        <template v-slot:header>
-          <div id="refcontract-summary">
-            <div class="refname">
-              <div class="refinfo-col1">Ref. contract name: </div>
-              <div v-if="cd.value.concept.name" class="refinfo-col2">
-                {{ cd.value.concept.name }}
-              </div>
-              <div v-else class="refinfo-col2">
-                {{ cd.value.computational.name }}
-              </div>
-            </div>
-            <div class="refname"><!-- {{ DateTime.fromMillis(cd?.value?.time?.createTimestamp) }}-->
-              <div class="refinfo-col1">Version</div>
-              <div class="refinfo-col2">1.0 **/**/****</div>
-              <div class="refinfo-col1">Date contributed:</div>
-              <div class="create-date" v-if="cd?.value?.time?.createTimestamp !== undefined">{{ DateTime.fromMillis(cd?.value?.time?.createTimestamp).toFormat('yyyy-MM-dd') }} </div>
-            </div>
-          </div>
-          <div class="refcontract-summary">
-            <div> {{ cd.key }} </div>
-          </div>
-        </template>
-        <template v-slot:body>
-          <div id="datatype-slot">
-            <header>Details</header>
-            <div class="ref-description">
-              <div class="refinfo-col1">
-                summary description:
-              </div>
-              <div class="refinfo-col2">
-                {{ cd.value.concept.description }}
-              </div>
-            </div>
-            <div class="ref-description">
-              <div class="refinfo-col1">
-                Wikipedia:
-              </div>
-              <div class="refinfo-col2" @click="openWikipedia(cd.value.concept.wiki)">
-                <a  href="#"> {{ cd.value.concept.name }}</a>
-              </div>
-            </div>
-            <div class="ref-description">
-              <div class="refinfo-col1">
-                RDF:
-              </div>
-              <div class="refinfo-col2" @click="openRDF(cd.value.concept.rdf)">
-                <a href="#">rdf file</a>
-              </div>
-            </div>
-            <div class="ref-description">
-              <div class="refinfo-col1">
-                Type:
-              </div>
-              <div class="refinfo-col2">
-                {{ cd.value.concept.measurement }}
-              </div>
-            </div>
-          </div>
-        </template>
-      </datatype-view>
-      <packaging-view v-if="viewType === 'packaging-view'">
-        <template v-slot:header>
-          <div id="refcontract-summary">
-            <div class="refname">
-              <div class="refinfo-col1">Ref. contract name:</div>
-              <div v-if="cd.value.concept.name" class="refinfo-col2">
-                {{ cd.value.concept.name }}
-              </div>
-              <div v-else class="refinfo-col2">
-                {{ cd.value.computational.name }}
-              </div>
-            </div>
-            <div class="refname">
-              <div class="refinfo-col1">Version & Date:</div>
-              <div class="refinfo-col2">1.0 **/**/****</div>
-            </div>
-          </div>
-          <div class="refcontract-summary">
-            <div> {{ cd.key }} </div>
-             <button @click="deleteRefC(cd.key, viewType)">delete</button>
-          </div>
-        </template>
-        <template v-slot:body>
-          <div id="packaging-slot">
-            <header>Details</header>
-            <ul v-for="(pi, index) in cd.value.concept" :key="pi.refcontract">
-              <li>
-                <div class="packaging-basics" v-if="index === 'description'" >
-                  {{ index }} -- {{ pi }}
-                </div>
-                <div class="packaging-basics" v-if="index === 'primary'" >
-                  {{ index }} -- {{ pi }}
-                </div>
-                <div class="packaging-basics" v-if="index === 'api'" >
-                  {{ index }} -- {{ pi }}
-                </div>
-                <div class="packaging-basics" v-if="index === 'filename'" >
-                  {{ index }} -- {{ pi }}
-                </div>
-                <div class="packaging-basics" v-if="index === 'path'" >
-                  {{ index }} -- {{ pi }}
-                </div>
-                <div class="packaging-basics" v-if="index === 'tableQuery'" >
-                  {{ index }} -- {{ pi }}
-                </div>
-                <div class="packaging-basics" v-if="index === 'sourcedevicecol'" >
-                  {{ index }} -- {{ pi }}
-                </div>
-                <div class="packaging-basics" v-if="index === 'apibase'" >
-                  {{ index }} -- {{ pi }}
-                </div>
-                <div class="packaging-basics" v-if="index === 'apipath'" >
-                  {{ index }} -- {{ pi }}
-                </div>
-                <div id="table-structure">
-                  <ul>
-                    <li class="packaging-lists">
-                      <ul v-if="index === 'tablestructure'" >
-                        <header>Datatype Mapping</header>
-                        <li>
-                          <div class="dt-map-key">
-                            Datatype key
-                          </div>
-                          <div class="dt-map-column">
-                            column name
-                          </div>
-                        </li>
-                        <li v-for="ipv in pi" :key="ipv.key" >
-                          <div class="dt-map-key">
-                            {{ ipv.refcontract }}
-                          </div>
-                          <div class="dt-map-column">
-                            {{ ipv.column }}
-                          </div>
-                        </li>
-                      </ul>
-                    </li>
-                    <li>
-                      <ul v-if="index === 'category'" >
-                        <header>Category mapping</header>
-                        <li v-for="ipv in pi" :key="ipv.key" >
-                            {{ ipv.category }} -- {{ ipv.column }} -- {{ ipv.rule }}
-                        </li>
-                      </ul>
-                    </li>
-                    <li>
-                      <ul v-if="index === 'tidy'" >
-                        <header>Tidy rules:</header>
-                        <li v-for="ipv in pi" :key="ipv.key" >
-                            {{ ipv.tidy }} -- {{ ipv.datatype }} -- {{ ipv.tidycode }}
-                        </li>
-                      </ul>
-                    </li>
-                  </ul>
-                </div>
-              </li>
-            </ul>
-            <div id="device-info">
-              <div class="device-query">Device query: {{ cd.value.concept.devicequery }}</div>
-              <div class="device-query">Device col. ID: {{ cd.value.concept.deviceColumnID }}</div>
-              <div class="device-query">Firmware history: {{ cd.value.concept.firmwarequery }}</div>
-            <div>Device {{ cd.value.concept.device }}</div>
-            </div>
-            <div id="packaging-network">
-              <header>Active use on network</header>
-              <p>Networks: 3 Experiments 2 Archives</p>
-            </div>
-          </div>
-        </template>
-      </packaging-view>
-      <compute-view v-if="viewType === 'compute-view'">
-        <template v-slot:header>
-          <div id="refcontract-summary">
-            <div class="refname">
-              <div class="refinfo-col1">Ref. contract name:</div>
-              <div v-if="cd.value.concept.name" class="refinfo-col2">
-                {{ cd.value.concept.name }}
-              </div>
-              <div v-else class="refinfo-col2">
-                {{ cd.value.computational.name }}
-              </div>
-            </div>
-            <div class="refname">
-              <div class="refinfo-col1">Version & Date:</div>
-              <div class="refinfo-col2">1.0 **/**/****</div>
-            </div>
-          </div>
-          <div class="refcontract-summary">
-            <div> {{ cd.key }} </div>
-            <button @click="deleteRefC(cd.key, viewType)">delete</button>
-          </div>
-        </template>
-        <template v-slot:body>
-          <div id="compute-slot">
-              <header>Details</header>
-              <div v-for="(pi, index) in cd.value.computational" :key="pi.refcontract">
-                  {{ index }} --- {{ pi }}
-            </div>
-          </div>
-        </template>
-      </compute-view>
-      <visualise-view v-if="viewType === 'visualise-view'">
-        <template v-slot:header>
-          <div id="refcontract-summary">
-            <div class="refname">
-              <div class="refinfo-col1">Ref. contract name:</div>
-              <div v-if="cd.value.concept.name" class="refinfo-col2">
-                {{ cd.value.concept.name }}
-              </div>
-              <div v-else class="refinfo-col2">
-                {{ cd.value.computational.name }}
-              </div>
-              <button @click="deleteRefC(cd.key, viewType)">delete</button>
-            </div>
-            <div class="refname">
-              <div class="refinfo-col1">Version & Date:</div>
-              <div class="refinfo-col2">1.0 **/**/****</div>
-            </div>
-          </div>
-          <div class="refcontract-summary">
-            <div> {{ cd.key }} </div>
-          </div>
-        </template>
-        <template v-slot:body>
-          <div id="visualise-slot">
-            <header>Details</header>
-            <ul v-for="(pi, index) in cd.value.computational" :key="pi.refcontract">
-              <li>
-                <div class="vis-type">
-                  {{ index }}
-                </div>
-                <div class="vis-info">
-                  {{ pi }}
-                </div>
-              </li>
-            </ul>
-          </div>
-        </template>
-      </visualise-view>
+      </lib-card>
     </div>
   </div>
 </template>
 
 <script setup>
-import QuestionView from '@/components/library/contracts/viewer/questionViewer.vue'
-import DatatypeView from '@/components/library/contracts/viewer/datatypeViewer.vue'
-import ComputeView from '@/components/library/contracts/viewer/computeViewer.vue'
-import PackagingView from '@/components/library/contracts/viewer/packagingViewer.vue'
-import VisualiseView from '@/components/library/contracts/viewer/visualiseViewer.vue'
-// import ModuleView from './moduleViewer.vue'
-// import BoardView from './boardViewer.vue'
-import { libraryStore } from '@/stores/libraryStore.js'
-import { ref, computed } from 'vue'
 import { DateTime } from 'luxon'
+import LibCard from '@/components/library/shared/LibCard.vue'
+import LibButton from '@/components/library/shared/LibButton.vue'
 
-  const storeLibrary = libraryStore()
+defineProps({
+  referenceData: {
+    type: Array,
+    default: () => []
+  },
+  viewType: String
+})
 
-  const props = defineProps({
-    refTypeLive:
-      {
-       type: String
-     }
-  })
+const emit = defineEmits(['delete', 'open-wiki', 'open-rdf'])
 
-  let viewType = ref('datatype-view')
+const deleteRefC = (key, type) => {
+  emit('delete', { key, type })
+}
 
-  /*  computed  */
-  const referenceData = computed(() => {
-    if (props.refTypeLive === 'question') {
-      viewType.value = 'question-view'
-    } else if (props.refTypeLive === 'datatype') {
-      viewType.value = 'datatype-view'
-    } else if (props.refTypeLive === 'packaging') {
-      viewType.value = 'packaging-view'
-    } else if (props.refTypeLive === 'compute') {
-      viewType.value = 'compute-view'
-    } else if (props.refTypeLive === 'visualise') {
-      viewType.value = 'visualise-view'
-    }
-    return storeLibrary.publicLibrary.referenceContracts[props.refTypeLive]
-  })
+const openWikipedia = (url) => {
+  window.open(url, '_blank')
+}
 
-  /* methods */
-  const openWikipedia = (url) => {
-    if (window.process?.versions?.electron) {
-      if (window.process.type === 'renderer') {
-        const { shell } = require('@electron/remote')
-        shell.openExternal(url)
-      } else {
-        const { shell } = require('electron')
-        shell.openExternal(url)
-      }
-    } else {
-      window.open(url, '_blank', 'noopener noreferrer')
-    }
-  }
-
-  const openRDF = (url) => {
-    if (window.process?.versions?.electron) {
-      if (window.process.type === 'renderer') {
-        const { shell } = require('@electron/remote')
-        shell.openExternal(url)
-      } else {
-        const { shell } = require('electron')
-        shell.openExternal(url)
-      }
-    } else {
-      window.open(url, '_blank', 'noopener noreferrer')
-    }
-  }
-
-  const deleteRefC =  (contID, type) => {
-    storeLibrary.removeRefContract(contID, 'public', type)
-  }
-
+const openRDF = (url) => {
+  window.open(url, '_blank')
+}
 </script>
 
-
 <style scoped>
-#refcontract-summary {
-  display: grid;
-  grid-template-columns: 1fr;
+.view-reference {
+  padding: 1rem;
 }
 
-.ref-wrapper {
-  border: 1px solid grey;
-  margin: 1em;
-  list-style-type: none;
+.card-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
-.refname {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  justify-content: center;
-  margin-bottom: .5em;
+.header-main {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
-.refinfo-col1 {
-  justify-self: end;
-  color: grey;
+.contract-label {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  text-transform: uppercase;
 }
 
-.refinfo-col2 {
-  justify-self: start;
-  margin-left: 1em;
+.contract-name {
+  font-weight: 700;
 }
 
-.ref-description {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin-bottom: .2em;
+.header-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
 }
 
-.cnrl-element {
-  display: inline-block;
-  margin-bottom: 1em;
+.version-tag {
+  background: var(--sov-accent);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
-#date-format {
-  font-size: 0.6em;
+.info-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
 }
 
-#datatype-slot {
-  margin: 1em;
+.info-label {
+  font-weight: 600;
+  min-width: 120px;
+  color: var(--sov-text-muted);
 }
 
-#compute-slot header {
-  margin-left: 4em;
-  text-align: left;
+.info-value {
+  color: var(--sov-text);
 }
 
-#compute-slot ul li {
-  margin-left: 4em;
-  text-align: left;
-  list-style-type: none;
+.links-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
-.packaging-basics {
-  text-align: left;
-  margin-top: 0.5em;
+.lib-link {
+  color: var(--sov-accent);
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: var(--sov-transition-med);
 }
 
-#packaging-slot ul {
-  list-style-type: none;
+.lib-link:hover {
+  border-bottom-color: var(--sov-accent);
 }
 
-#table-structure {
-  margin-top: 1em;
-  text-align: left;
+.key-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 0.8rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
-.packaging-lists {
-  list-style-type: none;
+.key-label {
+  color: var(--sov-text-muted);
 }
 
-.dt-map-key {
-  display: inline;
-  font-weight: normal;
-  width: 300px;
-  margin-right: 1em;
+code {
+  background: var(--sov-bg-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
 }
 
-.dt-map-column {
-  display: inline;
-  font-weight: bold;
-  min-width: 6em;
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
-#packaging-network {
-  margin-top: 2em;
-  margin-left: 2em;
-  text-align: left;
-}
-
-#visualise-slot header {
-  text-align: left;
-  margin-left: 2em;
-}
-
-#visualise-slot ul li {
-  text-align: left;
-  margin-left: 2em;
-  list-style-type: none;
-}
-
-.vis-type {
-  display: inline;
-  width: 200px;
-  font-weight: bold;
-}
-
-.vis-info {
-  display: inline;
-}
-#goverannce-slot {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin-top: 1em;
-}
-
-.key-hash {
-  margin-bottom: 1em;
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  color: var(--sov-text-muted);
+  font-style: italic;
 }
 </style>

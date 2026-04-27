@@ -41,7 +41,7 @@
 
 <style scoped>
 .modal-mask {
-  z-index: 299;
+  z-index: 1500;
   position: fixed;
   top: 0;
   left: 0;

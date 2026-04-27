@@ -18,14 +18,17 @@
       </template>
       <template #body>
         <div id="connect-hop">
-          <div id="self-verify" v-if="storeAccount.peerauth !== true">
-            <form id="self-signin-form" >
-              <div class="self-inputs">
-                <!--<label class="form-couple-type" for="password-account">password </label>
-                <input class="form-couple" type="password" id="password" name="password" v-model="selfpwInput">-->
-                <button id="self-auth" @click.prevent="selfVerify()">Connect to HOP</button>
-              </div>
-            </form>
+          <div id="self-verify">
+            <div v-if="anchorStatus === true || HOPlock === true">
+              <genesis-gate @handshake-complete="onHandshakeComplete" />
+            </div>
+            <div v-if="peerAuth === false && HOPlock !== true">
+              <form id="self-signin-form">
+                <div class="self-inputs">
+                  <button id="self-auth" @click.prevent="selfVerify()" @submit.prevent="selfVerify()">Connect to HOP</button>
+                </div>
+              </form>
+            </div>
             <div id="verify-feedback">
               {{ verifyFeedback }}
             </div>
@@ -58,7 +61,7 @@
       </template>
       <template #footer>
         <div id="footer-self">
-          BentoBoxDS - v0.4.1 HOP v0.4.7
+          BentoBoxDS - v0.5.2 HOP v0.5.3
         </div>
       </template>
     </modal-auth>
@@ -69,6 +72,7 @@
 import { ref, computed } from 'vue'
 import ModalAuth from '@/components/toolbars/account/authModal.vue'
 import AccountTabs from '@/components/toolbars/account/accountTabs.vue'
+import GenesisGate from '@/components/toolbars/account/genesisGate.vue'
 
 import { useSocketStore } from '@/stores/socket.js'
 import { accountStore } from '@/stores/accountStore.js'
@@ -80,8 +84,25 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   let selfpwInput = ref('')
   let verifyFeedback = ref('')
+  let needsHandshake = ref(false)
 
   /* computed */
+  const accountBoxStatus = computed(() => {
+    return storeAccount.accountStatus
+  })
+
+  const peerAuth = computed(() => {
+    return storeAccount.peerauth
+  })
+
+  const anchorStatus = computed(() => {
+    return storeAccount.anchorStatus
+  })
+
+  const HOPlock = computed(() => {
+    return storeAccount.HOPlock
+  })
+
   const connectNetworkstatus = computed(() => {
     return storeSocket.connection_ready
   })
@@ -100,6 +121,12 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   const selfVerify = () => {
     verifyFeedback.value = ''
+    // If we don't have a sovereign ID, we need a handshake
+    if (!storeAccount.sovereignId) {
+      needsHandshake.value = true
+      return
+    }
+
     // need to setup pub/private key schnorr sign utilities
     let pwCheck = selfpwInput.value
     // take local info and auth HOP with that
@@ -116,6 +143,11 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     } else {
       verifyFeedback.value = 'password incorrect, try again please.'
     }
+  }
+
+  const onHandshakeComplete = (data) => {
+    storeAccount.completeHandshake(data)
+    needsHandshake.value = false
   }
 
   const reconnectSocket = () => {
@@ -136,10 +168,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     storeAccount.accountMenu = 'Sign-in'
     storeAI.clearData()
   }
-
-  const accountBoxStatus = computed(() => {
-    return storeAccount.accountStatus
-  })
 
 </script>
 

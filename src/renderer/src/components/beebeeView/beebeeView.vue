@@ -2,7 +2,7 @@
   <div id="beebee-shaper">
     <div id="beebee-bentos" v-if="viewMinimal === false">
       <button id="cues-button" class="cue-agent" @click="openBentoAgent('cues')" :class="{ active: agentActive === 'cues' }">Cues</button>
-      <button id="flake-button" class="cue-agent" @click="openBentoAgent('flake')" :class="{ active: agentActive === 'flake' }">Flake</button>
+      <button id="flake-button" class="cue-agent" @click="openBentoAgent('flake')" :class="{ active: agentActive === 'flake' }">Holistic</button>
       <button id="besearch-button" class="cue-agent" @click="openBentoAgent('besearch')" :class="{ active: agentActive === 'besearch' }">Besearch</button>
       <button id="graph-button" class="cue-agent" @click="openBentoAgent('graph')" :class="{ active: agentActive === 'graph' }">Graph</button>
       <button id="diary-button" class="cue-agent" @click="openBentoAgent('diary')" :class="{ active: agentActive === 'diary' }">Diary</button>
@@ -41,12 +41,17 @@
       </div>
       <div id="beebee-bento-chat">
         <div class="beebee-home">
-          <beebee-chat></beebee-chat>
+          <beebee-chat :context-filter="'chat'"></beebee-chat>
         </div>
       </div>
     </div>
     <bento-cues></bento-cues>
-    <bento-besearch v-if="agentActive === 'besearch'"></bento-besearch>
+    <!--<bento-besearch v-if="agentActive === 'besearch' || bentoBesearchStatus === true"></bento-besearch>-->
+    <besearch-create-form
+      :show="storeBesearch.showCreateForm"
+      @close="closeBesearchCreate"
+      @save="handleCreateBesearchCycle"
+    />
     <bento-flake></bento-flake>
     <bento-space></bento-space>
     <bento-graph v-if="bentoGraphStatus === true"></bento-graph>
@@ -59,7 +64,8 @@ import { ref } from 'vue'
 import BodyDiagram from '@/components/beebeeView/diagrams/bodyDiagram.vue'
 import ChatMenu from '@/components/beebeeView/navigation/chatMenu.vue'
 import BentoCues from '@/components/bentocues/healthCues.vue'
-import BentoBesearch from '@/components/besearch/besearchCycle.vue'
+// import BentoBesearch from '@/components/besearch/besearchCycle.vue'
+import BesearchCreateForm from '@/components/besearch/lifetools/besearchCreateForm.vue'
 import BentoFlake from '@/components/bentocues/flakeCues.vue'
 import BentoGraph from '@/components/bentocues/graphCues.vue'
 import SpaceMenu from '@/components/beebeeView/navigation/spaceMenu.vue'
@@ -71,10 +77,12 @@ import { cuesStore } from '@/stores/cuesStore.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { libraryStore } from '@/stores/libraryStore.js'
+import { besearchStore } from '@/stores/besearchStore.js'
 import { computed } from 'vue'
 
   const storeAccount = accountStore()
   const storeCues = cuesStore()
+  const storeBesearch = besearchStore()
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
   const storeLibrary = libraryStore()
@@ -111,6 +119,10 @@ import { computed } from 'vue'
     return storeAI.bentographState
   })
 
+  const bentoBesearchStatus = computed(() => {
+    return storeAI.bentobesearchState
+  })
+
   const historyList = computed(() => {
     return storeAI.historyList
   })
@@ -118,6 +130,17 @@ import { computed } from 'vue'
   const historyCuesList = computed(() => {
     return storeAI.historyCuesList
   })
+
+  const activeContextFilter = computed(() => {
+    // If a chatspace item is active in the menu, let main view follow it; otherwise default to 'chat'
+    const activeItem = storeBentobox.chatList.find(c => c.active)
+    if (activeItem && activeItem.context === 'chatspace') {
+      // Show the space conversation in main view for the active cue
+      return { type: 'chatspace', id: activeItem.chatid }
+    }
+    return 'chat'
+  })
+
 
   /* methods */
   const setMove = async (event) => {
@@ -191,14 +214,39 @@ import { computed } from 'vue'
     storeLibrary.libraryStatus = true
   }
 
+  const closeBesearchCreate = () => {
+    storeBesearch.closeCreateForm()
+  }
+
+  const handleCreateBesearchCycle = (formData) => {
+    const newCycle = {
+      id: `cycle-${Date.now()}`,
+      name: formData.name,
+      description: formData.description,
+      category: formData.category,
+      status: formData.status,
+      networkExperimentId: formData.networkExperiment,
+      markerIds: formData.marker ? [formData.marker] : [],
+      frequency: formData.frequency,
+      cueId: formData.cueId || storeAI.liveBspace?.cueid || null,
+      bboxid: formData.bboxid || null,
+      nxpContractId: formData.nxpContractId || null,
+      computeContract: formData.computeContract || null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    storeBesearch.saveToHOP(newCycle)
+  }
+
 </script>
 
 <style scoped>
 #beebee-shaper {
   display: grid;
   grid-template-columns: 1fr;
-  height: 100%;
+  height: calc(100vh - var(--header-height, 60px));
   width: 100%;
+  overflow: hidden;
 }
 
 #bento-menu-items {
@@ -212,8 +260,8 @@ import { computed } from 'vue'
 #beebee-agent {
   display: grid;
   grid-template-columns: 1fr .1fr 6fr; /* Initial layout: main chat takes remaining space, history menu is 300px wide */
-  grid-template-rows: 100vh; /* Full height */
-  height: 100vh; /* Adjust as needed */
+  grid-template-rows: 1fr; /* Fill available space */
+  height: 100%; /* Fill beebee-shaper */
 }
 
 #bento-history {
@@ -260,7 +308,7 @@ import { computed } from 'vue'
 #active-space-history{
   display: grid;
   grid-template-columns: 1fr;
-  border: 1px solid red;
+  border: 0px solid red;
 }
 
 .active {

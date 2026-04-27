@@ -47,11 +47,11 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 
   // a computed ref
   const bentoboxLive = computed(() => {
-    return storeAI.expandBentobox[props.bboxid]
+    return storeBentobox.expandBentobox[props.bboxid]
   })
 
   const closedataBox = () => {
-    storeAI.expandBentobox[props.bboxid] = !storeAI.expandBentobox[props.bboxid]
+    storeBentobox.expandBentobox[props.bboxid] = !storeBentobox.expandBentobox[props.bboxid]
     // also close any toolbars open
     storeBentobox.boxtoolsShow[props.bboxid] = false
   }

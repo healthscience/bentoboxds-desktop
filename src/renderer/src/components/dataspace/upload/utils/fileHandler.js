@@ -1,4 +1,7 @@
 'use strict'
+
+import { parse } from "ol/xml"
+
 /**
 *  FileHandler
 *
@@ -91,8 +94,10 @@ class FileHandler {
 			const lines = reader.result 
 			let splitLines = lines.split(/\r\n|\n/)
 			storeLibrary.linesLimit = splitLines.slice(0, 40)
+			let fileContent = reader.result
 			// if direct from beebee inform chat
 			if (storeAI.dataBoxStatus !== true) {
+				console.log('data box not open')
 				// TODO send to beebee via socket but for now create reply here
 				storeAI.qcount++
 				let question = {}
@@ -107,21 +112,19 @@ class FileHandler {
 					return headerInfo
 				}
 				headerLocal[hashQuestion] = localHeaderExtract(splitLines[0])
-				let fileContent = reader.result
+
 				storeLibrary.fileBund.content = fileContent
 				// build for chart interface
 				question.bbid = hashQuestion
-				let bbReply = {}
-				bbReply.type = 'bbai-reply'
-				bbReply.data = { text: 'summary of file data file is csv, heading are:', filedata: { type: 'csv', file: fileBundle, columns: 'one', grid: storeLibrary.linesLimit }, prompt: 'Select data to chart:', options: headerLocal[hashQuestion], }
-				bbReply.bbid = hashQuestion
-				let newPair = {}
-				newPair.question = question
-				newPair.reply = bbReply
-				storeAI.historyPair[storeAI.chatAttention].push(newPair)
+				let fileData = {}
+				fileData.content = { text: 'summary of file data file is csv, heading are:', filedata: { type: 'csv', file: fileBundle, columns: 'one', grid: storeLibrary.linesLimit }, prompt: 'Select data to chart:', options: headerLocal[hashQuestion], }
+				fileData.bbid = hashQuestion
+				storeLibrary.uploadHolder.push({ uploadid: hashQuestion, data: fileData })
+				console.log(storeLibrary.uploadHolder)
 				// if csv  active viewer
-				storeLibrary.csvpreviewLive = true
+				// storeLibrary.csvpreviewLive = true
 			} else {
+				console.log('yes data box open')
 				// extract headers assume first line
 				const localHeaderExtract = (lineOne) => {
 					let headerInfo = lineOne.split(',')
@@ -136,20 +139,50 @@ class FileHandler {
 					scount++
 				}
 				// build for library upload
+				console.log('ATTACHE NAME TO DIRECT LIBRARY UPLOAD')
+				console.log(fileBundle)
 				storeLibrary.newPackagingForm.apicolumns = headerLocal
 				storeLibrary.newDatafile.columns = columnStructure
 				storeLibrary.newDatafile.path = 'csv'
-				storeLibrary.newDatafile.file = 'csv'
+				storeLibrary.newDatafile.file = fileBundle.name
+				let parseInfo = {}
+				parseInfo.source = fileBundle.source
+				parseInfo.cnumber = 0
+				storeLibrary.newDatafile.info = parseInfo
+				// route data to be dave via HOP
+				console.log('this active')
+				console.log(this)
+			  this.fileStorePath(storeLibrary, fileContent)
+
 			}
-		}
+		}.bind(this) // Bind 'this' to the correct context
+
 		reader.onerror = function() {
 			console.log(reader.error)
 		}
 		reader.readAsText(file.file)
-		const reader2 = new FileReader();
-		reader2.readAsArrayBuffer(file.file)
+		// const reader2 = new FileReader();
+		// reader2.readAsArrayBuffer(file.file)
 
 	}
+
+	/**
+	 *  @method fileStorePath
+	*/
+	fileStorePath (storeLibrary, fileContent) {
+		console.log('store path csv join or not???')
+		if (storeLibrary.joinNXP !== true) {
+			console.log('not join')
+		// prepare message structure
+		 // this.saveDataHop(storeLibrary, fileContent)	
+	} else {
+		console.log('yes part of JOIN process')
+		this.saveDataHop(storeLibrary, fileContent)
+		// close the upload
+		storeLibrary.uploadStatus = false
+		//storeLibrary.joinNXPprocess(messageHOP)  // just route to send message so deleete now
+	}
+	} 
 
 	/**
 	* pass stream i.e. large file data to hop for storage
@@ -170,16 +203,26 @@ class FileHandler {
 	/**
 	* pass data to hop for storage
 	*/
-	saveDataHop (storeLibrary) {
+	saveDataHop (storeLibrary, fileContent) {
+		let dataSend = {}
+		dataSend.columns = storeLibrary.newDatafile.columns
+		dataSend.path = storeLibrary.newDatafile.path
+		dataSend.type = storeLibrary.newDatafile.path
+		dataSend.file =	storeLibrary.newDatafile.file
+		dataSend.info =	storeLibrary.newDatafile.info
+		dataSend.content = fileContent
+
 		let messageHOP = {}
 		messageHOP.type = 'library'
 		messageHOP.action = 'contracts'
 		messageHOP.reftype = 'save-file'
 		messageHOP.privacy = 'private'
-		messageHOP.task = 'PUT-stream'
-		messageHOP.data = fileSave
+		messageHOP.task = 'PUT'
+		messageHOP.data = dataSend
 		// close the upload
 		storeLibrary.uploadStatus = false
+		console.log('save file csv')
+		console.log(messageHOP)
 		storeLibrary.sendMessage(messageHOP)
 	}
 

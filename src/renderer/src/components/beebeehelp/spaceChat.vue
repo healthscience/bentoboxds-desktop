@@ -5,25 +5,17 @@
       <template #header>
         <!-- The code below goes into the header slot -->
         <div id="chatspace-modal-header">
-          <button
-            type="button"
-            class="btn-green"
-            @click="closeBentoChat"
-            aria-label="Close modal"
-          >
-            Close
-          </button>
-          <div id="spacechat">CueChat # {{ storeAI.liveBspace.name }}</div>
-          <div id="return-modal-close" @click="closeBentoChat">return</div>
+           <div id="spacechat">CueChat # {{ storeAI.liveBspace.name }}</div>
         </div>
       </template>
       <template #body>
-        <div id="chatspace-conversation">
-          <beebee-chat></beebee-chat>
-          <!--<conversation-messages></conversation-messages>-->
+        <div class="space-chat">
+          <div class="context-content">
+            <chat-interface :context-filter="{ type: 'chatspace', id: storeAI.liveBspace?.cueid || storeAI.liveBspace?.spaceid }"></chat-interface>
+          </div>
         </div>
         <div class="chat-input">
-          <input-box :chatcontext="'cuespace'"></input-box>
+          <input-box></input-box>
         </div>
       </template>
       <template #footer>
@@ -33,31 +25,46 @@
 </template>
 
 <script setup>
-import BeebeeChat from '@/components/beebeehelp/chatInterface.vue'
-// import ConversationMessages from '@/components/beebeehelp/conversationFlow.vue'
 import ModalChat from '@/components/beebeehelp/chatModal.vue' 
+import ChatInterface from '@/components/beebeehelp/chatInterface.vue'
 import inputBox from '@/components/beebeehelp/inputBox.vue'
-import { ref, computed } from 'vue'
+import { computed, onMounted, onBeforeUnmount } from 'vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
+const storeAI = aiInterfaceStore()
+let previousContext = null
 
-  const storeAI = aiInterfaceStore()
+/* computed */
+const bentochatStatus = computed(() => {
+  return storeAI.bentochatState
+})
 
-  /* computed */
-  const bentochatStatus = computed(() => {
-    return storeAI.bentochatState
-  })
+onMounted(() => {
+  previousContext = storeAI.beebeeContext
+  storeAI.beebeeContext = 'chatspace'
+  // Ensure the space chat is present in the chat menu with timestamps
+  const cueId = storeAI.liveBspace?.cueid || storeAI.liveBspace?.spaceid
+  const name = storeAI.liveBspace?.name
+  const contractKey = storeAI.liveBspace?.contract_key
+  const lifeStrapID = storeAI.liveBspace?.lifeStrapID || cueId
 
-  /* methods */
-  const closeBentoChat = () => {
-    storeAI.bentochatState = !storeAI.bentochatState
-    // save the current layout on close
-    // storeBentobox.saveLayoutSpace(storeAI.liveBspace.spaceid)
+  if (cueId) {
+    storeAI.setActiveLifeStrap(lifeStrapID, contractKey)
+    storeAI.ensureSpaceChatInMenu(cueId, name)
   }
+})
+
+onBeforeUnmount(() => {
+  storeAI.beebeeContext = previousContext || 'chat'
+})
+
+/* methods */
+const closeBentoChat = () => {
+  storeAI.bentochatState = !storeAI.bentochatState
+}
 </script>
 
 <style scoped>
-
 #chatspace-modal-header {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -78,13 +85,45 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   text-align: right;
 }
 
-.chat-input {
-  position: fixed;
-  bottom: 26px;
+.space-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-@media (min-width: 1024px) {
+.context-selector {
+  display: flex;
+  justify-content: space-around;
+  padding: 1em;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #ccc;
+}
 
+.context-selector button {
+  padding: 0.5em 1em;
+  background-color: #e0e0e0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.context-selector button.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.context-content {
+  flex: 1;
+  padding: 1em;
+  overflow-y: auto;
+}
+
+  .chat-input {
+    position: fixed;
+    bottom: 26px;
+  }
+
+@media (min-width: 1024px) {
   #chatspace-modal-header {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -109,8 +148,40 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   .chat-input {
     position: fixed;
-    bottom: 26px;
+    bottom: 32px;
+  }
+
+  .space-chat {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .context-selector {
+    display: flex;
+    justify-content: space-around;
+    padding: 1em;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .context-selector button {
+    padding: 0.5em 1em;
+    background-color: #e0e0e0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .context-selector button.active {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .context-content {
+    flex: 1;
+    padding: 1em;
+    overflow-y: auto;
   }
 }
-
 </style>

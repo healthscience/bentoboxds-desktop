@@ -59,11 +59,13 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { accountStore } from '@/stores/accountStore.js'
 import { libraryStore } from '@/stores/libraryStore.js'
+import { teachingStore } from '@/stores/teachingStore.js'
 
   const storeAccount = accountStore()
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
   const storeLibrary = libraryStore()
+  const storeTeaching = teachingStore()
   
   const selectedChartnumber = ref('singlechart')
   const tidyData = ref(false)
@@ -84,14 +86,23 @@ const openDataToolbar = () => {
  // storeBentobox.boxToolStatus[props.bboxid].opendatatools.active = !storeBentobox.boxToolStatus[props.bboxid].opendatatools.active
  storeBentobox.bbToolbarOpendata[props.bboxid] = !storeBentobox.bbToolbarOpendata[props.bboxid]
  storeAI.prepareLibrarySummary(props.bboxid)
+ if (storeTeaching.isTeachingMode) {
+   storeTeaching.logAction('vistoolBar', 'openDataToolbar', [props.bboxid], storeBentobox.bbToolbarOpendata[props.bboxid])
+ }
 }
 
 const viewNetworkGrpah = () => {
   storeBentobox.networkGraph = !storeBentobox.networkGraph
+  if (storeTeaching.isTeachingMode) {
+    storeTeaching.logAction('vistoolBar', 'viewNetworkGrpah', [], storeBentobox.networkGraph)
+  }
 }
 
 const viewMap = () => {
   storeBentobox.geoMap = !storeBentobox.geoMap
+  if (storeTeaching.isTeachingMode) {
+    storeTeaching.logAction('vistoolBar', 'viewMap', [], storeBentobox.geoMap)
+  }
 }
 
 const setTimeFormat = () => {
@@ -125,10 +136,16 @@ const setTimeFormat = () => {
     HOPcontext.update = updateECS
     // close the calendar options and dispay date summary selected
     storeLibrary.updateHOPqueryContracts(HOPcontext)
+    if (storeTeaching.isTeachingMode) {
+      storeTeaching.logAction('vistoolBar', 'setTimeFormat', [selectedTimeFormat.value], null)
+    }
 }
 
 const labelsSelect = () => {
   storeAI.boxSettings.legends = !storeAI.boxSettings.legends
+  if (storeTeaching.isTeachingMode) {
+    storeTeaching.logAction('vistoolBar', 'labelsSelect', [], storeAI.boxSettings.legends)
+  }
 }
 
 const tidySelect = () => {
@@ -169,11 +186,17 @@ const tidySelect = () => {
   updateECS.changes = moduleUpdate
   HOPcontext.update = updateECS
   storeLibrary.updateHOPqueryContracts(HOPcontext)
+  if (storeTeaching.isTeachingMode) {
+    storeTeaching.logAction('vistoolBar', 'tidySelect', [], tidyData.value)
+  }
 }
 
 const chartSelect = (chartstyle) => {
   // storeAI.boxSettings.chartstyle = chartstyle
   storeBentobox.chartStyle[props.bboxid] = chartstyle
+  if (storeTeaching.isTeachingMode) {
+    storeTeaching.logAction('vistoolBar', 'chartSelect', [chartstyle], chartstyle)
+  }
 }
 
 /*  computed */

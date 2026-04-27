@@ -28,6 +28,12 @@
         <button class="button-lib-data" v-bind:class="{ active: newModulebuild === true }" @click="nxpAdd">
           + new NXP
         </button>
+        <button class="button-lib-data" v-bind:class="{ active: teachStatus === true }" @click="teachViewer">
+          @teach
+        </button>
+        <button class="button-lib-data" v-bind:class="{ active: besearchStatus === true }" @click="besearchViewer">
+          besearch
+        </button>
       </template>
       <template #body>
         <!-- data utilities-->
@@ -43,6 +49,8 @@
         <libraryexp-view v-if="storeLibrary.libPeerview === true"></libraryexp-view>
         <newnxp-view v-if="storeLibrary.newNXP === true"></newnxp-view>
         <joinnxp-view v-if="storeLibrary.joinNXP === true"></joinnxp-view>
+        <teach-view v-if="teachStatus === true"></teach-view>
+        <besearch-view v-if="besearchStatus === true"></besearch-view>
       </template>
       <template #footer>
       </template>
@@ -61,13 +69,19 @@ import NetworkLibrary from '@/components/library/index.vue'
 import LibraryexpView from '@/components/dataspace/experimentNXPView.vue'
 import NewnxpView from '@/components/dataspace/newnxpView.vue'
 import JoinnxpView from '@/components/library/contracts/join/joinnxpView.vue'
+import TeachView from '@/components/dataspace/teach/teachView.vue'
+import BesearchView from '@/components/dataspace/besearch/besearchView.vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { libraryStore } from '@/stores/libraryStore.js'
+import { teachingStore } from '@/stores/teachingStore.js'
+import { besearchStore } from '@/stores/besearchStore.js'
 
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
   const storeLibrary = libraryStore()
+  const storeTeach = teachingStore()
+  const storeBesearch = besearchStore()
 
   const uploadStatus = computed(() => {
     return storeLibrary.uploadStatus
@@ -102,6 +116,15 @@ import { libraryStore } from '@/stores/libraryStore.js'
     return storeLibrary.newNXP
   })
 
+  const teachStatus = computed(() => {
+    return storeTeach.teachHistoryStatus
+  })
+
+  const besearchStatus = computed(() => {
+    return storeBesearch.besearchHistoryStatus
+  })
+
+  /* methods */
   const closedataBox = () => {
     storeAI.dataBoxStatus = !storeAI.dataBoxStatus
     storeLibrary.uploadStatus = false
@@ -140,6 +163,15 @@ import { libraryStore } from '@/stores/libraryStore.js'
       storeLibrary.saveSuccessnxp = false
     }
   }
+
+  const teachViewer = () => {
+    storeTeach.teachHistoryStatus = !storeTeach.teachHistoryStatus
+  }
+
+  const besearchViewer = () => {
+    storeBesearch.besearchHistoryStatus = !storeBesearch.besearchHistoryStatus
+  }
+
 </script>
 
 <style scoped>

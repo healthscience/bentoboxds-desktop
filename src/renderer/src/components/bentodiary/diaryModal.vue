@@ -6,11 +6,21 @@
           <slot name="header">default header</slot>
         </div>
         <div class="modal-body">
-          <div id="ecdiary">Diary Please {{ smartDiary }}</div>
-          <slot name="body">
-            
-            default body
-          </slot>
+          <div id="time-travel">
+            <button @click="clockStyle('heli')">Heli</button>
+            <button @click="clockStyle('test')">Test</button>
+            <button @click="clockStyle('old')">Old</button>
+          </div>
+          <heli-clock v-if="clockLive === 'heli'"></heli-clock>
+          <heli-test v-if="clockLive === 'heli'"></heli-test>
+          <swim-case></swim-case>
+          <!--<div id="old-world-calendar">
+            <div id="ecdiary">Old World Calendar {{ smartDiary }}</div>
+            <slot name="body">
+              
+              default body
+            </slot>
+          </div>-->
         </div>
 
         <div class="modal-footer">
@@ -29,6 +39,10 @@
 
 <script setup>
 import { ref, nextTick, computed, onMounted, onUpdated } from 'vue'
+import heliClock from '@/components/bentodiary/heliStart.vue'
+import heliTest from '@/components/bentodiary/projectionHeli.vue'
+// import DigitalCalendar from '@/components/bentodiary/digitalSolarCalendar.vue'
+import SwimCase from '@/components/bentodiary/peercase/SwimEmulator.vue'
 import { diaryStore } from '@/stores/diaryStore.js'
 
   const storeDiary = diaryStore()  
@@ -38,14 +52,15 @@ import { diaryStore } from '@/stores/diaryStore.js'
   })
 
   let ec = ref({})
+  let clockLive = ref('heli')
 
   onMounted(() => {
     storeDiary.createEvents()
   })
 
   onUpdated(() => {
-      let smartCal = document.getElementById('ecdiary')
-      ec = new EventCalendar(smartCal, eventDiary.value)
+      let smartCal = {} // document.getElementById('ecdiary')
+      // ec = new EventCalendar(smartCal, eventDiary.value)
   })
 
   /* computed */

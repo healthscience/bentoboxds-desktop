@@ -4,16 +4,22 @@ import { aiInterfaceStore } from "@/stores/aiInterface.js"
 import { libraryStore } from "@/stores/libraryStore.js"
 import { accountStore } from "@/stores/accountStore.js"
 import { bentoboxStore } from "@/stores/bentoboxStore.js"
+import { useChatStore } from '@/stores/chatStore.js'
 import { cuesStore } from "@/stores/cuesStore.js"
+import { besearchStore } from "@/stores/besearchStore.js"
+import { diaryStore } from "@/stores/diaryStore.js"
 
 export const useSocketStore = defineStore({
   id: "socket",
   state: () => ({
     bentoboxStore: bentoboxStore(),
+    chatStore: useChatStore(),
     aiStore: aiInterfaceStore(),
     storeCues: cuesStore(),
     libStore: libraryStore(),
     accStore: accountStore(),
+    besearchStore: besearchStore(),
+    diaryStore: diaryStore(),
     jwt: '',
     count: 0,
     websocket: {},
@@ -50,6 +56,7 @@ export const useSocketStore = defineStore({
         this.connection_error = false
         this.connection_loss = false
       }
+      console.log('socket connected')
     },
     onSocketMessage (evt) {
       // console.log('ui socket')
@@ -59,8 +66,12 @@ export const useSocketStore = defineStore({
       // keep in message log for session?
       this.messages.push(received)
       // parse and route to logic processing
-      if (received.type === 'bentobox') {
+      if (received.type === 'account') {
+        this.accStore.processReply(received)
+      } else if (received.type === 'bentobox') {
         this.bentoboxStore.processReply(received)
+      } else if (received.type === 'chat') {
+        this.chatStore.processReply(received)
       } else if (received.type === 'library') {
         this.libStore.processReply(received)
       } else if (received.type == 'publiclibrary') {
@@ -69,7 +80,11 @@ export const useSocketStore = defineStore({
         this.storeCues.processReply(received)
       } else if (received.type == 'upload') {
         this.aiStore.processReply(received)
+      } else if (received.type == 'bbai-stream-reply') {
+        this.aiStore.processStreamReply(received)
       } else if (received.type == 'bbai-reply') {
+        this.aiStore.processReply(received)
+      } else if (received.type == 'bbai-init') {
         this.aiStore.processReply(received)
       } else if (received.type == 'hop-learn') {
         this.aiStore.processReply(received)
@@ -82,12 +97,11 @@ export const useSocketStore = defineStore({
       } else if (received.type == 'sf-displayEntityRange') {
       } else if (received.type == 'sf-newEntityRange') {
         this.aiStore.processHOPdata(received)
-      } else if (received.type === 'account') {
-        this.accStore.processReply(received)
-      } else if (received.type == '') {
-        console.log('error')       
+      } else if (received.type === 'besearch') {
+        this.besearchStore.processReply(received)
+      } else if (received.type === 'heliclock') {
+        this.diaryStore.processHeliReply(received)
       }
-    
     },
     send_message (data) {
       data.jwt = this.jwt

@@ -15,17 +15,18 @@ import crypto from 'crypto'
 import SafeFlowECS from 'node-safeflow'
 import LibComposer from 'librarycomposer'
 
-
 class SfRoute extends EventEmitter {
 
-  constructor(Holepunch) {
+  constructor(context) {
     super()
+    this.context = context
     this.live = true
     this.wsocket = {}
     this.wlist = []
-    this.holepunchLive = Holepunch
-    this.liveLibrary = new LibComposer()
-    this.SafeFlow = new SafeFlowECS(Holepunch)
+    this.holepunchLive = context.network
+    this.heliclock = context.heliclock
+    this.liveLibrary = new LibComposer(context)
+    this.SafeFlow = new SafeFlowECS(this.holepunchLive)
     this.SafeFlow.entityGetter()
     this.sfListeners()
   }
@@ -188,8 +189,6 @@ class SfRoute extends EventEmitter {
       // then get results to use
       let checkResults = {}
       const checkKBledger = await this.holepunchLive.BeeData.peerLedgerProof(data)
-      console.log('ledger check=================')
-      console.log(checkKBledger)
       if (checkKBledger !== null) {
         checkResults = await this.holepunchLive.BeeData.peerResultsItem(data.resultuuid)
       } else {
@@ -209,9 +208,6 @@ class SfRoute extends EventEmitter {
   *
   */
    resultsCallback =  function (entity, data) {
-    console.log('results hbeee back for match')
-    console.log(entity)
-    console.log(data)
     // callbacks for datastores
     let resultMatch = {}
     if (data !== null) {
