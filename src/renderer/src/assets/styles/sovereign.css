@@ -1,0 +1,83 @@
+/* src/assets/styles/sovereign.css */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  /* --- Core Palette --- */
+  --sov-bg: #ffffff;
+  --sov-bg-soft: #f9fbfb;
+  --sov-text: #2c3e50;
+  --sov-text-muted: #7f8c8d;
+
+  /* --- Resonance Colors (Teals/Golds) --- */
+  --sov-accent: #00cca3; /* Primary Teal */
+  --sov-accent-glow: rgba(0, 204, 163, 0.2);
+  --sov-gold: #d4af37; /* For Solar/High Value alerts */
+
+  /* --- Geometric Constants --- */
+  --sov-border-radius: 12px;
+  --sov-pill: 50px;
+  --sov-glass: rgba(255, 255, 255, 0.8);
+
+  /* --- Motion --- */
+  --sov-transition-slow: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --sov-transition-med: all 0.4s ease;
+
+  --sov-capacity: #00cca3; /* Teal - Output */
+  --sov-coherence: #d4af37; /* Gold - Balance */
+  --sov-context: #3498db; /* Blue - Environment */
+  --sov-earth: #3b82f6; /* Deep Blue - Temporal Scales */
+  --sov-earth-rgb: 59, 130, 246;
+}
+
+/* --- Global Utilities for the Grid --- */
+.sov-grid-stage {
+  background-color: var(--sov-bg);
+  color: var(--sov-text);
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  transition: background-color 0.8s ease;
+}
+
+.sov-button {
+  background: var(--sov-bg-soft);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--sov-text);
+  padding: 0.8rem 1.6rem;
+  border-radius: var(--sov-pill);
+  cursor: pointer;
+  transition: var(--sov-transition-med);
+  font-weight: 500;
+}
+
+.sov-button:hover {
+  border-color: var(--sov-accent);
+  box-shadow: 0 4px 12px var(--sov-accent-glow);
+  transform: translateY(-1px);
+}
+
+/* Add this to the bottom of sovereign.css */
+[data-theme="dark"] {
+  --sov-bg: #0f0f0f;
+  --sov-bg-soft: #1a1a1a;
+  --sov-text: #ecf0f1;
+  --sov-text-muted: #bdc3c7;
+  --sov-accent: #00ffc8; /* Brighter teal for dark mode */
+}
+
+.lens-item {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--sov-bg-soft);
+  transition: var(--sov-transition-slow);
+}
+
+.mini-anchor {
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.05));
+}

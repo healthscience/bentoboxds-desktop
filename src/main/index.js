@@ -9,10 +9,12 @@ let removeLocation = currentLocation.slice(0, -18)
 let tempLocation = removeLocation //  + 'resources'
 
 // check if hop models has been setup i.e. first time use
-let modelsHopPath = os.homedir() + '/' + '.hop-models'
+let modelsHopName = os.platform() === 'win32' ? 'hop-models' : '.hop-models'
+let modelsHopPath = path.join(os.homedir(), modelsHopName)
+
 if (!fs.existsSync(modelsHopPath)) {
   let modelsInstall = path.join(tempLocation, './models-hop')
-  fs.mkdirSync(modelsHopPath)
+  // ensure destination parent exists (though homedir should)
   // now copy the models directory
   fs.cp(modelsInstall, modelsHopPath, { recursive: true }, (err) => {
     if (err) {
@@ -20,19 +22,37 @@ if (!fs.existsSync(modelsHopPath)) {
     }
   })
 } else {
-  console.log('.models-hop folder already exists')
+  console.log(`${modelsHopName} folder already exists`)
 }
 
 import { fork } from 'child_process'
 log.info(tempLocation)
 log.info('after first------')
 // const child = spawn('node', [(path.join(tempLocation, '/hop/src/index.js'))])
-fork(path.join(tempLocation, '/hop/src/index.js'))
+const child = fork(path.join(tempLocation, '/hop/src/index.js'), [], {
+  silent: true
+})
+child.on('error', (err) => {
+  log.error('Child process error:', err)
+})
+child.on('exit', (code, signal) => {
+  log.info(`Child process exited with code ${code} and signal ${signal}`)
+})
+if (child.stdout) {
+  child.stdout.on('data', (data) => {
+    log.info(`Child stdout: ${data}`)
+  })
+}
+if (child.stderr) {
+  child.stderr.on('data', (data) => {
+    log.error(`Child stderr: ${data}`)
+  })
+}
 
 // const { execSync } = require('child_process')
 // execSync('sleep 2') // block process for 1 second.
 
-import { app, shell, protocol, BrowserWindow, ipcMain, session } from 'electron'
+import { app, shell, protocol, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 // import iconImg from '../../public/logo-512x512.png'
@@ -100,23 +120,6 @@ app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')
 
 
-
-  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
-    console.log(`Permission request for: ${permission}`);
-    if (permission === 'geolocation') {
-      callback(true) // Automatically approve geolocation requests
-    } else {
-      callback(false)
-    }
-  });
-
-  session.defaultSession.setPermissionCheckHandler((webContents, permission, origin) => {
-    if (permission === 'geolocation') {
-      return true;
-    }
-    return false;
-  });
-
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -147,7 +150,25 @@ ipcMain.on('message-from-vue', (event, arg) => {
   let pathJoin = path.join(tempLocation, '/hop/src/index.js')
   log.info('path info joine')
   log.info(pathJoin)
-  fork(path.join(tempLocation, '/hop/src/index.js'))
+  const child = fork(path.join(tempLocation, '/hop/src/index.js'), [], {
+    silent: true
+  })
+  child.on('error', (err) => {
+    log.error('Child process error:', err)
+  })
+  child.on('exit', (code, signal) => {
+    log.info(`Child process exited with code ${code} and signal ${signal}`)
+  })
+  if (child.stdout) {
+    child.stdout.on('data', (data) => {
+      log.info(`Child stdout: ${data}`)
+    })
+  }
+  if (child.stderr) {
+    child.stderr.on('data', (data) => {
+      log.error(`Child stderr: ${data}`)
+    })
+  }
   log.info('after fokr')
   // You can also send a response back to Vue
   event.reply('message-from-main', 'Message received in main process');

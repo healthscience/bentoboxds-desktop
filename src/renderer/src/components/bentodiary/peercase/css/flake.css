@@ -1,0 +1,66 @@
+:root {
+  --bg-deep: #0b0d10;      /* Midnight Navy base */
+  --surface-glass: rgba(21, 26, 33, 0.7); /* Translucent surface */
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --glow-metabolic: #ff4d4d;
+  --glow-ecological: #40e0ff; /* Electric Cyan instead of flat green */
+  --glow-economic: #b6ff3b;   /* Neon Lime for energy */
+}
+
+.holistic-wheel-container {
+  background: radial-gradient(circle at center, #151a21 0%, var(--bg-deep) 100%);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(12px); /* Glass effect */
+  border-radius: 50%;
+  box-shadow: inset 0 0 40px rgba(0, 242, 255, 0.05);
+}
+
+/* Orbit Rings - Keep these subtle */
+.orbit-ring {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.15); /* Slightly lighter grey */
+  stroke-width: 0.3;
+  stroke-dasharray: 1, 3; /* Dotted look */
+}
+
+/* Cue Points - The colored dots */
+.cue-point {
+  transition: all 0.5s ease;
+  filter: drop-shadow(0 0 3px currentColor);
+}
+
+/* Force colors based on Orbit Name */
+.metabolic { fill: #ff4d4d !important; color: #ff4d4d; }
+.ecological { fill: #40e0ff !important; color: #40e0ff; }
+.economic   { fill: #b6ff3b !important; color: #b6ff3b; }
+
+/* The Pulse for Active items */
+.pulse {
+  animation: resonance-throb 2s infinite;
+}
+
+@keyframes resonance-throb {
+  0% { r: 1.5; opacity: 1; }
+  50% { r: 3; opacity: 0.7; filter: drop-shadow(0 0 8px currentColor); }
+  100% { r: 1.5; opacity: 1; }
+}
+
+/* The "Flash" of Consilience */
+.resonance-active {
+  animation: consilience-flash 0.8s ease-out;
+}
+
+@keyframes consilience-flash {
+  0% { filter: brightness(1) saturate(1); }
+  20% { filter: brightness(2) saturate(2); }
+  100% { filter: brightness(1) saturate(1); }
+}
+
+/* Connecting "Neural" Lines */
+.resonance-line {
+  stroke: rgba(255, 255, 255, 0.8);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 1;
+  filter: drop-shadow(0 0 8px #fff);
+  transition: opacity 0.3s ease;
+}

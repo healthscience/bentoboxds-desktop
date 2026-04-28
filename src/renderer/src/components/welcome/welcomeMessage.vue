@@ -1,23 +1,23 @@
 <template>
   <div class="beebee-welcome" v-if="storeAI.startChat === true">
-    <div id="message-question">Life-Strap health stories</div>
+    <div id="message-question">Attune health with BentoBoxDS</div>
     <div id="bb-features">
       <div class="message-bb">
-        <header>Tools</header>
+        <header>Story</header>
         <div class="message-learn">
-          Have agency over data and Agents
+          Have dialogues, connect tiny devices, build context, body, building to Bioregion.
         </div>
       </div>
       <div class="message-bb">
-        <header>BeeBee Oracle</header>
+        <header>Interplay</header>
         <div class="message-learn">
-          A guide to network knowledge
+          Express the intent via lifestrap-lens, besearch cycles & tuning resonAgents.
         </div>
       </div>
       <div class="message-bb">
         <header>Emulations</header>
         <div class="message-learn">
-          Build worlds that emulate life, cell to a bioregion
+          Build orgos and gelles that emulate life, cell to a bioregion
         </div>
       </div>
     </div>

@@ -1,0 +1,19 @@
+{
+  "name": "heli-engine",
+  "type": "module",
+  "collaborators": [
+    "BentoBoxDS Peer"
+  ],
+  "description": "A high-precision Solar Orbital engine for the Heli Digital Clock",
+  "version": "0.1.0",
+  "files": [
+    "heli_engine_bg.wasm",
+    "heli_engine.js",
+    "heli_engine.d.ts"
+  ],
+  "main": "heli_engine.js",
+  "types": "heli_engine.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

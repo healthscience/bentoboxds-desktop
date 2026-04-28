@@ -64,9 +64,29 @@ export const diaryStore = defineStore('diarystore', {
     },
     currentLayer: 'osm',
     earthLayers: ['osm', 'satellite', 'terrain'],
-    zoomDepth: 0
+    zoomDepth: 0,
+    currentLocation: null,
+    birthLocation: null,
+    calibrationPreviewDate: null,
+    calibrationZenith: 0,
+    calibrationOrbit: 0,
+    currentLocationError: false,
+    birthLocationError: false,
+    locationOptions: [],
+    locationContext: null,
   }),
   actions: {
+    selectLocation (location) {
+      if (this.locationContext === 'current') {
+        this.currentLocation = location
+        this.currentLocationError = false
+      } else {
+        this.birthLocation = location
+        this.birthLocationError = false
+      }
+      this.locationOptions = []
+      this.locationContext = null
+    },
     setTempSignature (sig) {
       this.tempSignature = sig
     },
@@ -96,8 +116,36 @@ export const diaryStore = defineStore('diarystore', {
       return (norm < 10 ? '0' : '') + norm;
     },
     processHeliReply (received) {
-      if (received.action === 'heliclock-location-birth') {
-        this.birthLocation = received.data[0]
+      if (received.action === 'heliclock-location-default' || received.action === 'heliclock-location-birth') {
+        const isCurrent = received.data?.[0]?.context === 'current' || received.context === 'current'
+        const context = isCurrent ? 'current' : 'birth'
+
+        if (received.data && received.data.length > 1) {
+          this.locationOptions = received.data
+          this.locationContext = context
+          return
+        }
+
+        if (received.data && received.data.length === 1) {
+          if (isCurrent) {
+            this.currentLocation = received.data[0]
+            this.currentLocationError = false
+          } else {
+            this.birthLocation = received.data[0]
+            this.birthLocationError = false
+          }
+          this.locationOptions = []
+        } else {
+          // Check context from the request/reply to know which error to set
+          if (isCurrent) {
+            this.currentLocation = null
+            this.currentLocationError = true
+          } else {
+            this.birthLocation = null
+            this.birthLocationError = true
+          }
+          this.locationOptions = []
+        }
       } else if (received.action === 'heliclock-convert-oldworld') {
         let oldDataRaw = received.data.timestamp
         const dateOldW = new Date(Number(oldDataRaw));
@@ -126,6 +174,7 @@ export const diaryStore = defineStore('diarystore', {
       }
     },
     sendMessageHOP (message) {
+      console.log('sendMessageHOP hiliidid', message)
       this.sendSocket.send_message(message)
     }
   }
