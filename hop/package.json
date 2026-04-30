@@ -38,7 +38,7 @@
     "cues-hop": "^0.0.2",
     "electron-log": "^5.4.3",
     "gpt4all": "^4.0.0",
-    "heliclock-hop": "^0.2.7",
+    "heliclock-hop": "^0.2.9",
     "holepunch-hop": "^0.7.5",
     "hop-crypto": "^0.1.5",
     "hop-dml": "^0.0.3",
