@@ -39,11 +39,21 @@ export const useSocketStore = defineStore({
     init_chat () {
       //connect to Sockets Bay
       const sockets_bay_url = `wss://127.0.0.1:9888` // `wss://165.227.244.213:9888` // `wss://127.0.0.1:9888`
+      console.log('Connecting to WebSocket at:', sockets_bay_url)
       this.websocket = new WebSocket(sockets_bay_url)
-      this.websocket.onopen = this.onSocketOpen
+      this.websocket.onopen = (evt) => {
+        console.log('WebSocket connection opened successfully')
+        this.onSocketOpen(evt)
+      }
       this.websocket.onmessage = this.onSocketMessage
-      this.websocket.onerror = this.onSockerError
-      this.websocket.onclose = this.onSocketClose
+      this.websocket.onerror = (err) => {
+        console.error('WebSocket connection error detailed:', err)
+        this.onSockerError(err)
+      }
+      this.websocket.onclose = (evt) => {
+        console.log('WebSocket connection closed. Code:', evt.code, 'Reason:', evt.reason)
+        this.onSocketClose(evt)
+      }
       /* window.addEventListener("unload", function () {
         console.log('refreshpage')
         if(this.socket.readyState == WebSocket.OPEN)

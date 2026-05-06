@@ -209,12 +209,16 @@ class HOP extends EventEmitter {
     }
 
     // 1. Define your allowed peer origin (BentoBoxDS location)
-    const ALLOWED_ORIGIN = 'https://localhost:5173'; // Change to your actual UI port
+    const ALLOWED_ORIGIN = ['https://localhost:5173', 'file://' ]; // Change to your actual UI port
 
     const server = createServer(options, (request, response) => {
       // process HTTPS request. Since we're writing just WebSockets
       // server we don't have to implement anything.
     })
+
+    server.on('connection', (socket) => {
+      console.log(`[HOP] New TCP connection from ${socket.remoteAddress}`);
+    });
 
     server.on('error', function(e) {
       console.log('problem with request: ' + e.stack);
@@ -223,9 +227,18 @@ class HOP extends EventEmitter {
     // 2. Upgrade to WebSocket with Origin Check
     server.on('upgrade', (request, socket, head) => {
       const origin = request.headers.origin;
+      console.log(`[HOP] Connection attempt from origin: ${origin}`);
 
-      // SERIOUS INTENT: Strict Origin Check
-      if (origin !== ALLOWED_ORIGIN) {
+      // RELAXED ORIGIN CHECK FOR DEBUGGING
+      // Allow if origin is null, undefined, file://, or includes localhost
+      const isAllowed = !origin || 
+                        origin === 'null' || 
+                        origin === 'undefined' || 
+                        origin.startsWith('file://') || 
+                        origin.includes('localhost') || 
+                        origin.includes('127.0.0.1');
+
+      if (!isAllowed) {
         console.error(`!!! SECURITY ALERT: Blocked unauthorized origin: ${origin}`);
         socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
         socket.destroy();
@@ -238,8 +251,8 @@ class HOP extends EventEmitter {
       });
     });
 
-  server.listen(this.options.port, async () => {
-    console.log(`[HOP] Peer Gateway active on *:${this.options.port}`);
+  server.listen(this.options.port, '127.0.0.1', async () => {
+    console.log(`[HOP] Peer Gateway active on 127.0.0.1:${this.options.port}`);
   });
 
     const wsServer = new WebSocketServer({ noServer: true })

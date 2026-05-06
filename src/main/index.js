@@ -60,15 +60,21 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }])
 
+// Disable certificate verification for localhost/local connections
+app.commandLine.appendSwitch('ignore-certificate-errors');
+app.commandLine.appendSwitch('allow-insecure-localhost');
+
 function sleep (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
     
 async function pause () {
 
- await sleep(3000)
+ await sleep(5000)
 
 function createWindow() {
+  console.log('Main Process: Creating window and checking command line switches...');
+  console.log('Switches:', app.commandLine.hasSwitch('ignore-certificate-errors'));
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -82,9 +88,14 @@ function createWindow() {
       nodeIntegration: true,
       webSecurity: false,
       allowRunningInsecureContent: true,
-      devTools: false
+      devTools: false,
+      additionalArguments: ['--ignore-certificate-errors', '--allow-insecure-localhost']
     }
   })
+
+  // Also append to command line for global effect
+  app.commandLine.appendSwitch('ignore-certificate-errors');
+  app.commandLine.appendSwitch('allow-insecure-localhost');
 
   mainWindow.webContents.openDevTools()
 
@@ -126,6 +137,11 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
+
+  protocol.registerFileProtocol('app', (request, callback) => {
+    const url = request.url.substr(6);
+    callback({ path: path.normalize(`${__dirname}/${url}`) });
+  });
 
   createWindow()
 
