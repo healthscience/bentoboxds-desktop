@@ -276,8 +276,6 @@ export const libraryStore = defineStore('librarystore', {
             // next need to extract out compute module and then get compute reference contract
             for (let mod of contractNXP.modules) {
               if (mod.value.style === contextBundle.asked.type) {
-                console.log('found compute module')
-                console.log(mod)
                 contractData = this.utilLibrary.extractRefContract(mod.key, contextBundle.asked.type, mod)
               }
             }
@@ -708,8 +706,6 @@ export const libraryStore = defineStore('librarystore', {
       aiMessageout.task = 'update-hopquery'
       aiMessageout.data = HOPq
       aiMessageout.bbid = HOPq.bbid
-      console.log('open data update')
-      console.log(aiMessageout)
       this.sendSocket.send_message(aiMessageout)
       this.storeAI.helpchatHistory.push(aiMessageout)
       this.storeAI.qcount++

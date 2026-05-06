@@ -209,7 +209,7 @@ class HOP extends EventEmitter {
     }
 
     // 1. Define your allowed peer origin (BentoBoxDS location)
-    const ALLOWED_ORIGINS = ['https://localhost:5173', 'file://', 'http://localhost:5173']; // Change to your actual UI port
+    const ALLOWED_ORIGIN = 'https://localhost:5173'; // Change to your actual UI port
 
     const server = createServer(options, (request, response) => {
       // process HTTPS request. Since we're writing just WebSockets
@@ -225,7 +225,7 @@ class HOP extends EventEmitter {
       const origin = request.headers.origin;
 
       // SERIOUS INTENT: Strict Origin Check
-      if (origin && !ALLOWED_ORIGINS.includes(origin) && !origin.startsWith('file://')) {
+      if (origin !== ALLOWED_ORIGIN) {
         console.error(`!!! SECURITY ALERT: Blocked unauthorized origin: ${origin}`);
         socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
         socket.destroy();

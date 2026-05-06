@@ -111,6 +111,7 @@
           :key="strap.key"
           :strap="strap"
           :expanded="props.isExpanded"
+          :isLive="strap.key === storeAI.activeLifestrapKey"
           @select="handleStrapSelect"
           @delete="handleStrapDelete"
         />

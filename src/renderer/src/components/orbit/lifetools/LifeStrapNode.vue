@@ -7,6 +7,7 @@
       <div class="strap-orb-wrap">
         <div
           class="orb-core"
+          :class="{ 'is-live': isLive }"
           :style="{ '--orb-color': strap?.value?.computational?.color }"
         ></div>
         <svg class="orb-progress" viewBox="0 0 40 40">
@@ -44,6 +45,7 @@ const props = defineProps({
   strap: Object,
   active: Boolean,
   expanded: Boolean,
+  isLive: Boolean,
 });
 
 const emit = defineEmits(["select", "delete"]);
@@ -125,6 +127,13 @@ const handleLSelect = (strapData) => {
     background-color: var(--orb-color, #888);
     z-index: 1;
     box-shadow: 0 0 8px var(--orb-color, rgba(255, 255, 255, 0.2));
+    transition: all 0.3s ease;
+
+    &.is-live {
+      background-color: #00ff88 !important;
+      box-shadow: 0 0 12px #00ff88;
+      animation: pulse-live 2s infinite;
+    }
   }
 
   .orb-progress {
@@ -155,6 +164,24 @@ const handleLSelect = (strapData) => {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  @keyframes pulse-live {
+    0% {
+      opacity: 0.8;
+      transform: scale(1);
+      box-shadow: 0 0 8px #00ff88;
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.1);
+      box-shadow: 0 0 15px #00ff88;
+    }
+    100% {
+      opacity: 0.8;
+      transform: scale(1);
+      box-shadow: 0 0 8px #00ff88;
+    }
   }
 
   .strap-settings {

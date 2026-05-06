@@ -117,30 +117,34 @@ export const diaryStore = defineStore('diarystore', {
     },
     processHeliReply (received) {
       if (received.action === 'heliclock-location-default' || received.action === 'heliclock-location-birth') {
-        const isCurrent = received.data?.[0]?.context === 'current' || received.context === 'current'
-        const context = isCurrent ? 'current' : 'birth'
-
-        if (received.data && received.data.length > 1) {
-          this.locationOptions = received.data
-          this.locationContext = context
+        let isCurrent = ''
+        if (received.data.context === 'current') {
+          isCurrent = 'current'
+        } else if (received.data.context === 'birth') {
+          isCurrent = 'birth' 
+        }
+    
+        if (received.data.place && received.data.place.length > 1) {
+          this.locationOptions = received.data.place
+          this.locationContext = isCurrent
           return
         }
 
-        if (received.data && received.data.length === 1) {
-          if (isCurrent) {
-            this.currentLocation = received.data[0]
+        if (received.data.place && received.data.place.length === 1) {
+          if (isCurrent === 'current') {
+            this.currentLocation = received.data.place[0]
             this.currentLocationError = false
-          } else {
-            this.birthLocation = received.data[0]
+          } else if (isCurrent === 'birth') {
+            this.birthLocation = received.data.place[0]
             this.birthLocationError = false
           }
           this.locationOptions = []
         } else {
           // Check context from the request/reply to know which error to set
-          if (isCurrent) {
+          if (isCurrent === 'current') {
             this.currentLocation = null
             this.currentLocationError = true
-          } else {
+          } else if (isCurrent === 'birth') {
             this.birthLocation = null
             this.birthLocationError = true
           }
@@ -158,7 +162,7 @@ export const diaryStore = defineStore('diarystore', {
         this.orbitSignature = received.data
         this.heliClockSet = true
       } else if (received.action === 'heli-orbit-signature') {
-        this.heliSignature = received.data
+        this.heliSignature = received.data.value.data
       } else if (received.action === 'peer-heli-signature') {
         // start heli clock info
         this.heliProjections = received.data.productions
@@ -174,7 +178,6 @@ export const diaryStore = defineStore('diarystore', {
       }
     },
     sendMessageHOP (message) {
-      console.log('sendMessageHOP hiliidid', message)
       this.sendSocket.send_message(message)
     }
   }

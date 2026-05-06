@@ -246,40 +246,20 @@ const heliMathGhost = ref(null);
 const wholeResStatus = computed(() => storeAI.bentoflakeState);
 
 const unmappedFragments = computed(() => {
-  console.log(
-    "[LifestrapLens] Computing unmappedFragments:",
-    props.lenses?.residue,
-  );
   return props.lenses?.residue || [];
 });
 
 const capacityItems = computed(() => {
-  console.log(
-    "[LifestrapLens] Computing capacityItems:",
-    props.lenses?.pillars?.capacity,
-  );
   return props.lenses?.pillars?.capacity || [];
 });
 const contextItems = computed(() => {
-  console.log(
-    "[LifestrapLens] Computing contextItems:",
-    props.lenses?.pillars?.context,
-  );
   return props.lenses?.pillars?.context || [];
 });
 const heliItems = computed(() => {
-  console.log(
-    "[LifestrapLens] Computing heliItems:",
-    props.lenses?.pillars?.heli,
-  );
   return props.lenses?.pillars?.heli || [];
 });
 
 const attunementItems = computed(() => {
-  console.log(
-    "[LifestrapLens] Computing attunementItems:",
-    props.lenses?.pillars?.attunement,
-  );
   return props.lenses?.pillars?.attunement || [];
 });
 

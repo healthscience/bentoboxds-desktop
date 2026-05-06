@@ -62,6 +62,7 @@
       </div>
 
       <div class="dual-dial-zone">
+        <label class="zone-title">Discover angle of birth with sun:</label>
         <svg viewBox="0 0 100 100" class="preview-mini-svg">
           <circle cx="50" cy="50" r="45" class="track-bg-preview" />
           <g :transform="`rotate(${sliderOrbital} 50 50)`">
@@ -74,8 +75,14 @@
         </svg>
 
         <div class="control-stack">
-          <input type="range" min="0" max="360" step="0.1" v-model="sliderOrbital" />
-          <input type="range" min="0" max="360" step="0.1" v-model="sliderDaily" />
+          <div class="control-group">
+            <label>Set day of year</label>
+            <input type="range" min="0" max="360" step="0.1" v-model="sliderOrbital" />
+          </div>
+          <div class="control-group">
+            <label>Set hour of day</label>
+            <input type="range" min="0" max="360" step="0.1" v-model="sliderDaily" />
+          </div>
         </div>
       </div>
 
@@ -107,7 +114,6 @@ const translatedOldWorldDate = computed(() => storeDiary.calibrationPreviewDate)
 
 const currentLocation = computed(() => {
   const loc = storeDiary.currentLocation;
-  console.log('currentLocation', loc);
   if (!loc) return null;
   return { lat: loc.latitude, lng: loc.longitude };
 });
@@ -432,11 +438,34 @@ watch([sliderOrbital, sliderDaily], () => {
 .control-stack {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin: 1rem 0;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
 }
 
-.control-stack input[type="range"] {
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.control-group label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.control-group input[type="range"] {
   width: 100%;
+}
+
+.zone-title {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
 }
 </style>

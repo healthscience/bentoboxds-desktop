@@ -53,12 +53,12 @@ class HeliRoute extends EventEmitter {
       case 'default-location-search':
         let locationQueryDefault = message.data.town
         const locationDefault = await this.heliLocation.search(locationQueryDefault);
-        this.bothSockets(JSON.stringify({ type: 'heliclock', action: 'heliclock-location-default', data: locationDefault }))
+        this.bothSockets(JSON.stringify({ type: 'heliclock', action: 'heliclock-location-default', data: { place: locationDefault, context: message.data.context } }))
         break
       case 'birth-location-search':
         let locationQuery = message.data.town
         const locationBirth = await this.heliLocation.search(locationQuery);
-        this.bothSockets(JSON.stringify({ type: 'heliclock', action: 'heliclock-location-birth', data: locationBirth }))
+        this.bothSockets(JSON.stringify({ type: 'heliclock', action: 'heliclock-location-birth', data: { place: locationBirth, context: message.data.context } }))
         break
       case 'HELI_CALIBRATE_PREVIEW':
         const sliderOldWorld = this.heliLocation.getHeliSignature(message.data.angle, message.data.dayAngle, message.data.orbits, message.data.lon, message.data.lat)
@@ -66,6 +66,8 @@ class HeliRoute extends EventEmitter {
         break
       case 'HELI_GENESIS_SAVE':
         const orbitSignature = await this.saveClock(message.data)
+        this.heliLocation.activateSolarHeartbeat(orbitSignature.value.data);
+        console.log('orbitSignature', orbitSignature)
         this.bothSockets(JSON.stringify({ type: 'heliclock', action: 'heli-orbit-signature', data: orbitSignature }))
         break
       case 'get-clock':
@@ -104,16 +106,8 @@ class HeliRoute extends EventEmitter {
           }
           return null;
       } catch (err) {
-          console.error('Failed to initialize HeliClock data:', err);
-          if (this.holepunchLive && this.holepunchLive.BeeData) {
-            try {
-                const debugState = await this.holepunchLive.BeeData.getHeliClock('peer/home');
-                console.error('Debug - HeliClock state in DB:', JSON.stringify(debugState, null, 2));
-            } catch (debugErr) {
-                console.error('Debug - Could not retrieve HeliClock state for logging:', debugErr);
-            }
-        }
-    }
+          console.error('Failed to initialize HeliClock data', err);
+      }
   }
 
   /**
@@ -146,9 +140,9 @@ class HeliRoute extends EventEmitter {
       let clockHash = {}
       let heliClock = {}
       heliClock.id = clockHash // form HASH of content
-      heliClock.data = entry
+      heliClock.data = peerClock
       await this.holepunchLive.BeeData.saveHeliClock(heliClock)
-      let projectionEntry = await this.holepunchLive.BeeData.getHeliClock(heliClock.id)
+      let projectionEntry = await this.holepunchLive.BeeData.getHeliClock(heliClock)
       
       // Notify UI
       let replyMessage = {
