@@ -29,6 +29,10 @@ jobs:
         working-directory: ./hop
         run: npm install
 
+      - name: Install location-hop dependencies
+        working-directory: ./hop/node_modules/location-hop
+        run: npm install
+
       - name: Install renderer dependencies
         working-directory: ./src/renderer
         run: npm install
