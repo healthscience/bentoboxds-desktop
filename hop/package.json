@@ -31,7 +31,7 @@
   "dependencies": {
     "beebee-ai": "^0.7.6",
     "besearch-hop": "^0.1.2",
-    "better-sqlite3": "^12.9.0",
+    "better-sqlite3": "^11.10.0",
     "bs58": "^5.0.0",
     "chrono-node": "^2.7.5",
     "corestore": "^6.2.0",

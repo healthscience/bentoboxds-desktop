@@ -25,15 +25,21 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.21.1'
+          cache: 'npm'
+
+      - name: Cache hop node_modules
+        uses: actions/cache@v4
+        with:
+          path: hop/node_modules
+          key: ${{ runner.os }}-hop-${{ hashFiles('hop/package-lock.json', 'hop/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-hop-
 
       - name: Install dependencies
         run: |
           npm install
           cd hop && npm install
-          if [ -d node_modules/location-hop ]; then
-            cd node_modules/location-hop && npm install
-          fi
 
       - name: Install renderer dependencies
         working-directory: ./src/renderer
