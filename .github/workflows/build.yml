@@ -47,18 +47,24 @@ jobs:
           npm run build:linux
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          npm_config_arch: x64
+          npm_config_target_arch: x64
 
       - name: Build for macOS
         if: matrix.os == 'macos-latest'
         run: npm run build:mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          npm_config_arch: x64
+          npm_config_target_arch: x64
 
       - name: Build for Windows
         if: matrix.os == 'windows-latest'
         run: npm run build:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          npm_config_arch: x64
+          npm_config_target_arch: x64
 
       - name: Release
         uses: softprops/action-gh-release@v2
