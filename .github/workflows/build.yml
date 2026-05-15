@@ -13,6 +13,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
+    env:
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      GPT4ALL_SKIP_INSTALL_BACKEND: "true"
+      npm_config_build_from_source: "false"
+
     steps:
       - name: Check out git repository
         uses: actions/checkout@v4
@@ -22,16 +27,13 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install root dependencies
-        run: npm install
-
-      - name: Install hop dependencies
-        working-directory: ./hop
-        run: npm install
-
-      - name: Install location-hop dependencies
-        working-directory: ./hop/node_modules/location-hop
-        run: npm install
+      - name: Install dependencies
+        run: |
+          npm install
+          cd hop && npm install
+          if [ -d node_modules/location-hop ]; then
+            cd node_modules/location-hop && npm install
+          fi
 
       - name: Install renderer dependencies
         working-directory: ./src/renderer
