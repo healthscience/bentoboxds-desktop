@@ -72,6 +72,7 @@ jobs:
         if: matrix.os == 'macos-latest' && startsWith(github.ref, 'refs/tags/')
         with:
           app-path: 'dist/bentoboxds-0.6.9.pkg'
+          app-type: 'osx'
           issuer-id: ${{ secrets.MACDEVID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
