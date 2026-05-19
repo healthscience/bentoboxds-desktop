@@ -45,6 +45,8 @@ mac:
   notarize: false
 dmg:
   artifactName: ${name}-${version}.${ext}
+pkg:
+  artifactName: ${productName}-${version}.${ext}
 linux:
   icon: build/icon-512x512.png
   target:
