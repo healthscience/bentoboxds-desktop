@@ -32,6 +32,9 @@ nsis:
 mac:
   icon: build/icon.png
   category: public.app-category.utilities
+  target:
+    - dmg
+    - pkg
   entitlements: ./entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
