@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os == 'macos-latest' && 'macos-13' || matrix.os }}
 
     permissions:
       contents: write
@@ -20,6 +20,8 @@ jobs:
       NODE_OPTIONS: "--max-old-space-size=4096"
       GPT4ALL_SKIP_INSTALL_BACKEND: "true"
       npm_config_build_from_source: "false"
+      npm_config_arch: x64
+      npm_config_target_arch: x64
 
     steps:
       - name: Check out git repository
@@ -60,8 +62,6 @@ jobs:
           npm run build:linux
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          npm_config_arch: x64
-          npm_config_target_arch: x64
 
       - name: Build for macOS
         if: matrix.os == 'macos-latest'
@@ -70,40 +70,33 @@ jobs:
           ls -R dist/
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          npm_config_arch: x64
-          npm_config_target_arch: x64
+          NODE_ENV: production
 
-      - name: Validate pkg file
+      - name: Identify Build Artifact
         if: matrix.os == 'macos-latest' && startsWith(github.ref, 'refs/tags/')
+        id: artifact
         run: |
-          PKG_FILE="dist/BentoBox-DS-Desktop-${{ steps.version.outputs.VERSION }}.pkg"
-          if [ ! -f "$PKG_FILE" ]; then
-            echo "Error: $PKG_FILE not found"
+          echo "Searching for .pkg file..."
+          # Look in dist/ and dist/mac/ just in case
+          PKG_PATH=$(find dist -maxdepth 2 -name "*.pkg" | head -n 1)
+          if [ -z "$PKG_PATH" ]; then
+            echo "Error: No .pkg file found in dist/ or its subdirectories"
+            ls -R dist/
             exit 1
           fi
-          if [ ! -s "$PKG_FILE" ]; then
-            echo "Error: $PKG_FILE is empty"
-            exit 1
-          fi
-          file "$PKG_FILE"
-          ls -lh "$PKG_FILE"
+          echo "Found artifact: $PKG_PATH"
+          echo "path=$PKG_PATH" >> $GITHUB_OUTPUT
 
       - name: Upload to TestFlight
         if: matrix.os == 'macos-latest' && startsWith(github.ref, 'refs/tags/')
-        env:
-          APPSTORE_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APPSTORE_ISSUER_ID: ${{ secrets.MACDEVID }}
-          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
-        run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "$APPSTORE_API_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_$APPSTORE_API_KEY_ID.p8
-          xcrun altool --upload-app \
-            -f "dist/BentoBox-DS-Desktop-${{ steps.version.outputs.VERSION }}.pkg" \
-            -t osx \
-            --apiKey "$APPSTORE_API_KEY_ID" \
-            --apiIssuer "$APPSTORE_ISSUER_ID"
-
-
+        uses: apple-actions/upload-testflight-build@v4
+        with:
+          app-path: ${{ steps.artifact.outputs.path }}
+          app-type: 'macos'
+          backend: 'altool'
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
 
       - name: Build for Windows
         if: matrix.os == 'windows-latest'
@@ -112,8 +105,6 @@ jobs:
           npm run build:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          npm_config_arch: x64
-          npm_config_target_arch: x64
           npm_config_build_from_source: true
           # npm_config_nodedir: ""
 
