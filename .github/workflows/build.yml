@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os == 'macos-latest' && 'macos-13' || matrix.os }}
+    runs-on: ${{ matrix.os == 'macos-latest' && 'macos-14-large' || matrix.os }}
 
     permissions:
       contents: write
