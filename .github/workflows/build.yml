@@ -35,28 +35,14 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24.15.0'
+          node-version: '22.x'
           cache: 'npm'
 
-      - name: Setup MSVC
-        if: matrix.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Fix node-gyp on Windows
+      - name: Configure node-gyp on Windows
         if: matrix.os == 'windows-latest'
         shell: powershell
         run: |
-          npm install -g npm@latest
-          npm install -g node-gyp@latest
-          $nodeGypBin = (Get-Command node-gyp).Source
-          $nodeGypDir = Split-Path -Parent $nodeGypBin
-          $nodeGypJs = Join-Path $nodeGypDir "node_modules/node-gyp/bin/node-gyp.js"
-          if (!(Test-Path $nodeGypJs)) {
-            $globalRoot = npm root -g
-            $nodeGypJs = Join-Path $globalRoot "node-gyp/bin/node-gyp.js"
-          }
-          echo "npm_config_node_gyp=$nodeGypJs" >> $env:GITHUB_ENV
-          echo "npm_config_msvs_version=2022" >> $env:GITHUB_ENV
+          npm config set msvs_version 2022
 
       - name: Cache hop node_modules
         uses: actions/cache@v4
