@@ -22,7 +22,6 @@ jobs:
       npm_config_build_from_source: "false"
       npm_config_arch: x64
       npm_config_target_arch: x64
-      npm_config_msvs_version: "2022"
       CI: true
 
     steps:
@@ -39,13 +38,11 @@ jobs:
           node-version: '24.15.0'
           cache: 'npm'
 
-      - name: Setup MSVC and Windows SDK
+      - name: Setup MSVC
         if: matrix.os == 'windows-latest'
-        uses: microsoft/setup-msvc@v2
+        uses: bus1/setup-msvc@v1
         with:
-          msvc-update: true
           vs-version: '2022'
-          sdk-version: '10.0.22621.0'
 
       - name: Fix node-gyp on Windows
         if: matrix.os == 'windows-latest'
@@ -62,7 +59,6 @@ jobs:
           }
           echo "npm_config_node_gyp=$nodeGypJs" >> $env:GITHUB_ENV
           npm config set msvs_version 2022 --global
-          echo "GYP_MSVS_SDK_VERSION=10.0.26100.0" >> $env:GITHUB_ENV
 
       - name: Cache hop node_modules
         uses: actions/cache@v4
