@@ -40,9 +40,7 @@ jobs:
 
       - name: Setup MSVC
         if: matrix.os == 'windows-latest'
-        uses: bus1/setup-msvc@v1
-        with:
-          vs-version: '2022'
+        uses: microsoft/setup-msbuild@v2
 
       - name: Fix node-gyp on Windows
         if: matrix.os == 'windows-latest'
