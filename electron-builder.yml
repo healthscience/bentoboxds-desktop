@@ -39,12 +39,15 @@ mac:
   icon: build/icon.icns
   target:
     - dmg
+    - pkg
     - zip
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
   hardenedRuntime: true
   gatekeeperAssess: false
 dmg:
+  artifactName: ${name}-${version}.${ext}
+pkg:
   artifactName: ${name}-${version}.${ext}
 appImage:
   artifactName: ${name}-${version}.${ext}

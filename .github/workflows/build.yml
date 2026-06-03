@@ -78,12 +78,35 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Identify Build Artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        id: artifact
+        run: |
+          echo "Searching for .pkg file..."
+          PKG_PATH=$(find dist -maxdepth 2 -name "*.pkg" | head -n 1)
+          if [ -z "$PKG_PATH" ]; then
+            echo "Error: No .pkg file found in dist/"
+            exit 1
+          fi
+          echo "Found artifact: $PKG_PATH"
+          echo "path=$PKG_PATH" >> $GITHUB_OUTPUT
+
+      - name: Upload to TestFlight
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: apple-actions/upload-testflight-build@v1
+        with:
+          app-path: ${{ steps.artifact.outputs.path }}
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             dist/*.dmg
+            dist/*.pkg
             dist/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
