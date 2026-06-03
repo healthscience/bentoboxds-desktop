@@ -46,6 +46,13 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Fix node-gyp on Windows
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          npm install -g node-gyp@latest
+          npm config set node_gyp (Get-Command node-gyp).Source
+
       - name: Cache hop node_modules
         uses: actions/cache@v4
         with:
