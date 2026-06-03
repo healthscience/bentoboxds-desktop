@@ -35,6 +35,17 @@ linux:
     - AppImage
   maintainer: bentboxds.org
   category: Utility
+mac:
+  icon: build/icon.icns
+  target:
+    - dmg
+    - zip
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  hardenedRuntime: true
+  gatekeeperAssess: false
+dmg:
+  artifactName: ${name}-${version}.${ext}
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
