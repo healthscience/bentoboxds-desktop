@@ -49,7 +49,8 @@
     "vue-resizable": "^2.1.7",
     "vue-router": "^4.1.6",
     "vue3-colorpicker": "^2.3.0",
-    "vue3-openlayers": "^9.0.1"
+    "vue3-openlayers": "^9.0.1",
+    "cannon-es": "^0.20.0"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.4",
