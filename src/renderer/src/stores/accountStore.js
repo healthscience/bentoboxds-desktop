@@ -117,6 +117,10 @@ export const accountStore = defineStore('account', {
         // set the UI to re enter password again before entry to BentoBoxDS
         this.anchorStatus = false
         this.HOPlock = true
+        if (received.data) {
+          this.sovereignId = received.data
+          localStorage.setItem('hop_sovereign_pubkey', received.data)
+        }
       } else if (received.action === 'unlocked-verify-complete') {
         // pull BentoBoxDS experience 'on the fly'
         this.storeAI.startChat = false
@@ -127,6 +131,10 @@ export const accountStore = defineStore('account', {
         this.peerauth = true
         this.anchorStatus = false
         this.HOPlock = false
+        if (received.data.pubKey) {
+          this.sovereignId = received.data.pubKey
+          localStorage.setItem('hop_sovereign_pubkey', received.data.pubKey)
+        }
       } else if (received.action === 'hop-wrong-password') {
         this.accountFeedback = received.data.feedback
       } else if (received.action === 'hop-holepunch-live') {
@@ -181,12 +189,10 @@ export const accountStore = defineStore('account', {
         this.publicKeysList = received.data
       } else if (received.action === 'drive-pubkey') {
         this.publickeyDrive = received.data
-      } else if (received.action === 'warm-peers') {
-        this.warmPeers = received.data
       } else if (received.action === 'network-keys') {
         this.networkInfo.publickey = received.data.publickey
       } else if (received.action === 'peer-new-relationship') {
-        this.checkPeerStatus(received.data.data)
+        this.checkPeerStatus(received.data)
       } else if (received.action === 'peer-share-topic') {
         this.updateTopicSetter(received.data)
       } else if (received.action === 'network-peer-disconnect') {
@@ -255,12 +261,13 @@ export const accountStore = defineStore('account', {
       this.sendMessageHOP(shareInfo)
     },
     updateTopicSetter (update) {
+      const hexContract = this.storeLibrary.utilLibrary.convertBinaryToHex(update);
       let updatePeerList = []
       for (let wpeer of this.warmPeers) {
-        if (wpeer.key === update.key) {
-          updatePeerList.push(update)
+        if (wpeer.key === hexContract.key) {
+          updatePeerList.push(hexContract)
           // update peer invite gen list
-          this.updateGeninviteList(update)
+          // this.updateGeninviteList(update)
         } else {
           updatePeerList.push(wpeer)
         }
@@ -293,25 +300,26 @@ export const accountStore = defineStore('account', {
       // this.warmPeers = updateWarmPeers
     },
     updatePeerName (update) {
+      const hexContract = this.storeLibrary.utilLibrary.convertBinaryToHex(update);
       let updateNameList = []
       for (let wpeer of this.warmPeers) {
-        if (wpeer.key === update.key) {
+        if (wpeer.key === hexContract.key) {
           let peerOrg = wpeer
-          peerOrg.value.name = update.value.name
+          peerOrg.value.concept.name = hexContract.value.concept.name
           updateNameList.push(peerOrg)
         } else {
           updateNameList.push(wpeer)
         }
       }
-      this.warmPeers = updateNameList  
+      this.warmPeers = updateNameList
     },
     updatePeerlive (update) {
       let updateNameList = []
       for (let wpeer of this.warmPeers) {
         if (wpeer.key === update.data.publickey) {
           let peerOrg = wpeer
-          peerOrg.value.matchted = true
-          peerOrg.value.live = true
+          peerOrg.value.concept.matchted = true
+          peerOrg.value.concept.live = true
           updateNameList.push(peerOrg)
         } else {
           updateNameList.push(wpeer)
@@ -406,8 +414,6 @@ export const accountStore = defineStore('account', {
           shareInfo.reftype = 'null'
           shareInfo.privacy = 'private'
           shareInfo.data = topicSet
-          console.log('share protocol')
-          console.log(shareInfo)
           this.sendMessageHOP(shareInfo)
         } else {
           // start normal first time warm peer direct connect

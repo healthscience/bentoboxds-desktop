@@ -15,8 +15,8 @@
     <div
       v-show="
         height > 80 ||
-        storeAI.activeLifeStrapID ||
-        storeBesearch.showBesearchDetail
+        storeBesearch.isSieveExpanded === true ||
+        storeBesearch.besearchMode !== 'default'
       "
       class="bottom-panel-content"
       ref="contentArea"
@@ -24,16 +24,90 @@
       <!-- Show besearch detail when intervention is selected -->
       <besearch-detail v-if="showBesearchDetail === true"></besearch-detail>
 
-      <!-- Always show LifestrapLens - collapsible when besearch intervention is active -->
-      <div ref="lensSection" class="lens-section">
-        <div
-          v-if="isLensCollapsed === true"
-          class="lens-collapsed-bar"
-          @click="expandLens"
-        >
-          <span class="lens-label">▼ Life-strap Lens</span>
+      <!-- Multi-Layer Workflow Container -->
+      <div class="dual-layer-container">
+        <!-- Sidebar Navigation -->
+        <div class="bottom-sidebar">
+          <div 
+            class="vertical-tab" 
+            :class="{ active: storeBesearch.besearchMode === 'lens' || storeBesearch.besearchMode === 'default' }"
+            @click="storeBesearch.setHUUDState('lens')"
+          >
+            <span>LENS</span>
+          </div>
+          <div 
+            class="vertical-tab" 
+            :class="{ active: storeBesearch.besearchMode === 'heli' }"
+            @click="storeBesearch.setHUUDState('heli')"
+          >
+            <span>HELI</span>
+          </div>
+          <div 
+            class="vertical-tab" 
+            :class="{ active: storeBesearch.besearchMode === 'attunement' }"
+            @click="storeBesearch.setHUUDState('attunement')"
+          >
+            <span>ATTUNE</span>
+          </div>
+          <div 
+            class="vertical-tab" 
+            :class="{ active: storeBesearch.besearchMode === 'graft' }"
+            @click="storeBesearch.setHUUDState('graft')"
+          >
+            <span>GRAFT</span>
+          </div>
+          <div 
+            class="vertical-tab" 
+            :class="{ active: storeBesearch.besearchMode === 'emulation' }"
+            @click="storeBesearch.setHUUDState('emulation')"
+          >
+            <span>EMU</span>
+          </div>
+          <div 
+            class="vertical-tab" 
+            :class="{ active: storeBesearch.besearchMode === 'tinker' }"
+            @click="storeBesearch.setHUUDState('tinker')"
+          >
+            <span>TINKER</span>
+          </div>
         </div>
-        <LifestrapLens v-else :lenses="extractedData" />
+
+        <!-- Main Content Area -->
+        <div class="active-section-content">
+          <!-- 1. The Lens Section -->
+          <div 
+            v-show="storeBesearch.besearchMode === 'lens' || storeBesearch.besearchMode === 'default'"
+            ref="lensSection" 
+            class="lens-section" 
+          >
+            <LifestrapLens :lenses="extractedData" />
+          </div>
+
+          <!-- 2. The Heli Section -->
+          <div v-show="storeBesearch.besearchMode === 'heli'" class="heli-section">
+            <HeliProjectionLayer />
+          </div>
+
+          <!-- 3. The Attunement Section -->
+          <div v-show="storeBesearch.besearchMode === 'attunement'" class="attunement-section">
+            <AttunementLayer />
+          </div>
+
+          <!-- 4. The Graft Section -->
+          <div v-show="storeBesearch.besearchMode === 'graft'" class="graft-section">
+            <GraftLayer />
+          </div>
+
+          <!-- 5. Emulation CueCubes -->
+          <div v-show="storeBesearch.besearchMode === 'emulation'" class="emulation-section">
+            <CuecubeLayer />
+          </div>
+
+          <!-- 6. The Tinkering Section -->
+          <div v-show="storeBesearch.besearchMode === 'tinker'" class="tinker-section">
+            <TinkerLayer />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -43,12 +117,22 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from "vue";
 import BesearchDetail from "@/components/besearch/attunement/besearchDetail.vue";
 import LifestrapLens from "@/components/orbit/parts/LifestrapLens.vue";
+import AttunementLayer from "@/components/orbit/parts/attunement/AttunementLayer.vue";
+import HeliProjectionLayer from "@/components/orbit/parts/heli/HeliProjectionLayer.vue";
+import GraftLayer from "@/components/orbit/parts/graft/GraftLayer.vue";
+import CuecubeLayer from "@/components/orbit/parts/emulation/CuecubeLayer.vue";
+import TinkerLayer from "@/components/orbit/parts/tinker/TinkerLayer.vue";
+import BesearchLayer from "@/components/orbit/besearch/besearchLayer.vue";
 
 import { besearchStore } from "@/stores/besearchStore.js";
 import { aiInterfaceStore } from "@/stores/aiInterface.js";
+import { loomStore } from "@/stores/loomStore.js";
 
 const storeBesearch = besearchStore();
 const storeAI = aiInterfaceStore();
+const storeLoom = loomStore();
+
+const currentStage = computed(() => storeBesearch.currentBesearchStage);
 
 const props = defineProps({
   height: Number,
@@ -77,35 +161,11 @@ const isLensCollapsed = computed(() => {
 });
 
 const updatePanelHeight = async () => {
-  await nextTick();
-  if (contentArea.value) {
-    const isLabView = !!storeAI.activeLifeStrapID && !storeAI.showLifestapLens;
-    const maxHeight = window.innerHeight * 0.82;
-
-    if (isLabView) {
-      storeBesearch.bottomHeight = maxHeight;
-      emit("update:height", maxHeight);
-      return;
-    }
-
-    const contentHeight = contentArea.value.scrollHeight;
-    const totalHeight = Math.min(contentHeight + 40, maxHeight);
-
-    if (totalHeight > 60) {
-      emit("update:height", totalHeight);
-    }
-  }
+  // We now rely on setHUUDState to manage panel heights centrally
 };
 
 onMounted(() => {
-  resizeObserver = new ResizeObserver(() => {
-    if (storeAI.activeLifeStrapID || storeBesearch.showBesearchDetail) {
-      updatePanelHeight();
-    }
-  });
-  if (contentArea.value) {
-    resizeObserver.observe(contentArea.value);
-  }
+  // Height is now managed by the store's bottomHeight
 });
 
 onUnmounted(() => {
@@ -118,14 +178,7 @@ onUnmounted(() => {
 watch(
   () => storeAI.activeLifeStrapID,
   (newVal) => {
-    if (newVal) {
-      storeAI.showLifestapLens = false;
-      // If we have an active life strap, ensure panel is open
-      if (!props.isOpen) {
-        emit("update:isOpen", true);
-      }
-      updatePanelHeight();
-    }
+    // Handled by ExperienceOrchestrator
   },
   { immediate: true },
 );
@@ -133,15 +186,12 @@ watch(
 watch(
   () => storeBesearch.showBesearchDetail,
   (newVal) => {
-    if (newVal && storeAI.activeLifeStrapID) {
-      storeAI.showLifestapLens = true;
-    }
-    updatePanelHeight();
+    // Handled by ExperienceOrchestrator or setHUUDState
   },
 );
 
 const extractedData = computed(() => {
-  return storeAI.digestInput;
+  return storeLoom.digestInput;
 });
 
 /* methods */
@@ -157,35 +207,24 @@ const expandLens = () => {
   updatePanelHeight();
 };
 
+const openLens = () => {
+  storeBesearch.setHUUDState('lens');
+};
+
 const handleToggle = (e) => {
-  // Prevent default if it's a click to avoid side effects
   const duration = Date.now() - dragStartTime.value;
 
-  // If it was a quick click (duration < 250ms), toggle the panel
   if (duration < 250) {
     e.preventDefault();
     e.stopPropagation();
 
-    const isCurrentlyOpen =
-      storeBesearch.showBottomPanel ||
-      !!storeAI.activeLifeStrapID ||
-      storeBesearch.hasActiveIntervention;
+    const isCurrentlyOpen = storeBesearch.showBottomPanel;
 
     if (isCurrentlyOpen) {
-      // Force close by clearing all triggering states
-      storeBesearch.showBottomPanel = false;
-      storeAI.activeLifeStrapID = "";
-      storeAI.activeContractKey = "";
-      storeBesearch.selectedIntervention = null;
-      storeBesearch.showBesearchDetail = false;
-      // Set height to collapsed state (60px)
-      storeBesearch.bottomHeight = 60;
-      emit("update:height", 60);
+      storeBesearch.setHUUDState('default');
       emit("update:isOpen", false);
     } else {
-      // Open the panel
-      storeBesearch.showBottomPanel = true;
-      updatePanelHeight();
+      storeBesearch.setHUUDState('lens');
       emit("update:isOpen", true);
     }
   }
@@ -195,6 +234,8 @@ const handleToggle = (e) => {
 <style scoped>
 .bottom-panel {
   /* ... positional styles ... */
+  position: relative;
+  z-index: 100;
 
   /* 1. THE TINT: Extreme transparency. 
      0.03 is almost invisible, but provides just enough 'surface' 
@@ -307,37 +348,108 @@ const handleToggle = (e) => {
 .bottom-panel-content {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 0; /* Changed from 20px to allow full width for bar */
 }
 
-.lens-section {
-  margin-bottom: 16px;
+.dual-layer-container {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
 }
 
-.lens-section.collapsed {
-  margin-bottom: 8px;
+.bottom-sidebar {
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 23, 42, 0.95); /* Deep dark background */
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+  flex-shrink: 0;
+  backdrop-filter: blur(20px);
 }
 
-.lens-collapsed-bar {
-  background: rgba(158, 113, 231, 0.2);
-  border: 1px solid rgba(158, 113, 231, 0.4);
-  border-radius: 8px;
-  padding: 10px 16px;
+.vertical-tab {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  padding: 20px 5px;
   cursor: pointer;
-  transition: background 0.2s ease;
-  display: block;
-  width: 80%;
-  margin: 0 auto;
-  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 3px solid transparent;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-.lens-collapsed-bar:hover {
-  background: rgba(158, 113, 231, 0.3);
+.vertical-tab:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.lens-label {
-  color: #6b4fb8;
-  font-weight: 500;
-  font-size: 14px;
+.vertical-tab.active {
+  color: #00ffcc; /* Besearch high-visibility cyan */
+  background: rgba(0, 255, 204, 0.15);
+  border-right: 3px solid #00ffcc;
+}
+
+.active-section-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.lens-section, .attunement-section, .heli-section, .graft-section, .emulation-section, .tinker-section {
+  height: 100%;
+}
+
+.besearch-part-section {
+  margin-bottom: 12px;
+}
+
+.besearch-bar {
+  background: rgba(0, 255, 204, 0.1);
+  border-color: rgba(0, 255, 204, 0.3);
+}
+
+.besearch-bar .lens-label {
+  color: #00ffcc;
+}
+
+.besearch-expanded-content {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 12px;
+}
+
+.part-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.part-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #00ffcc;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.collapse-icon {
+  color: #718096;
+  font-size: 0.8rem;
 }
 </style>

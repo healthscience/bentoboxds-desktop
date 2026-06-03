@@ -1,5 +1,21 @@
 <template>
-  <div id="beebee-shaper">
+  <div id="beebee-shaper" :class="{ 'sidebar-promoted': storeAI.beebeeSidebarOpen }">
+    <div v-if="storeAI.beebeeSidebarOpen" class="beebee-promoted-overlay">
+      <div class="beebee-avatar">🐝</div>
+      <div class="beebee-bubble">
+        <p>{{ storeAI.beebeeSidebarPrompt }}</p>
+        <div class="input-wrapper">
+          <input 
+            v-model="promotedInput" 
+            ref="promotedInputRef"
+            type="text" 
+            placeholder="Type here..." 
+            @keyup.enter="submitPromotedInput"
+          />
+          <button @click="submitPromotedInput" class="submit-btn">➔</button>
+        </div>
+      </div>
+    </div>
     <div id="beebee-bentos" v-if="viewMinimal === false">
       <button id="cues-button" class="cue-agent" @click="openBentoAgent('cues')" :class="{ active: agentActive === 'cues' }">Cues</button>
       <button id="flake-button" class="cue-agent" @click="openBentoAgent('flake')" :class="{ active: agentActive === 'flake' }">Holistic</button>
@@ -18,7 +34,7 @@
           </div>
           <div class="history-menu">
             <button id="body-image" @click="viewBody()" class="button-chat-menu" :class="{ active: bodyDiagramShow === true }">Body</button>
-             <Teleport to="body">
+            <Teleport to="body">
                 <div id="body-daigram-interactive">
                   <body-diagram v-if="bodyDiagramShow === true"></body-diagram>
                 </div>
@@ -60,7 +76,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import BodyDiagram from '@/components/beebeeView/diagrams/bodyDiagram.vue'
 import ChatMenu from '@/components/beebeeView/navigation/chatMenu.vue'
 import BentoCues from '@/components/bentocues/healthCues.vue'
@@ -78,7 +94,6 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { besearchStore } from '@/stores/besearchStore.js'
-import { computed } from 'vue'
 
   const storeAccount = accountStore()
   const storeCues = cuesStore()
@@ -86,6 +101,31 @@ import { computed } from 'vue'
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
   const storeLibrary = libraryStore()
+
+  const promotedInput = ref("")
+  const promotedInputRef = ref(null)
+
+  const submitPromotedInput = () => {
+    if (promotedInput.value.trim()) {
+      // Emit to a global event or handle via store
+      window.dispatchEvent(new CustomEvent('beebee-input-submitted', { 
+        detail: { 
+          text: promotedInput.value.trim(),
+          activeIndex: storeAI.attunementActiveIndex 
+        } 
+      }))
+      promotedInput.value = ""
+      storeAI.beebeeSidebarOpen = false
+    }
+  }
+
+  watch(() => storeAI.beebeeSidebarOpen, (isOpen) => {
+    if (isOpen) {
+      setTimeout(() => {
+        if (promotedInputRef.value) promotedInputRef.value.focus()
+      }, 100)
+    }
+  })
 
   let agentActive = ref('')
   let viewLibrary = ref(false)
@@ -313,6 +353,79 @@ import { computed } from 'vue'
 
 .active {
   background-color: rgb(128, 170, 115);
+}
+
+#beebee-shaper.sidebar-promoted {
+  z-index: 10000;
+}
+
+.beebee-promoted-overlay {
+  position: fixed;
+  top: 80px;
+  right: 40px;
+  width: 320px;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.beebee-avatar {
+  font-size: 3rem;
+  margin-bottom: -10px;
+  margin-right: 20px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  animation: float 3s infinite ease-in-out;
+}
+
+.beebee-bubble {
+  background: #1a202c;
+  border: 1px solid #a685ff;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  width: 100%;
+}
+
+.beebee-bubble p {
+  color: #a685ff;
+  font-family: "Space Mono", monospace;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.input-wrapper input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(166, 133, 255, 0.3);
+  padding: 10px;
+  color: white;
+  border-radius: 8px;
+  outline: none;
+}
+
+.submit-btn {
+  background: #a685ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .beebee-home {

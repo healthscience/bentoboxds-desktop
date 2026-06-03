@@ -1,11 +1,11 @@
 <template>
   <aside
     class="right-panel-container overlay-blur"
-    :class="{ 'ribbon-mode': isInterplayActive, 'is-unrolled': isUnrolled }"
+    :class="{ 'ribbon-mode': isInterplayActive, 'is-unrolled': storeChat.isUnrolled }"
     :style="{
       width: isInterplayActive ? '400px' : width + 'px',
       height: isInterplayActive
-        ? isUnrolled
+        ? storeChat.isUnrolled
           ? ribbonHeight + 'px'
           : '40px'
         : 'calc(100vh - var(--header-height, 60px))',
@@ -30,7 +30,7 @@
       </div>
     </button>
 
-    <div v-show="width > 50 || isInterplayActive" class="panel-content-wrapper">
+    <div v-show="(width > 50 || isInterplayActive) && (!isInterplayActive || storeChat.isUnrolled)" class="panel-content-wrapper">
       <div class="panel-content-area">
         <transition name="fade-slide" mode="out-in">
           <div
@@ -44,14 +44,14 @@
       </div>
 
       <!-- Input for Peer in Ribbon Mode -->
-      <div v-if="isInterplayActive && isUnrolled" class="ribbon-input-zone">
+      <div v-if="isInterplayActive && storeChat.isUnrolled" class="ribbon-input-zone">
         <InputBox />
       </div>
     </div>
 
     <!-- Drag handle at the bottom of ribbon -->
     <div
-      v-if="isInterplayActive && isUnrolled"
+      v-if="isInterplayActive && storeChat.isUnrolled"
       class="ribbon-drag-handle"
       @mousedown.stop.prevent="startRibbonResize"
     >
@@ -85,14 +85,17 @@ const emit = defineEmits([
 ]);
 
 const dragStartTime = ref(0);
-const isUnrolled = ref(false);
 
 const storeChat = useChatStore();
 const ribbonHeight = ref(400);
 const isResizing = ref(false);
 
+watch(() => props.isInterplayActive, (val) => {
+  storeChat.isInterplayActive = val;
+}, { immediate: true });
+
 const toggleUnroll = () => {
-  isUnrolled.value = !isUnrolled.value;
+  storeChat.isUnrolled = !storeChat.isUnrolled;
 };
 
 const startRibbonResize = (e) => {
@@ -119,16 +122,25 @@ const startRibbonResize = (e) => {
   window.addEventListener("mouseup", onMouseUp);
 };
 
+defineExpose({
+  unroll: () => {
+    storeChat.isUnrolled = true;
+  }
+});
+
 // Automatically unroll when new messages arrive in interplay mode
+// DISABLED: Only unroll on manual click or explicit orchestration
+/*
 watch(
   () => storeChat.chatHistory,
   () => {
     if (props.isInterplayActive) {
-      isUnrolled.value = true;
+      storeChat.isUnrolled = true;
     }
   },
   { deep: true },
 );
+*/
 
 const handleMouseDown = (e) => {
   dragStartTime.value = Date.now();
@@ -171,7 +183,7 @@ const handleToggle = () => {
   border-radius: 20px;
   background: rgba(158, 113, 231, 0.85);
   backdrop-filter: blur(25px) saturate(180%);
-  z-index: 1000;
+  z-index: 1500;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   /* Use visible to allow drag handle and pull tabs to show */
   overflow: visible !important;

@@ -57,13 +57,8 @@ const handleReturnToSculpting = () => {
 
 const handleReturnToCycle = () => {
   storeAI.currentMode = "orbit"; // Return to normal orbit mode
-  storeBesearch.isBesearchLayerOpen = true;
+  storeBesearch.setHUUDState('besearch');
   storeBesearch.wasBesearchCycleOpen = false;
-
-  // Restore lens and bottom panel state
-  storeAI.showLifestapLens = false;
-  storeBesearch.showBottomPanel = true;
-  storeBesearch.bottomHeight = window.innerHeight * 0.82;
 };
 </script>
 

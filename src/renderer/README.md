@@ -29,11 +29,19 @@ npm run build
 
 ### Run Unit Tests with [Vitest](https://vitest.dev/)
 
-A HOP instance will be start but that hop folder needs to be at same level of directory as bentoboxds. NB. Also some test assume data setup in HOP.
+A HOP instance will be started but that hop folder needs to be at same level of directory as bentoboxds. NB. Also some tests assume data setup in HOP.
 
+To start HOP manually with the test storage used in development:
 ```sh
-npm run test:headless   or npm run test:browser
+cd ../hop
+npm run start -- --test-hop-storage test-hop-storage
 ```
+
+To run unit tests:
+```sh
+npm run test:unit
+```
+
 
 ### Run End-to-End Tests with [Cypress](https://www.cypress.io/)  also component testing (note turn off BasicSsl() in vite.config.js)
 

@@ -160,7 +160,18 @@ export const diaryStore = defineStore('diarystore', {
         // this.updateClock(received.vector, received.zenith)
       } else if (received.action === 'heli-birth-signature') {
         this.orbitSignature = received.data
-        this.heliClockSet = true
+        // Temporary fix/alignment: if heliSignature is empty, initialize it or map data
+        if (!this.heliSignature || Object.keys(this.heliSignature).length === 0) {
+          this.heliSignature = {
+            daily: received.data.sun || 0,
+            yearly: received.data.birthorbital || 0,
+            age: { whole: 0, fraction: '000000' }
+          }
+        }
+        this.heliClockSet = true   
+        // Ensure calibration values are set so UI previews align
+        this.calibrationOrbit = received.data.birthorbital || 0
+        this.calibrationZenith = received.data.sun || 0
       } else if (received.action === 'heli-orbit-signature') {
         this.heliSignature = received.data.value.data
       } else if (received.action === 'peer-heli-signature') {

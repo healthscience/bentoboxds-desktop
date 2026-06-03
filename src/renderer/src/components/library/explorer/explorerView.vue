@@ -1,10 +1,11 @@
 <template>
-  Explorer view
-  <contract-viewer></contract-viewer>
+  <div id="explorer-view-main">
+    <library-cues></library-cues>
+  </div>
 </template>
 
 <script setup>
-import ContractViewer from '@/components/library/contracts/viewer/referenceModule.vue'
+import LibraryCues from '@/components/library/explorer/libraryCues.vue'
 import { ref, computed } from 'vue'
 import { libraryStore } from '@/stores/libraryStore.js'
 
@@ -13,5 +14,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
 </script>
 
 <style scoped>
-
+#explorer-view-main {
+  width: 100%;
+}
 </style>

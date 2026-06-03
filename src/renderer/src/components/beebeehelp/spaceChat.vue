@@ -5,7 +5,7 @@
       <template #header>
         <!-- The code below goes into the header slot -->
         <div id="chatspace-modal-header">
-           <div id="spacechat">CueChat # {{ storeAI.liveBspace.name }}</div>
+           <div id="spacechat">CueChat # {{ storeAI.liveBspace?.name || '...' }}</div>
         </div>
       </template>
       <template #body>

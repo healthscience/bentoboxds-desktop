@@ -31,7 +31,8 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
   /* computed */
   const chatspacePairs = computed(() => {
-   return storeAI.chatSpacePair[storeAI.liveBspace.spaceid]
+   if (!storeAI.liveBspace) return []
+   return storeAI.chatSpacePair[storeAI.liveBspace.spaceid || storeAI.liveBspace.cueid] || []
   })
 
 </script>

@@ -25,27 +25,62 @@ class LifestrapUtility {
   */
   lifestrapTobe = function (lsKey, wholeIn) {
     let lifeStrapSet = {}
-    lifeStrapSet.lens = this.lensTobe(lsKey, wholeIn.lens[0])
+    if (wholeIn && wholeIn.lens && wholeIn.lens.length > 0) {
+      lifeStrapSet.lens = this.lensTobe(lsKey, wholeIn.lens[0])
+    } else {
+      console.warn('lifestrapTobe: lens data is missing or empty', wholeIn)
+      lifeStrapSet.lens = this.prepareEmptyLens(lsKey)
+    }
     return lifeStrapSet
+  }
+
+  prepareEmptyLens = function (key) {
+    return {
+      pillars: {
+        capacity: [],
+        context: [],
+        heli: [],
+        attunement: [],
+        coherence: { isStable: false, resonance: 0 }
+      },
+      residue: [],
+      key: key,
+      story: ""
+    }
   }
 
   /**
    * 
    * @method 
-  */
-  lsTobe = function () {
-
-  }
-
-    /**
-   * 
-   * @method 
-  */
+   * @param {string|object} keyIn 
+   * @param {object} lensData 
+   */
   lensTobe = function (keyIn, lensData) {
+    if (!lensData || !lensData.value || !lensData.value.concept) {
+      console.error('lensTobe: invalid lensData', lensData)
+      let emptyKey = ''
+      if (typeof keyIn === 'string' && keyIn !== '') {
+        emptyKey = keyIn
+      } else if (keyIn && typeof keyIn === 'object') {
+        emptyKey = this.convertBinaryToHex(keyIn).key
+      }
+      return this.prepareEmptyLens(emptyKey)
+    }
     let lsContract = lensData
-    let hexKeyLens = this.convertBinaryToHex(keyIn)
+    let hexKeyLens = ''
+    if (typeof keyIn === 'string' && keyIn !== '') {
+      hexKeyLens = keyIn
+    } else {
+      // If keyIn is not a string, it might be the contract itself or null
+      // Use the lensData's key if available, otherwise try keyIn if it's a contract
+      let targetForHex = (lensData.key) ? lensData : keyIn
+      if (targetForHex && typeof targetForHex === 'object') {
+        hexKeyLens = this.convertBinaryToHex(targetForHex).key
+      }
+    }
 
     const slots = lsContract.value.concept.context?.slots || [];
+
     const unmappedFragments =
       lensData.value.concept.context?.unmappedFragments || [];
 
@@ -101,6 +136,7 @@ class LifestrapUtility {
       },
       residue: unmappedFragments,
       key: hexKeyLens,
+      story: lsContract.value.concept.story || "",
     };
 
     return newTexture

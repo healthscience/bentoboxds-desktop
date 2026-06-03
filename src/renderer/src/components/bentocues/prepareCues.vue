@@ -53,6 +53,9 @@
     </div>
     <!-- Knowledge cues - Filter and List -->
     <div id="cues-column">
+      <div v-if="storeOrrery.isSeeding" class="seeding-status pulse">
+        seeding biology knowledge... {{ storeOrrery.seedingProgress }}%
+      </div>
       <div id="minimise-cues" v-if="minCues === true">
         <!-- a to z and filter -->
         <div id="filter-cues">
@@ -96,10 +99,15 @@ import { ref, computed } from 'vue'
 import { cuesStore } from '@/stores/cuesStore.js'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
+import { libraryStore } from '@/stores/libraryStore.js'
 
   const storeCues = cuesStore()
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
+  import { orreryStore } from '@/stores/orreryStore.js'
+
+const storeOrrery = orreryStore()
+const storeLibrary = libraryStore()
 
   let cueSelectrel = ref(false)
   let liveLetter = ref('')
@@ -627,6 +635,23 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   #minimise-cues-button {
     text-align: end;
     margin-right: 2em;
+  }
+
+  .seeding-status {
+    padding: 10px;
+    color: #3b82f6;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+  }
+
+  .pulse {
+    animation: pulse 2s infinite ease-in-out;
   }
 
   .minimise-cues-button {

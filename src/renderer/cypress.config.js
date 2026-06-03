@@ -49,7 +49,7 @@ module.exports = defineConfig({
           
           // Start the HOP server
           try {
-            hop = spawn('/usr/bin/npm', ['run', 'start', '--storage-name', 'test-hop-storage'], { stdio: 'inherit', cwd: baseHOPStepsUp });
+            hop = spawn('/usr/bin/npm', ['run', 'start', '--test-storage-name', 'test-hop-storage'], { stdio: 'inherit', cwd: baseHOPStepsUp });
             return 'happy'
           } catch (error) {
             console.error('Failed to start HOP server:', error);

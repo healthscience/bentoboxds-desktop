@@ -25,7 +25,7 @@
             <div v-if="peerAuth === false && HOPlock !== true">
               <form id="self-signin-form">
                 <div class="self-inputs">
-                  <button id="self-auth" @click.prevent="selfVerify()" @submit.prevent="selfVerify()">Connect to HOP</button>
+                  <!--<button id="self-auth" @click.prevent="selfVerify()" @submit.prevent="selfVerify()">Connect to HOP</button>-->
                 </div>
               </form>
             </div>

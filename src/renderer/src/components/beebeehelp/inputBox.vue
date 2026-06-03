@@ -54,14 +54,14 @@
             alt="bbNexus"
           />
         </button>
-        <div
+        <!--<div
           id="agent-status"
           v-bind:class="{ active: agentStatus }"
           @mouseover="showAgents"
           @mouseleave="hideAgents"
         >
           @a
-        </div>
+        </div>-->
         <div
           id="agent-list"
           v-if="modelLoadingStatus === false && agentsActive === true"
@@ -97,13 +97,13 @@
           @upload
         </div>
         <div class="tool-type" @click="toolAgent('library')">@library</div>
-        <div
+        <!--<div
           class="tool-type"
           :class="{ 'active-tool': storeTeaching.isTeachingMode }"
           @click="toolAgent('teaching')"
         >
           {{ storeTeaching.isTeachingMode ? "@teach ✓" : "@teach" }}
-        </div>
+        </div>-->
       </div>
     </div>
     <data-box v-if="dataBoxStatus === true"></data-box>
@@ -189,12 +189,13 @@ const filesUploaded = computed(() => {
 });
 
 const agentProgressUpdate = computed(() => {
-  if (storeAI.agentProgress[storeAI.chatAttention] !== undefined) {
+  if (storeAI.agentProgress && storeAI.chatAttention && storeAI.agentProgress[storeAI.chatAttention] !== undefined) {
     let chatFeedback = storeAI.agentProgress[storeAI.chatAttention];
+    if (!chatFeedback) return [];
     let feedbackKeys = Object.keys(chatFeedback);
     let agentProgressFeeback = [];
     for (let feedAgent of feedbackKeys) {
-      if (chatFeedback[feedAgent].show === true) {
+      if (chatFeedback[feedAgent] && chatFeedback[feedAgent].show === true) {
         agentProgressFeeback.push(chatFeedback[feedAgent]);
       }
     }

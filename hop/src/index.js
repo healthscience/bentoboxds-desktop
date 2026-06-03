@@ -216,10 +216,6 @@ class HOP extends EventEmitter {
       // server we don't have to implement anything.
     })
 
-    server.on('connection', (socket) => {
-      console.log(`[HOP] New TCP connection from ${socket.remoteAddress}`);
-    });
-
     server.on('error', function(e) {
       console.log('problem with request: ' + e.stack);
     })
@@ -227,7 +223,6 @@ class HOP extends EventEmitter {
     // 2. Upgrade to WebSocket with Origin Check
     server.on('upgrade', (request, socket, head) => {
       const origin = request.headers.origin;
-      console.log(`[HOP] Connection attempt from origin: ${origin}`);
 
       // RELAXED ORIGIN CHECK FOR DEBUGGING
       // Allow if origin is null, undefined, file://, or includes localhost
@@ -251,8 +246,8 @@ class HOP extends EventEmitter {
       });
     });
 
-  server.listen(this.options.port, '127.0.0.1', async () => {
-    console.log(`[HOP] Peer Gateway active on 127.0.0.1:${this.options.port}`);
+  server.listen(this.options.port, async () => {
+    console.log(`[HOP] Peer Gateway active on *:${this.options.port}`);
   });
 
     const wsServer = new WebSocketServer({ noServer: true })
@@ -456,7 +451,7 @@ class HOP extends EventEmitter {
           verifyMessage = {
             type: 'account',
             action: 'unlocked-verify-complete',
-            data: { verified: true, unlocked: true },
+            data: { verified: true, unlocked: true, pubKey: pubKey },
             bbid: ''
           }
           // bring HOP fully to life

@@ -77,6 +77,12 @@ export const cuesStore = defineStore('cues', {
       cueContract.privacy = 'public'
       this.sendSocket.send_message(cueContract)
     },
+    processCuesReply (message) {
+      if (message.reftype === 'start-cues') {
+         this.waitingCues = message.data
+         this.refreshExpandedCues()
+      }
+    },
     cueDisplayBuilder (cueKey, cueRel, liveWheel) {
       let cueDisplay = this.cueUtil.cueDisplayMake(cueKey, cueRel, liveWheel)
       // keep track of history
@@ -377,6 +383,34 @@ export const cuesStore = defineStore('cues', {
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       startOfMonth.setHours(0, 0, 0, 0);
       return cues.filter(cue => new Date(cue.value.lastUsed) >= startOfMonth);
+    },
+    refreshExpandedCues () {
+      if (this.waitingCues.length > 0) {
+        let updateCueExpand = []
+        let libraryRef = this.pathRefContracts
+        
+        if (libraryRef && libraryRef.datatype) {
+          for (let cueContract of this.waitingCues) {
+            let expandDTCue = this.storeLibrary.utilLibrary.expandCuesDTSingle(cueContract, libraryRef)
+            updateCueExpand.push(expandDTCue)
+          }
+          
+          // Add newly expanded cues to cuesList
+          for (let expanded of updateCueExpand) {
+             let exists = this.cuesList.some(c => c.key === expanded.key)
+             if (!exists) {
+               this.cuesList.push(expanded)
+             }
+          }
+          
+          // Clear waiting cues if all were processed (or handle partially if needed)
+          // For now, assume if we have ref contracts we can try them all
+          this.waitingCues = []
+          
+          // Update history/sorting
+          this.getMostLastusedItems(this.cuesList)
+        }
+      }
     }
   }
 })

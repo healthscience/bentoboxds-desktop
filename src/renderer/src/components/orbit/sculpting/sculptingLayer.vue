@@ -3,7 +3,10 @@
     <div
       v-if="isOpen"
       class="sculpting-layer smelter-v2"
-      :class="{ 'dark-theme': isDarkMode }"
+      :class="{ 
+        'dark-theme': isDarkMode,
+        'is-embedded': storeBesearch.besearchMode === 'graft'
+      }"
     >
       <header class="sculpt-header">
         <div class="header-left">
@@ -12,7 +15,28 @@
             <span class="branding-label">Sculpting Lab</span>
           </div>
         </div>
-        <div class="header-right"></div>
+        <div class="header-center"></div>
+        <div class="header-right">
+          <div class="gifting-actions">
+            <button class="sculpt-btn primary">GIFT TO COMMONS</button>
+            <button class="sculpt-btn secondary">CHECK COMPATIBILITY</button>
+          </div>
+          <!-- 2.3 The Lens (Right Panel: The Seer) -->
+          <aside class="lab-panel seer-panel">
+            <header class="panel-header">
+              <div class="header-flex">
+                <h5>The Lens</h5>
+                <button
+                  class="close-lab-panel"
+                  @click="closeLayer"
+                  title="Close Sculpting Lab"
+                >
+                  ✕
+                </button>
+              </div>
+            </header>
+          </aside>
+        </div>
       </header>
 
       <div class="lab-workspace">
@@ -224,55 +248,6 @@
             </div>
           </div>
         </main>
-
-        <!-- 2.3 The Lens (Right Panel: The Seer) -->
-        <aside class="lab-panel seer-panel">
-          <header class="panel-header">
-            <div class="header-flex">
-              <h5>The Lens</h5>
-              <button
-                class="close-lab-panel"
-                @click="closeLayer"
-                title="Close Sculpting Lab"
-              >
-                ✕
-              </button>
-            </div>
-          </header>
-          <div class="panel-content">
-            <div class="seer-section">
-              <h6>Heli-Time Projection</h6>
-              <div class="mock-projection">
-                <div class="projection-grid">
-                  <div
-                    v-for="i in 12"
-                    :key="i"
-                    class="grid-bar"
-                    :style="{ height: Math.random() * 80 + '%' }"
-                  ></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="seer-section">
-              <h6>Resonance Meter</h6>
-              <div class="resonance-gauge">
-                <div class="gauge-fill" style="width: 75%"></div>
-                <span class="gauge-value">75% Alignment</span>
-              </div>
-            </div>
-
-            <div class="seer-section">
-              <h6>Coherence Indicator</h6>
-              <div class="coherence-badge peer">Peer-Verified</div>
-            </div>
-
-            <div class="gifting-actions">
-              <button class="sculpt-btn primary">GIFT TO COMMONS</button>
-              <button class="sculpt-btn secondary">CHECK COMPATIBILITY</button>
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   </transition>
@@ -293,20 +268,26 @@ const storeCues = cuesStore();
 const orgoStore = useOrgoStore();
 const gelleStore = useGelleStore();
 const storeAI = aiInterfaceStore();
+import { lifestrapStore } from "@/stores/lifestrapStore.js";
+
+const storeLifestrap = lifestrapStore();
 const storeLibrary = libraryStore();
 
 const isDarkMode = ref(false);
 const isDrawerOpen = ref(true);
 
-const isOpen = computed(() => storeBesearch.isSculptingLayerOpen);
+const isOpen = computed(() => {
+  if (storeBesearch.besearchMode === 'graft') return true;
+  return storeBesearch.isSculptingLayerOpen;
+});
 
 const activeOrgos = computed(() => orgoStore.activeOrgos);
 const activeGelles = computed(() => gelleStore.activeGelles);
 
 const activeStrapData = computed(() => {
   return (
-    storeLibrary.straps.find((s) => s.key === storeAI.activeLifeStrapID) ||
-    storeLibrary.straps.find((s) => s.id === storeAI.activeLifeStrapID)
+    storeLifestrap.straps.find((s) => s.key === storeAI.activeLifeStrapID) ||
+    storeLifestrap.straps.find((s) => s.id === storeAI.activeLifeStrapID)
   );
 });
 
@@ -318,7 +299,11 @@ const activeInstruments = ref([
 const droppedInstruments = ref([]);
 
 const closeLayer = () => {
-  storeBesearch.closeSculptingLayer();
+  storeBesearch.setHUUDState('lens');
+};
+
+const openHeli = () => {
+  storeBesearch.setHUUDLayer("heli");
 };
 
 const handleSeedDragStart = (e, seed, type) => {
@@ -361,12 +346,23 @@ const removeInstrument = (id) => {
   droppedInstruments.value = droppedInstruments.value.filter(
     (d) => d.id !== id,
   );
+  syncGraftToCycle();
+};
+
+const syncGraftToCycle = () => {
+  if (!storeBesearch.activeCycle) return;
+  storeBesearch.syncActiveCycleState('grafting', {
+    activeOrgos: JSON.parse(JSON.stringify(orgoStore.activeOrgos)),
+    activeGelles: JSON.parse(JSON.stringify(gelleStore.activeGelles)),
+    droppedInstruments: JSON.parse(JSON.stringify(droppedInstruments.value))
+  });
 };
 
 const handleGraftDrop = (e, instanceId) => {
   const word = e.dataTransfer.getData("text/plain");
   if (word) {
     gelleStore.addGraft(instanceId, word);
+    syncGraftToCycle();
   }
 };
 
@@ -375,6 +371,7 @@ const snapOrgoToDevice = (device) => {
     const firstOrgo = activeOrgos.value[0];
     firstOrgo.params.amplitude = 75;
     firstOrgo.params.wavelength = 40;
+    syncGraftToCycle();
   }
 };
 
@@ -385,103 +382,30 @@ const logMutation = (type, instanceId, key, value) => {
     property: key,
     value: value,
   });
+  syncGraftToCycle();
 };
 
 const gelleCanvases = ref({});
-const gelleAnimations = ref({});
 
-const setGelleCanvas = (el, instanceId) => {
-  if (el) {
-    gelleCanvases.value[instanceId] = el;
-    initGellePolyhedron(el, instanceId);
-  } else {
-    delete gelleCanvases.value[instanceId];
-    if (gelleAnimations.value[instanceId]) {
-      cancelAnimationFrame(gelleAnimations.value[instanceId]);
-      delete gelleAnimations.value[instanceId];
+// Watch for cycle changes
+watch(
+  () => storeBesearch.activeCycleId,
+  (newId) => {
+    const cycle = storeBesearch.activeCycle;
+    if (cycle && cycle.state.grafting) {
+      // Direct mutation of stores to restore state
+      orgoStore.activeOrgos = JSON.parse(JSON.stringify(cycle.state.grafting.activeOrgos || []));
+      gelleStore.activeGelles = JSON.parse(JSON.stringify(cycle.state.grafting.activeGelles || []));
+      droppedInstruments.value = JSON.parse(JSON.stringify(cycle.state.grafting.droppedInstruments || []));
     }
-  }
-};
+  },
+  { immediate: true }
+);
 
-const initGellePolyhedron = (canvas, instanceId) => {
-  const ctx = canvas.getContext("2d");
-  const phi = (1 + Math.sqrt(5)) / 2;
-  const vertices = [
-    [-1, phi, 0],
-    [1, phi, 0],
-    [-1, -phi, 0],
-    [1, -phi, 0],
-    [0, -1, phi],
-    [0, 1, phi],
-    [0, -1, -phi],
-    [0, 1, -phi],
-    [phi, 0, -1],
-    [phi, 0, 1],
-    [-phi, 0, -1],
-    [-phi, 0, 1],
-  ];
-
-  let angle = 0;
-
-  const project = (v, scale) => {
-    const x = v[0] * Math.cos(angle) - v[2] * Math.sin(angle);
-    const z = v[0] * Math.sin(angle) + v[2] * Math.cos(angle);
-    const y = v[1] * Math.cos(0.5) - z * Math.sin(0.5);
-    return { x: x * scale, y: y * scale };
-  };
-
-  const resize = () => {
-    const parent = canvas.parentElement;
-    if (!parent) return;
-    canvas.width = parent.clientWidth;
-    canvas.height = parent.clientHeight;
-  };
-
-  resize();
-
-  const render = () => {
-    if (!ctx) return;
-    const width = canvas.width;
-    const height = canvas.height;
-    const scale = (Math.min(width, height) / 2) * 0.8;
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    ctx.clearRect(0, 0, width, height);
-
-    ctx.save();
-    ctx.translate(centerX, centerY);
-
-    angle += 0.01;
-
-    ctx.strokeStyle = isDarkMode.value ? "#00ffcc" : "#00796b";
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = "round";
-
-    ctx.beginPath();
-    for (let i = 0; i < vertices.length; i++) {
-      for (let j = i + 1; j < vertices.length; j++) {
-        const d2 =
-          Math.pow(vertices[i][0] - vertices[j][0], 2) +
-          Math.pow(vertices[i][1] - vertices[j][1], 2) +
-          Math.pow(vertices[i][2] - vertices[j][2], 2);
-
-        if (d2 < 4.1 && d2 > 3.9) {
-          const p1 = project(vertices[i], scale);
-          const p2 = project(vertices[j], scale);
-          ctx.moveTo(p1.x, p1.y);
-          ctx.lineTo(p2.x, p2.y);
-        }
-      }
-    }
-    ctx.stroke();
-    ctx.restore();
-
-    gelleAnimations.value[instanceId] = requestAnimationFrame(render);
-  };
-
-  render();
-};
+// Watch for seed drops
+watch([() => orgoStore.activeOrgos, () => gelleStore.activeGelles], () => {
+  syncGraftToCycle();
+}, { deep: true });
 
 onMounted(() => {
   const theme = document.documentElement.getAttribute("data-theme");
@@ -514,23 +438,42 @@ onMounted(() => {
   background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   background-size: 32px 32px;
   z-index: 10000;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr;
   color: #1a202c;
   transition:
     background 0.3s,
     color 0.3s;
+  padding-top: 0;
+}
+
+.sculpting-layer.is-embedded {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1 !important;
+  top: auto !important;
+  left: auto !important;
 }
 
 .sculpt-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  padding: 20px 30px;
-  background: rgba(255, 255, 255, 0.8);
+  padding: 10px 30px;
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  margin-top: 60px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 60px;
+}
+
+.dark-theme .sculpt-header {
+  background: rgba(10, 10, 15, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sculpting-layer.dark-theme {
@@ -543,24 +486,123 @@ onMounted(() => {
   color: #e0e0e0;
 }
 
-.sculpt-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 30px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  margin-top: 10px;
+.header-center {
+  display: grid;
+  justify-items: center;
 }
 
-.dark-theme .sculpt-header {
-  background: rgba(0, 0, 0, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+.workflow-breadcrumb {
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-family: "Space Mono", monospace;
+  font-size: 0.7rem;
+}
+
+.dark-theme .workflow-breadcrumb {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.crumb {
+  opacity: 0.4;
+  font-weight: 400;
+}
+
+.crumb.active {
+  opacity: 0.8;
+  color: #00796b;
+}
+
+.dark-theme .crumb.active {
+  color: #00ffcc;
+}
+
+.crumb.current {
+  opacity: 1;
+  font-weight: 700;
+  color: #00796b;
+}
+
+.dark-theme .crumb.current {
+  color: #00ffcc;
+}
+
+.crumb-separator {
+  opacity: 0.2;
+}
+
+.header-actions {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 15px;
+}
+
+.header-right {
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-action-btn {
+  background: transparent;
+  border: 1px solid rgba(0, 121, 107, 0.3);
+  color: #00796b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.dark-theme .nav-action-btn {
+  border-color: rgba(0, 255, 204, 0.3);
+  color: #00ffcc;
+}
+
+.nav-action-btn:hover {
+  background: rgba(0, 121, 107, 0.05);
+  border-color: #00796b;
+}
+
+.dark-theme .nav-action-btn:hover {
+  background: rgba(0, 255, 204, 0.05);
+  border-color: #00ffcc;
+}
+
+.nav-action-btn.primary {
+  background: #00796b;
+  color: white;
+  border-color: #00796b;
+}
+
+.dark-theme .nav-action-btn.primary {
+  background: #00ffcc;
+  color: #000;
+  border-color: #00ffcc;
+}
+
+.nav-action-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 121, 107, 0.2);
+}
+
+.dark-theme .nav-action-btn.primary:hover {
+  box-shadow: 0 4px 12px rgba(0, 255, 204, 0.2);
 }
 
 .lab-branding {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
   align-items: center;
   gap: 12px;
 }
@@ -588,8 +630,8 @@ onMounted(() => {
 }
 
 .lab-workspace {
-  flex: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   overflow: hidden;
 }
 
@@ -599,8 +641,8 @@ onMounted(() => {
   backdrop-filter: blur(5px);
   border-right: 1px solid rgba(0, 0, 0, 0.08);
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr;
 }
 
 .dark-theme .orgo-drawer {
@@ -615,8 +657,8 @@ onMounted(() => {
 .drawer-header {
   padding: 20px 15px;
   cursor: pointer;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
@@ -633,11 +675,10 @@ onMounted(() => {
 }
 
 .seed-list {
-  flex: 1;
   overflow-y: auto;
   padding: 20px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  align-content: start;
   gap: 25px;
 }
 
@@ -654,7 +695,8 @@ onMounted(() => {
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 8px;
   cursor: grab;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 12px;
   margin-bottom: 8px;
@@ -685,7 +727,6 @@ onMounted(() => {
 }
 
 .lab-space-v2 {
-  flex: 1;
   overflow-y: auto;
   padding: 40px;
 }
@@ -693,14 +734,12 @@ onMounted(() => {
 .canvas-stage-v2 {
   max-width: 1000px;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 40px;
 }
 
 .logic-braid-wrapper {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 20px;
 }
 
@@ -717,8 +756,8 @@ onMounted(() => {
   border-radius: 16px;
   padding: 25px;
   min-height: 250px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr;
 }
 
 .dark-theme .lab-bay {
@@ -736,10 +775,8 @@ onMounted(() => {
 }
 
 .bay-placeholder {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   border: 2px dashed rgba(0, 0, 0, 0.1);
   border-radius: 12px;
   font-size: 0.8rem;
@@ -749,31 +786,27 @@ onMounted(() => {
 }
 
 .lab-panel.seer-panel {
-  width: 300px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border-left: 1px solid rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-}
-
-.dark-theme .seer-panel {
-  background: rgba(0, 0, 0, 0.4);
-  border-left-color: rgba(255, 255, 255, 0.05);
+  width: auto;
+  background: transparent;
+  backdrop-filter: none;
+  border-left: none;
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
 }
 
 .sculpt-actions-bottom {
   margin-top: auto;
   padding-top: 20px;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 10px;
 }
 
 .sculpt-btn {
-  width: 100%;
-  padding: 12px;
+  width: auto;
+  white-space: nowrap;
+  padding: 8px 16px;
   border-radius: 8px;
   border: 1px solid #00796b;
   background: transparent;
@@ -805,15 +838,14 @@ onMounted(() => {
 }
 
 .gifting-actions {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-auto-flow: column;
   gap: 12px;
 }
 
 .header-flex {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
   width: 100%;
 }
@@ -827,9 +859,8 @@ onMounted(() => {
   border-radius: 50%;
   cursor: pointer;
   font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   transition: all 0.2s;
   margin-left: 10px;
 }
@@ -845,8 +876,8 @@ onMounted(() => {
 }
 
 .panel-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 0;
+  border-bottom: none;
 }
 
 .dark-theme .panel-header {
@@ -856,7 +887,8 @@ onMounted(() => {
 .panel-content {
   padding: 0 20px;
   overflow-y: auto;
-  flex: 1;
+  display: grid;
+  align-content: start;
 }
 
 .seer-section {
@@ -894,9 +926,8 @@ onMounted(() => {
 .life-strap-horizon {
   height: 40px;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   margin-bottom: 20px;
 }
 
@@ -917,7 +948,6 @@ onMounted(() => {
   font-weight: 700;
 }
 
-/* Slide from LEFT transition */
 .sculpt-slide-enter-active,
 .sculpt-slide-leave-active {
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -992,7 +1022,8 @@ onMounted(() => {
   border: 1px solid rgba(0, 121, 107, 0.2);
   padding: 10px 15px;
   border-radius: 10px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 12px;
 }

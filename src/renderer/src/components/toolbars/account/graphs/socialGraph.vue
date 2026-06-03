@@ -55,10 +55,10 @@ import { accountStore } from '@/stores/accountStore.js'
       socialGraph.addNode("1", { label: "me", x: 0, y: 0, size: 20, color: "blue" })
       for (let pg of updatePeers) {
         let colorSet = 'red'
-        if (pg.value.live === true) {
+        if (pg.value.concept.live === true) {
           colorSet = 'green'
         }
-        socialGraph.addNode(pg.key, { label: pg.value.name, x: "1", y: peerCount, size: 20, color: colorSet })
+        socialGraph.addNode(pg.key, { label: pg.value.concept.name, x: "1", y: peerCount, size: 20, color: colorSet })
         socialGraph.addEdge("1", pg.key, { size: 5, color: "purple" })
         peerCount++
       }

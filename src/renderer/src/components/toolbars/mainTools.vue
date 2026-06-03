@@ -3,20 +3,21 @@
     <div id="mobile-menu-live" v-if="mobileSize === false">
       <mobile-menu></mobile-menu>
     </div>
-    <div class="bentobox-browser" v-else>
-      <header v-if="viewMinimal === false">
+    <div class="bentobox-browser" :class="{ 'menu-hidden': isMenuHidden }" v-else>
+      <div class="logo-container" :class="{ 'logo-greyed': isMenuHidden }">
         <div class="bentobox-top" id="logo-bb">
-          <RouterLink to="/"
-            ><img
-              @click="viewMode()"
-              alt="BentoBox-DS"
-              class="logo"
-              src="@/assets/logo.png"
-              width="60"
-              height="60"
-          /></RouterLink>
-          <div class="logo-words">BentoBoxDS</div>
+          <img
+            @click="toggleMenu"
+            alt="BentoBox-DS"
+            class="logo"
+            src="@/assets/logo.png"
+            width="60"
+            height="60"
+          />
+          <div class="logo-words" v-if="!isMenuHidden">BentoBoxDS</div>
         </div>
+      </div>
+      <header v-if="viewMinimal === false && !isMenuHidden">
         <div class="bentobox-top">
           <div class="bb-align"></div>
         </div>
@@ -67,7 +68,7 @@
           </div>
         </div>
       </header>
-      <div id="min-view-mode" v-else>
+      <div id="min-view-mode" v-else-if="!isMenuHidden">
         <header>
           <div class="bentobox-top" id="logo-bb">
             <RouterLink to="/"
@@ -102,6 +103,7 @@ const storeWebsocket = useSocketStore();
 const storeAccount = accountStore();
 const storeAI = aiInterfaceStore();
 
+const isMenuHidden = ref(false);
 let mobileSize = ref(true);
 const isDark = ref(false);
 
@@ -143,6 +145,15 @@ const HOPFlow = computed(() => {
 });
 
 /* method */
+const toggleMenu = () => {
+  isMenuHidden.value = !isMenuHidden.value;
+  if (isMenuHidden.value) {
+    document.documentElement.style.setProperty("--header-height", "1px");
+  } else {
+    document.documentElement.style.setProperty("--header-height", "60px");
+  }
+};
+
 const viewMode = () => {
   storeAccount.viewMode = !storeAccount.viewMode;
 };
@@ -160,10 +171,34 @@ const toggleTheme = () => {
   display: grid;
   grid-template-columns: 1fr;
   width: 90vw;
-  height: 12px;
+  height: var(--header-height, 60px);
+  min-height: 1px;
   border: 0px solid rgb(183, 30, 210);
   background-color: var(--color-background);
-  transition: background-color 0.5s ease;
+  transition: background-color 0.5s ease, height 0.3s ease;
+}
+
+.logo-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+.logo-greyed {
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+
+.logo-greyed:hover {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+.menu-hidden {
+  height: 1px !important;
+  overflow: visible !important;
 }
 
 #mobile-menu-live {

@@ -24,7 +24,18 @@
         </div>
 
         <div v-if="storeDiary.currentLocationError" class="location-error">
-          ⚠️ Sorry, we could not find that location.
+          <p>⚠️ Sorry, we could not find that location.</p>
+          <button class="manual-toggle" @click="showManualCurrent = !showManualCurrent">
+            {{ showManualCurrent ? 'Cancel Manual Entry' : 'Enter Coordinates Manually' }}
+          </button>
+          
+          <div v-if="showManualCurrent" class="manual-entry-fields">
+            <div class="manual-input-row">
+              <input type="number" step="any" v-model="manualCurrentLat" placeholder="Latitude" />
+              <input type="number" step="any" v-model="manualCurrentLng" placeholder="Longitude" />
+            </div>
+            <button class="save-manual-btn" @click="saveManualLocation('current')">Apply Coordinates</button>
+          </div>
         </div>
         
         <div v-if="currentLocation" class="location-preview-mini">
@@ -54,7 +65,18 @@
           <button @click="convertGPS()">🔍 Find</button>
         </div>
         <div v-if="storeDiary.birthLocationError" class="location-error">
-          ⚠️ Sorry, we could not find that birth location.
+          <p>⚠️ Sorry, we could not find that birth location.</p>
+          <button class="manual-toggle" @click="showManualBirth = !showManualBirth">
+            {{ showManualBirth ? 'Cancel Manual Entry' : 'Enter Coordinates Manually' }}
+          </button>
+
+          <div v-if="showManualBirth" class="manual-entry-fields">
+            <div class="manual-input-row">
+              <input type="number" step="any" v-model="manualBirthLat" placeholder="Latitude" />
+              <input type="number" step="any" v-model="manualBirthLng" placeholder="Longitude" />
+            </div>
+            <button class="save-manual-btn" @click="saveManualLocation('birth')">Apply Coordinates</button>
+          </div>
         </div>
         <div class="birth-location-gps" v-if="birthLocationData">
           <p>👶 Birth location: {{ birthLocationData?.latitude.toFixed(4) }}, {{ birthLocationData?.longitude.toFixed(4) }}</p>
@@ -109,13 +131,22 @@ const currentPlaceName = ref('');
 const birthPlaceName = ref('');
 const birthDifferentLocation = ref(false);
 
+// Manual entry refs
+const showManualCurrent = ref(false);
+const manualCurrentLat = ref(null);
+const manualCurrentLng = ref(null);
+
+const showManualBirth = ref(false);
+const manualBirthLat = ref(null);
+const manualBirthLng = ref(null);
+
 /* computeed */
 const translatedOldWorldDate = computed(() => storeDiary.calibrationPreviewDate);
 
 const currentLocation = computed(() => {
   const loc = storeDiary.currentLocation;
   if (!loc) return null;
-  return { lat: loc.latitude, lng: loc.longitude };
+  return { lat: loc.latitude || loc.lat, lng: loc.longitude || loc.lng };
 });
 const birthLocationData = computed(() => storeDiary.birthLocation);
 const heliOrbit = computed(() => storeDiary.calibrationOrbit);
@@ -156,6 +187,30 @@ const lockHeliGenesis = () => {
 const setBirthLocation = () => {
   birthDifferentLocation.value = !birthDifferentLocation.value;
 }
+
+const saveManualLocation = (context) => {
+  if (context === 'current') {
+    if (manualCurrentLat.value !== null && manualCurrentLng.value !== null) {
+      storeDiary.locationContext = 'current';
+      storeDiary.selectLocation({
+        name: 'Manual Entry',
+        latitude: parseFloat(manualCurrentLat.value),
+        longitude: parseFloat(manualCurrentLng.value)
+      });
+      showManualCurrent.value = false;
+    }
+  } else {
+    if (manualBirthLat.value !== null && manualBirthLng.value !== null) {
+      storeDiary.locationContext = 'birth';
+      storeDiary.selectLocation({
+        name: 'Manual Entry',
+        latitude: parseFloat(manualBirthLat.value),
+        longitude: parseFloat(manualBirthLng.value)
+      });
+      showManualBirth.value = false;
+    }
+  }
+};
 
 const handleLocationSelect = (loc) => {
   storeDiary.locationContext = 'current'

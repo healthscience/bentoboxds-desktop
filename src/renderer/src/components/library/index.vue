@@ -3,6 +3,13 @@
     <header class="library-header">
       <h1 class="library-title">Network Library</h1>
       <p class="library-subtitle">Explore and contribute to the decentralized reference contract network.</p>
+      <!-- seed library button -->
+      <button
+        class="sov-demo-btn"
+        @click="syncPublicLibrary('library', 'sync')"
+      >
+        Seed public library
+      </button>
     </header>
     
     <main class="library-main">
@@ -13,6 +20,14 @@
 
 <script setup>
 import ContractExplorer from '@/components/library/explorer/explorerView.vue'
+import { libraryStore } from "@/stores/libraryStore.js";
+
+const storeLibrary = libraryStore();
+
+const syncPublicLibrary = () => {
+  // send message to hop to create default reference contracts
+  storeLibrary.syncLibraryFirst();
+};
 </script>
 
 <style scoped>
@@ -69,5 +84,21 @@ import ContractExplorer from '@/components/library/explorer/explorerView.vue'
   .library-title {
     font-size: 2rem;
   }
+}
+
+/* BUTTON STYLES */
+.sov-demo-btn {
+  padding: 12px 20px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 1.5rem;
+}
+
+.sov-demo-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 </style>

@@ -1,7 +1,9 @@
 <template>
   <div id="life-dialogue">
-    <div id="chatspace-modal-header">
-      <div id="spacechat">CueChat # {{ storeAI.liveBspace.name }}</div>
+    <div id="chatspace-modal-header" v-if="isHeaderVisible">
+      <div id="spacechat">
+        {{ storeAI.beebeeContext === 'extraction' ? 'BeeBee Extraction' : 'CueChat # ' + (storeAI.liveBspace?.name || '...') }}
+      </div>
       <div
         id="return-modal-close"
         :class="{ 'active-history': chatHistoryStatus }"
@@ -14,7 +16,7 @@
       <chat-menu v-if="chatHistoryStatus === true"></chat-menu>
       <div class="context-content">
         <chat-interface
-          :context-filter="{
+          :context-filter="storeAI.beebeeContext === 'extraction' ? 'extraction' : {
             type: 'chatspace',
             id: storeAI.liveBspace?.cueid || storeAI.liveBspace?.spaceid,
           }"
@@ -35,39 +37,31 @@ import ChatMenu from "@/components/beebeeView/navigation/chatMenu.vue";
 
 import { aiInterfaceStore } from "@/stores/aiInterface.js";
 import { useChatStore } from "@/stores/chatStore.js";
+import { useOrbitStore } from "@/stores/orbitStore.js";
 
 const storeAI = aiInterfaceStore();
 const storeChat = useChatStore();
+const orbitStore = useOrbitStore();
 let previousContext = null;
 let chatHistoryStatus = ref(false);
 
-// Watch for history status changes to expand the right panel
-watch(chatHistoryStatus, (isOpen) => {
-  if (isOpen) {
-    // Expand panel to accommodate 250px menu + existing chat area
-    // Assuming base chat area is around 380px, we add 250px
-    storeChat.chatWidth = storeChat.chatWidth + 250;
-  } else {
-    // Shrink back
-    storeChat.chatWidth = Math.max(380, storeChat.chatWidth - 250);
-  }
-});
-
-/* computed */
+const isHeaderVisible = computed(() => storeChat.isHeaderVisible);
 const bentochatStatus = computed(() => {
+
   return storeAI.bentochatState;
 });
 
 onMounted(() => {
   previousContext = storeAI.beebeeContext;
-  storeAI.beebeeContext = "chatspace";
-  // Ensure the space chat is present in the chat menu with timestamps
+  
+  // Only transition to chatspace context if we actually have a space selected
   const cueId = storeAI.liveBspace?.cueid || storeAI.liveBspace?.spaceid;
-  const name = storeAI.liveBspace?.name;
-  const contractKey = storeAI.liveBspace?.contract_key;
-  const lifeStrapID = storeAI.liveBspace?.lifeStrapID || cueId;
-
   if (cueId) {
+    storeAI.beebeeContext = "chatspace";
+    const name = storeAI.liveBspace?.name;
+    const contractKey = storeAI.liveBspace?.contract_key;
+    const lifeStrapID = storeAI.liveBspace?.lifeStrapID || cueId;
+
     storeAI.setActiveLifeStrap(lifeStrapID, contractKey);
     storeAI.ensureSpaceChatInMenu(cueId, name);
   }
@@ -89,10 +83,9 @@ const chatHistoryMenu = () => {
 #life-dialogue {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  height: 88vh;
+  height: 100%;
   width: 100%;
   overflow: hidden;
-  margin-bottom: 60px; /* Force margin to sit above Bento quadrants */
 }
 
 .chat-input {
@@ -129,7 +122,7 @@ const chatHistoryMenu = () => {
 }
 
 #chatspace-modal-header {
-  display: grid;
+  display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px;

@@ -56,51 +56,6 @@
             <div class="interface-layer">
               <transition name="sov-fade">
                 <LaunchpadStack
-                  v-if="isInitialState || isDemoMode"
-                  :mode="currentMode"
-                  :extractedData="mappedLenses"
-                  @launch="launchDemo"
-                  @reset="exitToZen"
-                />
-              </transition>
-            </div>
-
-            <WorldCanvas
-              ref="worldCanvasRef"
-              class="world-canvas-layer"
-              :class="{ 'besearch-active': isBesearchMode }"
-              :activeWorld="activeWorld"
-              :showTools="!isInitialState"
-            />
-
-            <div class="fuse-container">
-              <BesearchFuse
-                v-if="!isInitialState && storeAI.currentMode === 'besearch'"
-              />
-            </div>
-          </div>
-
-          <!-- Vertical Divider for Top Row -->
-          <div
-            v-if="
-              activeQuadrants.includes('now-me') &&
-              activeQuadrants.includes('future-me')
-            "
-            class="bento-divider vertical"
-            @mousedown="startBentoDividerDrag"
-          ></div>
-
-          <!-- FUTURE ME (Top Right) -->
-          <div
-            v-if="activeQuadrants.includes('future-me')"
-            class="bento-cell future-me-cell"
-          >
-            <div class="future-indicator">FUTURE ME</div>
-            <OrbitHUD v-if="!isInitialState" />
-
-            <div class="interface-layer">
-              <transition name="sov-fade">
-                <LaunchpadStack
                   v-if="isInitialState || isExtracting || isDemoMode"
                   :mode="currentMode"
                   :extractedData="mappedLenses"
@@ -232,11 +187,11 @@
 
     <BottomPanel
       class="bottom-panel-area"
-      :height="bottomHeight"
+      :height="storeBesearch.bottomHeight"
       :isOpen="isBottomOpen"
       :isDragging="draggingMode === 'bottom'"
-      @update:height="(val) => (bottomHeight = val)"
-      @update:isOpen="(val) => (isBottomOpen = val)"
+      @update:height="(val) => (storeBesearch.bottomHeight = val)"
+      @update:isOpen="(val) => (storeBesearch.showBottomPanel = val)"
       @startDrag="startBottomDrag"
     />
 
@@ -272,6 +227,7 @@
     <SculptingLayer />
 
     <div
+      v-if="isBentoVisible"
       class="bento-box-container"
       :class="{ 'docked-position': isBentoDocked }"
     >
@@ -288,6 +244,7 @@ import { ref, computed, watch } from "vue";
 import { aiInterfaceStore } from "@/stores/aiInterface.js";
 import { useChatStore } from "@/stores/chatStore.js";
 import { besearchStore } from "@/stores/besearchStore.js";
+import { loomStore } from "@/stores/loomStore.js";
 import { libraryStore } from "@/stores/libraryStore.js";
 import { diaryStore } from "@/stores/diaryStore.js";
 
@@ -302,12 +259,14 @@ import BesearchFuse from "@/components/orbit/besearch/BesearchFuse.vue";
 import BesearchLayer from "@/components/orbit/besearch/besearchLayer.vue";
 import SculptingLayer from "@/components/orbit/sculpting/sculptingLayer.vue";
 import BentoBox from "@/components/orbit/parts/BentoBox.vue";
+import LifestrapLens from "@/components/orbit/parts/LifestrapLens.vue";
 
 import { useOrbitStore } from "@/stores/orbitStore.js";
 
 const storeDiary = diaryStore();
 const storeLibrary = libraryStore();
 const storeAI = aiInterfaceStore();
+const storeLoom = loomStore();
 const storeChat = useChatStore();
 const storeBesearch = besearchStore();
 const orbitStore = useOrbitStore();
@@ -320,66 +279,24 @@ const bentoVerticalSplitRatio = ref(50); // Percentage for horizontal split
 const isDraggingBentoDivider = ref(false);
 const isDraggingBentoVerticalDivider = ref(false);
 
-/* computed */
-const extractedData = computed(() => storeAI.digestInput);
-const activeWorld = computed({
-  get: () => storeAI.activeWorld,
-  set: (val) => (storeAI.activeWorld = val),
-});
-
-const isBottomOpen = computed({
-  get: () => {
-    return (
-      storeBesearch.showBottomPanel ||
-      !!storeAI.activeLifeStrapID ||
-      storeBesearch.hasActiveIntervention
-    );
-  },
-  set: (val) => {
-    storeBesearch.showBottomPanel = val;
-  },
-});
-
-watch(
-  isBottomOpen,
-  (val) => {
-    orbitStore.isInterplayActive = val;
-    if (val) {
-      // Set to 82vh when interplay is active
-      storeBesearch.bottomHeight = window.innerHeight * 0.82;
-    }
-  },
-  { immediate: true },
-);
-
-const bottomHeight = computed(() => {
-  return storeBesearch.bottomHeight;
-});
-
-// Watch for store changes to trigger the "Extracting" state automatically
-watch(
-  () => storeAI.digestInput,
-  (newData) => {
-    if (newData && currentMode.value === "zen") {
-      // handleUserInput();
-    }
-  },
-  { deep: true },
-);
-
-/* panel settins */
+/* panel settings */
 const isLifeToolsOpen = ref(false);
 const rightPanelMode = ref("chat");
 
 const panelWidth = ref(30);
 const draggingMode = ref(null);
 
-// 1. Add 'extracting' to the modes
-// const currentMode = ref('zen'); // 'zen', 'demo', 'extracting', or 'active'
-
 /* computed */
+const extractedData = computed(() => storeLoom.digestInput);
+const activeWorld = computed({
+  get: () => storeAI.activeWorld,
+  set: (val) => (storeAI.activeWorld = val),
+});
+
+const isBottomOpen = computed(() => storeBesearch.showBottomPanel);
+
 const isInitialState = computed(() => {
-  return storeAI.currentMode === "zen";
+  return storeAI.isInitialState;
 });
 
 const isDemoMode = computed(() => storeAI.currentMode === "demo");
@@ -399,6 +316,14 @@ const chatWidth = computed({
   get: () => storeChat.chatWidth,
   set: (val) => (storeChat.chatWidth = val),
 });
+
+watch(
+  isBottomOpen,
+  (val) => {
+    orbitStore.isInterplayActive = val;
+  },
+  { immediate: true },
+);
 
 /* methods */
 const handleSaveCue = (cueId) => {
@@ -420,10 +345,10 @@ const handleStartTagging = () => {
 };
 
 const launchDemo = (type) => {
-  storeAI.currentMode = "demo"; // This triggers the "Three Cs" in Launchpad
+  storeAI.isInitialState = false;
+  storeAI.currentMode = "demo"; 
   storeAI.activeWorld = type;
 
-  // Also push the demo text into the store so the Lenses have data
   if (type === "oribt") {
     storeAI.beebeeDigest("I want to swim 400m in 10 orbits...", true);
   } else if (type === "body") {
@@ -438,40 +363,23 @@ const launchDemo = (type) => {
     storeDiary.zoomDepth = 2;
   }
   // open the lens ie. bottom panel
+  storeBesearch.setHUUDState('lens');
   storeBesearch.showBottomPanel = true;
 };
 
-// 3. Update the Reset handler
 const exitToZen = () => {
-  storeBesearch.showBottomPanel = false;
-  storeAI.currentMode = "zen";
-  storeAI.activeWorld = "orbit";
-  storeChat.chatWidth = 10;
-  storeChat.isChatOpen = false;
+  if (!storeAI.experienceOrchestrator) {
+    storeAI.initOrchestrator();
+  }
+  storeAI.experienceOrchestrator.resetToZen();
   panelWidth.value = 30;
-  // Clear the store input if needed
-  storeAI.digestInput = null;
 };
-
-// Inside PrimeInterface.vue <script setup>
-const extractionLenses = computed(() => {
-  return {
-    capacity: storeAI.digestInput?.constraints
-      ? [storeAI.digestInput.constraints]
-      : [],
-    coherence: storeAI.digestInput?.content
-      ? [storeAI.digestInput.content]
-      : [],
-    context: storeAI.digestInput?.context ? [storeAI.digestInput.context] : [],
-  };
-});
 
 // Map the 3 Cs to the Lenses
 const mappedLenses = computed(() => {
-  const input = storeAI.digestInput;
+  const input = storeLoom.digestInput;
   if (!input) return { capacity: [], coherence: [], context: [], heli: [] };
 
-  // New pillars structure
   if (input.pillars) {
     return {
       capacity: input.pillars.capacity || [],
@@ -481,7 +389,6 @@ const mappedLenses = computed(() => {
     };
   }
 
-  // Legacy structure
   return {
     capacity: input.capacity || [],
     coherence: input.coherence || [],
@@ -525,10 +432,7 @@ const handleGlobalDrag = (e) => {
     if (stage) {
       const rect = stage.getBoundingClientRect();
       const x = e.clientX - rect.left;
-      bentoSplitRatio.value = Math.max(
-        10,
-        Math.min(90, (x / rect.width) * 100),
-      );
+      bentoSplitRatio.value = Math.max(10, Math.min(90, (x / rect.width) * 100));
     }
     return;
   }
@@ -537,33 +441,21 @@ const handleGlobalDrag = (e) => {
     if (stage) {
       const rect = stage.getBoundingClientRect();
       const y = e.clientY - rect.top;
-      bentoVerticalSplitRatio.value = Math.max(
-        10,
-        Math.min(90, (y / rect.height) * 100),
-      );
+      bentoVerticalSplitRatio.value = Math.max(10, Math.min(90, (y / rect.height) * 100));
     }
     return;
   }
   if (!draggingMode.value) return;
   if (draggingMode.value === "left") {
-    panelWidth.value = Math.max(
-      30,
-      Math.min(e.clientX, window.innerWidth * 0.4),
-    );
+    panelWidth.value = Math.max(30, Math.min(e.clientX, window.innerWidth * 0.4));
     isLifeToolsOpen.value = panelWidth.value > 150;
   } else if (draggingMode.value === "right") {
     const newWidth = window.innerWidth - e.clientX;
-    storeChat.chatWidth = Math.max(
-      0,
-      Math.min(newWidth, window.innerWidth * 0.5),
-    );
+    storeChat.chatWidth = Math.max(0, Math.min(newWidth, window.innerWidth * 0.5));
     storeChat.isChatOpen = storeChat.chatWidth > 150;
   } else if (draggingMode.value === "bottom") {
     const newHeight = window.innerHeight - e.clientY;
-    storeBesearch.bottomHeight = Math.max(
-      12,
-      Math.min(newHeight, window.innerHeight * 0.8),
-    );
+    storeBesearch.bottomHeight = Math.max(60, Math.min(newHeight, window.innerHeight * 0.82));
     storeBesearch.showBottomPanel = storeBesearch.bottomHeight > 100;
   }
 };
@@ -582,12 +474,8 @@ const dynamicGridStyle = computed(() => ({
 }));
 
 const bentoLayoutStyle = computed(() => {
-  const hasTop =
-    activeQuadrants.value.includes("now-me") ||
-    activeQuadrants.value.includes("future-me");
-  const hasBottom =
-    activeQuadrants.value.includes("now-us") ||
-    activeQuadrants.value.includes("future-us");
+  const hasTop = activeQuadrants.value.includes("now-me") || activeQuadrants.value.includes("future-me");
+  const hasBottom = activeQuadrants.value.includes("now-us") || activeQuadrants.value.includes("future-us");
 
   if (hasTop && hasBottom) {
     return {
@@ -629,7 +517,13 @@ const bottomRowStyle = computed(() => {
   }
   return { height: "100%" };
 });
-const isBesearchMode = computed(() => storeAI.currentMode === "besearch");
+
+const isBentoVisible = computed(() => {
+  const hiddenContexts = ["lens", "lab", "heli"];
+  if (hiddenContexts.includes(storeBesearch.huudContext)) return false;
+  if (storeBesearch.isHeliProjectOpen || storeBesearch.isSculptingLayerOpen || storeBesearch.isBesearchLayerOpen || storeBesearch.isAttunementLayerOpen) return false;
+  return true;
+});
 </script>
 
 <style scoped>
@@ -885,13 +779,6 @@ const isBesearchMode = computed(() => storeAI.currentMode === "besearch");
   overflow: hidden;
 }
 
-.fuse-container {
-  grid-row: 3;
-  height: 60px;
-  width: 100%;
-  z-index: 500;
-}
-
 .interface-layer {
   grid-row: 2;
   z-index: 400;
@@ -903,43 +790,6 @@ const isBesearchMode = computed(() => storeAI.currentMode === "besearch");
 }
 .interface-layer > * {
   pointer-events: auto;
-}
-
-.extraction-lens-wrap {
-  display: grid;
-  grid-template-rows: auto auto;
-  gap: 40px;
-  width: 90%;
-  max-width: 1000px;
-  pointer-events: auto;
-}
-
-.extraction-footer-grid {
-  display: grid;
-  grid-template-columns: auto auto;
-  justify-content: center;
-  align-items: center;
-  gap: 80px;
-  padding-top: 20px;
-}
-
-.manifest-nudge {
-  font-weight: 800;
-  color: #38205f;
-  letter-spacing: 0.05em;
-  animation: pulse-right 2s infinite ease-in-out;
-}
-
-@keyframes pulse-right {
-  0%,
-  100% {
-    transform: translateX(0);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translateX(15px);
-    opacity: 1;
-  }
 }
 
 .global-return-overlay {

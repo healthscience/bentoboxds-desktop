@@ -8,6 +8,9 @@ import { besearchStore } from '@/stores/besearchStore.js'
 import hashObject from 'object-hash'
 import ChatUtilty from '@/stores/hopUtility/chatUtility.js'
 import { cuesStore } from "@/stores/cuesStore.js"
+import { orreryStore } from '@/stores/orreryStore.js'
+import { lifestrapStore } from '@/stores/lifestrapStore.js'
+import { loomStore } from '@/stores/loomStore.js'
 
 export const libraryStore = defineStore('librarystore', {
   state: () => ({
@@ -20,21 +23,15 @@ export const libraryStore = defineStore('librarystore', {
     storeCues: cuesStore(),
     storeAI: aiInterfaceStore(),
     storeBentobox: bentoboxStore(),
+    storeOrrery: orreryStore(),
+    storeLifestrap: lifestrapStore(),
+    storeLoom: loomStore(),
     utilLibrary: new LibraryUtility(),
     sendSocket: useSocketStore(),
     liveChatUtil: new ChatUtilty(),
-    storeBesearch: new besearchStore(),
+    storeBesearch: null,
     storeTeach: teachingStore(),
     startPubLibrary: false,
-    straps: [],
-/*      {
-        id: "ls_swim_2026",
-        name: "swim for longevity",
-        origin_input: "I want to swim 400m...",
-        contract_key: "HOP_777_888",
-        active_cues: ["capacity-orbits", "context-chlorine"],
-        bioregion_anchor: "Local-Pool-01"
-      }*/
     replicateFeedback: {},
     libraryMessage: '',
     uploadStatus: false,
@@ -97,115 +94,8 @@ export const libraryStore = defineStore('librarystore', {
     },
     newPackagingForm:
     {
-      authrequired: false,
-      type: '',
-      filename: '',
-      path: '',
-      tableQuery: '',
-      sourcedevicecol: '',
-      sqlitetablename: '',
-      baseapi: '',
-      jsonpath: '',
-      authtoken: '',
-      apicolumns: [],
-      apicolHolder: [[]],
-      catHolder: {},
-      tidyHolder: {},
-      catCount: 0,
-      tidyCount: 0,
-      category: {},
-      tidy: {},
-      deviceQuery: '',
-      firmwareQuery: '',
-      deviceColumnID: '',
-      devicesList: [],
-      deviceColumns: [],
-      device:
-      {
-        id: '',
-        device_name: '',
-        device_manufacturer: '',
-        device_mac: '',
-        device_type: '',
-        device_model: '',
-        query: '',
-        location_lat: '',
-        location_long: '',
-        firmware: '',
-        mobileapp: ''
-      }
-    },
-    joinOptions: {},
-    uploadFileStatus: false,
-    uploadHolder: [],
-    fileBund: {},
-    fileBundleList: [],
-    linesLimit: {},
-    csvpreviewLive: false,
-    imagepreviewLive: false,
-    lineBundle:
-    {
-      cnumber: '',
-      dataline: '',
-      delimiter: '',
-      datetype: ''
-    },
-    catForm: {
-      category: '',
-      categorycolumn: '',
-      categoryrule: '',
-    },
-    newVisualiseForm: {
-      primary: Boolean,
-      name: '',
-      description: '',
-      structureName: '',
-      visHolder: [],
-    },
-    newMediaForm: {
-      primary: true,
-      url: '',
-      context: '',
-      relationship: []
-    },
-    newResearchForm: {
-      primary: true,
-      url: ''
-    },    
-    newMarkerForm: {
-      primary: true,
-      name: '',
-      url: '',
-      type: ''
-    },    
-    newProductForm: {
-      primary: true,
-      name: '',
-      url: '',
-      type: ''
-    },    
-    deviceForm:
-    {
-      query: '',
-      name: '',
-      mac_address: '',
-      location_lat: '',
-      location_long: '',
-      firmware: '',
-      mobileapp: ''
-    },
-    tidyOption: false,
-    sourceDataSelected: false,
-    newLists: {},
-    newListsave: {},
-    newModuleList: [],
-    buildNewExperiment: [],
-    moduleNxpActive: 'question',
-    dtcolumns: [],
-    fileSaveStatus: false,
-    fileFeedback: '',
-    devicesJoin: [],
-    inContext: 'chat' 
+      authrequired: false
+    }
   }),
   actions: {
     // since we rely on `this`, we cannot use an arrow function
@@ -219,6 +109,8 @@ export const libraryStore = defineStore('librarystore', {
       this.refreshPublibary()   
     },
     refreshPublibary () {
+      this.storeOrrery.isSeeding = true
+      this.storeOrrery.seedingProgress = 0
       // message to update master lib in HOP itself  ( TODO auto update per change)
       // put in timier for now
       setTimeout(() => {
@@ -268,7 +160,7 @@ export const libraryStore = defineStore('librarystore', {
           // what contract is provided?
           if (contextBundle.context.type === 'reference-contract') {
             // get module contract
-            contractData = this.utilLibrary.getContractInfo(contextBundle.context.contractid, 'reference-contract', this.publicLibrary.referenceContracts)
+            contractData = this.utilLibrary.getContractInfo(contextBundle.context.contractid, 'reference-contract', this.storeCues.pathRefContracts)
           } else if (contextBundle.context.type === 'module-contract') {
             contractData = this.utilLibrary.getContractInfo(contextBundle.context.contractid, 'module-contract', this.publicLibrary.networkExpModules)
           } else if (contextBundle.context.type === 'network-experiment') {
@@ -397,10 +289,14 @@ export const libraryStore = defineStore('librarystore', {
         } else {
           // starting public library (TODO bring in what is needed given context of Peer cues, nxps, besearch cycles etc.)
           this.publicLibrary = message
+          // Also sync reference contracts to cuesStore for cue expansion
+          if (message.referenceContracts) {
+            this.storeCues.integrateReferenceContracts(message.referenceContracts)
+          }
           if(this.peerExperimentWaiting === true) {
             // prepare the peer experiments for library display
             if (message.networkPeerExpModules.length > 0) {
-              this.peerExperimentList = this.utilLibrary.prepareBentoSpaceJoinedNXPlist(this.peerNXPWaiting, this.publicLibrary.referenceContracts)
+              this.peerExperimentList = this.utilLibrary.prepareBentoSpaceJoinedNXPlist(this.peerNXPWaiting, message.referenceContracts)
               // keep track NXP contract bundle
               this.peerLibraryNXP = this.peerNXPWaiting
               this.peerExperimentWaiting = false
@@ -410,23 +306,12 @@ export const libraryStore = defineStore('librarystore', {
         }
         // check if start cues are here and needing processed
         if (this.storeBentobox.libraryCheck === false) {
-          // yes go ahead and expand cues
-          let updateCueExpand = []
-          for (let cueContract of this.storeCues.waitingCues) {
-            let expandDTCue = this.utilLibrary.expandCuesDTSingle(cueContract, this.publicLibrary.referenceContracts)
-            updateCueExpand.push(expandDTCue)
-          }
-          this.storeCues.cuesList = updateCueExpand
-          // this.storeCues.waitingCues = []
-          // filter for most current used time or frequency
-          // last used
-          this.storeCues.getMostLastusedItems(this.storeCues.cuesList)
-          // frequency
-          // this.storeCues.getMostPopularItems(this.storeCues.cuesList)
+          // yes go ahead and expand cues via cuesStore
+          this.storeCues.refreshExpandedCues()
         }
       } else if (message.action === 'cue-contract') {
         if (message.task === 'save-complete') {
-          let expandDTCue = this.utilLibrary.expandCuesDTSingle(message.data, this.publicLibrary.referenceContracts)
+          let expandDTCue = this.utilLibrary.expandCuesDTSingle(message.data, this.storeCues.pathRefContracts)
           // add to cues list
           this.storeCues.cuesList.push(expandDTCue)
           this.storeCues.spaceListHistory.push(expandDTCue)
@@ -454,25 +339,30 @@ export const libraryStore = defineStore('librarystore', {
         if (message.task === 'save-complete') {
           // save complete
         } else if (message.task === 'bringtobe-start') {
-          // check if any saved if yes, top peer priority make 'to be'
+          // split the data lump: story goes to lifestrapStore, supporting to loomStore
           if (message.data.length > 0) {
-            // conver index to hex and add to lifestrap list
-            let hexContract = {}
-            for (let inStrap of message.data) {
-              hexContract = this.utilLibrary.convertBinaryToHex(inStrap)
-              this.straps.push(hexContract)
-              this.storeAI.initializeSovereignSession(hexContract.key)
+            // First item is typically the story contract
+            const storyContract = message.data[0]
+            this.storeLifestrap.processReply({
+              action: 'bringtobe-start',
+              data: [storyContract]
+            })
+
+            // Rest are supporting contracts for the Loom/Tapestry
+            if (message.data.length > 1) {
+              const supportingContracts = message.data.slice(1)
+              this.storeLoom.processReply({
+                action: 'bringtobe-start',
+                data: supportingContracts
+              })
             }
           }
         }
       } else if (message.action === 'lifestrap-genesis') {
-        // convert key binary to hex
-        let hexConract = this.utilLibrary.convertBinaryToHex(message.data)
-        // add to lifestrap list & set lsID as chatID for first message in new lifestraps
-        this.straps.push(hexConract)
-        this.storeAI.initializeSovereignSession(hexConract.key)
+        this.storeLifestrap.processReply(message)
       } else if (message.action === 'lifestrap-contract') {
-        console.log('lifestrap-contract') //  TODO
+        console.log('lifestrap-contract received in libraryStore', message)
+        this.storeLifestrap.processReply(message)
       } else if (message.action === 'model-contract') {
         // first time save for update?
         if (message.task === 'save-complete') {
@@ -533,7 +423,7 @@ export const libraryStore = defineStore('librarystore', {
         // process if public library is available
         if (this.publicLibrary.referenceContracts !== undefined) {
           if (message.networkPeerExpModules.length > 0) {
-            this.peerExperimentList = this.utilLibrary.prepareBentoSpaceJoinedNXPlist(message.networkPeerExpModules, this.publicLibrary.referenceContracts)
+            this.peerExperimentList = this.utilLibrary.prepareBentoSpaceJoinedNXPlist(message.networkPeerExpModules, this.storeCues.pathRefContracts)
             // keep track NXP contract bundle
             this.peerLibraryNXP = message.networkPeerExpModules
           }
@@ -542,6 +432,8 @@ export const libraryStore = defineStore('librarystore', {
           this.peerExperimentWaiting = true
           this.peerNXPWaiting = message.networkPeerExpModules
         }
+      } else if (message.action === 'cues') {
+         this.storeCues.processCuesReply(message)
       } else if (message.action === 'new-modules') {
         this.genesisModules = message.data.modules
       } else if (message.action === 'new-experiment') {
@@ -564,7 +456,7 @@ export const libraryStore = defineStore('librarystore', {
         // add to private nxp list
         let expList = []
         expList.push(message.data)
-        let addJoinExp = this.utilLibrary.prepareBentoSpaceJoinedNXPlist(expList, this.publicLibrary.referenceContracts)
+        let addJoinExp = this.utilLibrary.prepareBentoSpaceJoinedNXPlist(expList, this.storeCues.pathRefContracts)
         for(let jlist of addJoinExp.data) {
           this.peerExperimentList.data.push(jlist)
         }
@@ -574,6 +466,8 @@ export const libraryStore = defineStore('librarystore', {
         this.peerResults = message.data
       } else if (message.action === 'ledger') {
         this.peerLedger = message.data
+      } else if (message.action === 'seed-base-biology') {
+        this.storeOrrery.processReply(message)
       }
     },
     prepareCueMenuHistory (cueID) {
@@ -588,7 +482,7 @@ export const libraryStore = defineStore('librarystore', {
           cueContract = cue
         }  
       }
-      let expandDTCue = this.utilLibrary.expandCuesDTSingle(cueContract, this.publicLibrary.referenceContracts)
+      let expandDTCue = this.utilLibrary.expandCuesDTSingle(cueContract, this.storeCues.pathRefContracts)
       // add to cues list
       this.storeCues.cuesHistoryList.push(expandDTCue)
     },
@@ -694,7 +588,7 @@ export const libraryStore = defineStore('librarystore', {
       this.sendSocket.send_message(libMessage)
     },
     prepPublicNXPlist () {
-      this.listPublicNXP = this.utilLibrary.preparePublicNXPlist(this.publicLibrary.referenceContracts)
+      this.listPublicNXP = this.utilLibrary.preparePublicNXPlist(this.storeCues.pathRefContracts)
     },
     updateHOPqueryContracts (HOPq) {
       // set feedback peer bentobox HOPquery
@@ -716,9 +610,9 @@ export const libraryStore = defineStore('librarystore', {
     },
     removeLSContract (hexKey, privacy) {
       // remove from component
-      for (let i = 0; i < this.straps.length; i++) {
-        if (this.straps[i].key === hexKey) {
-          this.straps.splice(i, 1)
+      for (let i = 0; i < this.storeLifestrap.straps.length; i++) {
+        if (this.storeLifestrap.straps[i].key === hexKey) {
+          this.storeLifestrap.straps.splice(i, 1)
         }
       }
       const refContract = {}
@@ -760,6 +654,8 @@ export const libraryStore = defineStore('librarystore', {
       this.sendSocket.send_message(refContract)
     },
     syncLibraryFirst () {
+      this.storeOrrery.isSeeding = true
+      this.storeOrrery.seedingProgress = 0
       // prepare defalut data types  or start from scratch using library tools. 
       const refContract = {}
       refContract.type = 'library'
@@ -779,14 +675,14 @@ export const libraryStore = defineStore('librarystore', {
         refContract.reftype = 'public' // 'public library'
         refContract.task = 'GET'
         this.sendSocket.send_message(refContract)
-        /* const refContract2 = {}
+
+        const refContract2 = {}
         refContract2.type = 'library'
-        refContract2.action = 'contracts'
-        refContract2.privacy = 'private' // 'privatelibrary'
-        refContract2.reftype = 'private' // 'privatelibrary'
+        refContract2.action = 'lifestrap'
+        refContract2.privacy = 'private'
+        refContract2.reftype = 'private'
         refContract2.task = 'GET'
         this.sendSocket.send_message(refContract2)
-        */
       } else if (hopMessage === 'get-public-library') {
         // peer library start contracts
         const refContract = {}
