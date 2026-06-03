@@ -19,10 +19,8 @@ jobs:
     env:
       NODE_OPTIONS: "--max-old-space-size=4096"
       GPT4ALL_SKIP_INSTALL_BACKEND: "true"
-      npm_config_build_from_source: "false"
-      npm_config_arch: x64
-      npm_config_target_arch: x64
       CI: true
+      GYP_MSVS_VERSION: 2022
 
     steps:
       - name: Check out git repository
@@ -37,12 +35,6 @@ jobs:
         with:
           node-version: '22.x'
           cache: 'npm'
-
-      - name: Configure node-gyp on Windows
-        if: matrix.os == 'windows-latest'
-        shell: powershell
-        run: |
-          npm config set msvs_version 2022
 
       - name: Cache hop node_modules
         uses: actions/cache@v4
