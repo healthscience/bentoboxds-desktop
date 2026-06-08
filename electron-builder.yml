@@ -36,10 +36,12 @@ linux:
   maintainer: bentboxds.org
   category: Utility
 mac:
-  icon: build/icon.png # Points to the source PNG for automated runner composition
+  icon: build/icon.png
   target:
     - mas
   type: distribution
+  extendInfo:
+    ElectronTeamID: "8J3898W497" # Replace this string with your actual 10-character Apple Team ID
 mas:
   artifactName: ${name}-${version}.${ext}
   entitlements: build/entitlements.mas.plist
