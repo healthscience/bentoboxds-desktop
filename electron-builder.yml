@@ -1,6 +1,6 @@
 appId: org.bentoboxds.app
 productName: BentoBox-DS-Desktop
-buildVersion: 0.4.0
+buildVersion: 0.7.21
 directories:
   buildResources: build
 files:
@@ -36,14 +36,14 @@ linux:
   maintainer: bentboxds.org
   category: Utility
 mac:
-  icon: build/icon.icns
+  icon: build/icon.png # Points to the source PNG for automated runner composition
   target:
-    - mas # Switched from dmg/pkg/zip to route specifically through the store channel
-  type: distribution # Informs the signing engine to use the App Store profile pairs
+    - mas
+  type: distribution
 mas:
   artifactName: ${name}-${version}.${ext}
-  entitlements: build/entitlements.mac.plist
-  entitlementsInherit: build/entitlements.mac.plist
+  entitlements: build/entitlements.mas.plist
+  entitlementsInherit: build/entitlements.mas.inherit.plist
 pkg:
   artifactName: ${name}-${version}.${ext}
 appImage:
