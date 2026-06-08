@@ -73,6 +73,50 @@ jobs:
         working-directory: ./models-hop
         run: npm ci
 
+      - name: Prepare MAS Entitlements
+        run: |
+          mkdir -p build
+          
+          # Create main app sandbox entitlements
+          cat << 'EOF' > build/entitlements.mas.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+            <dict>
+              <key>com.apple.security.app-sandbox</key>
+              <true/>
+              <key>com.apple.security.files.user-selected.read-write</key>
+              <true/>
+              <key>com.apple.security.network.client</key>
+              <true/>
+              <key>com.apple.security.network.server</key>
+              <true/>
+            </dict>
+          </plist>
+          EOF
+          
+          # Create helper process inheritance entitlements
+          cat << 'EOF' > build/entitlements.mas.inherit.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+            <dict>
+              <key>com.apple.security.app-sandbox</key>
+              <true/>
+              <key>com.apple.security.inherit</key>
+              <true/>
+            </dict>
+          </plist>
+          EOF
+
+      - name: Build for macOS
+        run: npm run build:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          ...
+
+
       - name: Build for macOS
         run: npm run build:mac
         env:
