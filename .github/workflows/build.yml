@@ -73,16 +73,22 @@ jobs:
         working-directory: ./models-hop
         run: npm ci
 
-      - name: Build for macOS
-        run: npm run build:mac
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # App signing pair (For signing the binary)
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          # Installer package signing pair (For signing the installer envelope)
-          CSC_INSTALLER_LINK: ${{ secrets.CSC_INSTALLER_LINK }}
-          CSC_INSTALLER_KEY_PASSWORD: ${{ secrets.CSC_INSTALLER_KEY_PASSWORD }}
+      - name: Install Apple Transporter CLI
+        run: |
+          url="https://itunesconnect.apple.com/WebObjects/iTunesConnect.woa/ra/resources/download/public/Transporter__OSX/bin/"
+          curl -fsSL "$url" -o "/tmp/itmstransporter.pkg"
+          sudo installer -pkg "/tmp/itmstransporter.pkg" -target /
+          /usr/local/itms/bin/iTMSTransporter -help
+
+      - name: Upload Mac to TestFlight
+        uses: apple-actions/upload-testflight-build@v5
+        with:
+          app-path: dist/bentoboxds-0.6.9-tf4.pkg
+          app-type: macos
+          backend: transporter
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
 
       - name: Identify Build Artifact
         if: startsWith(github.ref, 'refs/tags/')
