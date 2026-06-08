@@ -14,12 +14,13 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [ubuntu-latest, windows-latest]
 
     env:
       NODE_OPTIONS: "--max-old-space-size=4096"
       GPT4ALL_SKIP_INSTALL_BACKEND: "true"
       CI: true
+      GYP_MSVS_VERSION: 2022
 
     steps:
       - name: Check out git repository
@@ -73,8 +74,18 @@ jobs:
         working-directory: ./models-hop
         run: npm ci
 
-      - name: Build for macOS
-        run: npm run build:mac
+      - name: Build for Windows
+        if: matrix.os == 'windows-latest'
+        run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build for Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 libsqlite3-dev
+          npm run build:linux
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -83,8 +94,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            dist/*.dmg
+            dist/*.AppImage
+            dist/*.exe
             dist/*.zip
-            dist/*.pkg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
