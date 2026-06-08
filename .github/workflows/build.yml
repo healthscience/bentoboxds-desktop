@@ -103,6 +103,7 @@ jobs:
         with:
           app-path: ${{ steps.artifact.outputs.path }}
           app-type: 'macos'
+          backend: 'altool' # Forces use of pre-installed xcrun altool framework
           issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
