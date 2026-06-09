@@ -77,7 +77,7 @@ jobs:
         run: |
           mkdir -p build
           
-          # Create main app sandbox entitlements
+          # Create main app sandbox entitlements (Clean of conflicting runtime identifiers)
           cat << 'EOF' > build/entitlements.mas.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -139,7 +139,7 @@ jobs:
         with:
           app-path: ${{ steps.artifact.outputs.path }}
           app-type: 'macos'
-          backend: 'altool' # Forces use of pre-installed xcrun altool framework
+          backend: 'altool' 
           issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
