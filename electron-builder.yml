@@ -1,6 +1,6 @@
 appId: org.bentoboxds.app
 productName: BentoBox-DS-Desktop
-buildVersion: 0.7.21
+buildVersion: 0.7.25
 directories:
   buildResources: build
 files:
@@ -40,8 +40,9 @@ mac:
   target:
     - mas
   type: distribution
+  minimumSystemVersion: "12.0.0"
   extendInfo:
-    ElectronTeamID: "8J3898W497" # Replace this string with your actual 10-character Apple Team ID
+    ElectronTeamID: "8J3898W497" # Insert your 10-character Team ID here
 mas:
   artifactName: ${name}-${version}.${ext}
   entitlements: build/entitlements.mas.plist
