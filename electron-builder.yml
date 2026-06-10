@@ -45,6 +45,7 @@ mac:
     ElectronTeamID: "8J3898W497" # Insert your 10-character Team ID here
 mas:
   artifactName: ${name}-${version}.${ext}
+  provisioningProfile: build/embedded.provisionprofile
   entitlements: build/entitlements.mas.plist
   entitlementsInherit: build/entitlements.mas.inherit.plist
 pkg:
