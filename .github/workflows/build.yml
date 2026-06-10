@@ -7,19 +7,16 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-2022
 
     permissions:
       contents: write
-
-    strategy:
-      matrix:
-        os: [macos-latest]
 
     env:
       NODE_OPTIONS: "--max-old-space-size=4096"
       GPT4ALL_SKIP_INSTALL_BACKEND: "true"
       CI: true
+      GYP_MSVS_VERSION: 2022
 
     steps:
       - name: Check out git repository
@@ -73,84 +70,17 @@ jobs:
         working-directory: ./models-hop
         run: npm ci
 
-      - name: Prepare MAS Entitlements
-        run: |
-          mkdir -p build
-          
-          # Create main app sandbox entitlements (Clean of conflicting runtime identifiers)
-          cat << 'EOF' > build/entitlements.mas.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-            <dict>
-              <key>com.apple.security.app-sandbox</key>
-              <true/>
-              <key>com.apple.security.files.user-selected.read-write</key>
-              <true/>
-              <key>com.apple.security.network.client</key>
-              <true/>
-              <key>com.apple.security.network.server</key>
-              <true/>
-            </dict>
-          </plist>
-          EOF
-          
-          # Create helper process inheritance entitlements
-          cat << 'EOF' > build/entitlements.mas.inherit.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-            <dict>
-              <key>com.apple.security.app-sandbox</key>
-              <true/>
-              <key>com.apple.security.inherit</key>
-              <true/>
-            </dict>
-          </plist>
-          EOF
-
-      - name: Build for macOS
-        run: npm run build:mac
+      - name: Build for Windows
+        run: npm run build:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # App signing pair
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          # Installer package signing pair
-          CSC_INSTALLER_LINK: ${{ secrets.CSC_INSTALLER_LINK }}
-          CSC_INSTALLER_KEY_PASSWORD: ${{ secrets.CSC_INSTALLER_KEY_PASSWORD }}
-
-      - name: Identify Build Artifact
-        if: startsWith(github.ref, 'refs/tags/')
-        id: artifact
-        run: |
-          echo "Searching for .pkg file..."
-          PKG_PATH=$(find dist -maxdepth 2 -name "*.pkg" | head -n 1)
-          if [ -z "$PKG_PATH" ]; then
-            echo "Error: No .pkg file found in dist/"
-            exit 1
-          fi
-          echo "Found artifact: $PKG_PATH"
-          echo "path=$PKG_PATH" >> $GITHUB_OUTPUT
-
-      - name: Upload to TestFlight
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: apple-actions/upload-testflight-build@v5
-        with:
-          app-path: ${{ steps.artifact.outputs.path }}
-          app-type: 'macos'
-          backend: 'altool' 
-          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
 
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            dist/*.dmg
-            dist/*.pkg
+            dist/*.exe
             dist/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

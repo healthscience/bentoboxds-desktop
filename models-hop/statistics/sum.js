@@ -1,17 +1,18 @@
 import os from 'os';
 import path from 'path';
 
+import { pathToFileURL } from 'url';
+
 // home folder independent of OS
 let homedir = os.homedir();
-let splitLast = homedir.split(`\\`)
-homedir = splitLast[2]
 
 let BaseModel;
 
 async function loadBaseModel() {
   try {
     if (os.platform() === 'win32') {
-      BaseModel = '/Users/' + homedir +'/hop-models/base/base-model.js';
+      const baseModelPath = path.join(homedir, 'hop-models', 'base', 'base-model.js');
+      const baseModelUrl = pathToFileURL(baseModelPath).href;
       BaseModel = (await import(baseModelUrl)).default;
     } else {
       BaseModel = (await import('../base/base-model.js')).default;

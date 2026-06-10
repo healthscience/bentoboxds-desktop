@@ -1,19 +1,19 @@
 import os from 'os'
 import path from 'path';
 
+import { pathToFileURL } from 'url';
+
 // home folder independent of OS
 let homedir = os.homedir();
-let splitLast = homedir.split(`\\`)
-homedir = splitLast[2]
 
 let exports = {};
 
 if (os.platform() === 'win32') {
   console.log('window path');
-  const avgPath = '/Users/' + homedir +'/hop-models/statistics/average.js';
-  const sumPath = '/Users/' + homedir +'/hop-models/statistics/sum.js';
-  const linregPath = '/Users/' + homedir +'/hop-models/statistics/linear-regression.js';
-  const autoregPath = '/Users/' + homedir +'/hop-models/statistics/auto-regression.js';
+  const avgPath = pathToFileURL(path.join(homedir, 'hop-models', 'statistics', 'average.js')).href;
+  const sumPath = pathToFileURL(path.join(homedir, 'hop-models', 'statistics', 'sum.js')).href;
+  const linregPath = pathToFileURL(path.join(homedir, 'hop-models', 'statistics', 'linear-regression.js')).href;
+  const autoregPath = pathToFileURL(path.join(homedir, 'hop-models', 'statistics', 'auto-regression.js')).href;
 
   exports = {
     AverageModel: (await import(avgPath)).default,
