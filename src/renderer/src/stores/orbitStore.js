@@ -13,10 +13,13 @@ export const useOrbitStore = defineStore("orbit", () => {
     cube: { x: 10, y: 20 },
     filter: { x: 70, y: 45 },
     tiny: { x: 10, y: 40 },
+    relationship: { x: 30, y: 50 },
   });
+  
   const expandedHeliClock = ref(false);
   const expandedPulse = ref(false);
   const expandedTinyDevice = ref(false);
+  const expandedRelationship = ref(false);
 
   const draggingToolId = ref(null);
   const isInterplayActive = ref(false);
@@ -87,6 +90,7 @@ export const useOrbitStore = defineStore("orbit", () => {
     expandedHeliClock,
     expandedPulse,
     expandedTinyDevice,
+    expandedRelationship,
     draggingToolId,
     isInterplayActive,
     startDragging,

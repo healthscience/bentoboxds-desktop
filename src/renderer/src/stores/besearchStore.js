@@ -292,8 +292,6 @@ export const besearchStore = defineStore("besearchstore", {
         this.besearchCyles = replyData.data;
       } else if (replyData.action === "besearch-contract") {
         // add besearch item to besearch world canvas
-        console.log("besearch contract reply saved");
-        console.log(replyData);
         const savedEntry = replyData.data?.data || replyData.data || replyData;
         const normalizedEntry =
           savedEntry?.key && savedEntry?.value

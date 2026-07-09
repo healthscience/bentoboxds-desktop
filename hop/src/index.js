@@ -209,7 +209,7 @@ class HOP extends EventEmitter {
     }
 
     // 1. Define your allowed peer origin (BentoBoxDS location)
-    const ALLOWED_ORIGIN = ['https://localhost:5173', 'file://' ]; // Change to your actual UI port
+    const ALLOWED_ORIGIN = 'https://localhost:5173'; // Change to your actual UI port
 
     const server = createServer(options, (request, response) => {
       // process HTTPS request. Since we're writing just WebSockets
@@ -325,6 +325,7 @@ class HOP extends EventEmitter {
     }
 
     if (o.action === 'verify-crypto-wasm') {
+      console.log('password path')
       this.verifyAndConnect(o.data)
     }
 
@@ -392,8 +393,9 @@ class HOP extends EventEmitter {
   * @method messageResponder
   *
   */
-  //  = function (o) {
   messageResponder = async (o) => {
+    // console.log('message responseer')
+    // console.log(o)
     let messageRoute = this.MessagesFlow.messageIn(o)
     if (messageRoute.type === 'bbai-reply') {
       await this.wiring.bbai.bbAIpath(messageRoute)
@@ -442,7 +444,6 @@ class HOP extends EventEmitter {
   */
   verifyAndConnect = async (verData) => {
     const verDataObj = typeof verData === 'string' ? JSON.parse(verData) : verData
-    
     if (verDataObj.pwd) {
       try {
         const pubKey = await this.unlockPeer(verDataObj.pwd)
@@ -463,6 +464,7 @@ class HOP extends EventEmitter {
           HOPgatekeeper.data = { feedback: 'Wrong password entered.' }
           this.wsocket.send(JSON.stringify(HOPgatekeeper))
         }
+
         this.sendSocketMessage(JSON.stringify(verifyMessage))
         return true
       } catch (err) {
@@ -663,7 +665,7 @@ class HOP extends EventEmitter {
       libMessageout.action = 'account'
       libMessageout.reftype = 'new-peer-topic'
       libMessageout.privacy = 'private'
-      libMessageout.task = 'PUT'
+      libMessageout.task = 'UPDATE'
       libMessageout.data = data
       libMessageout.bbid = ''
       await this.wiring.library.libManager.libraryManage(libMessageout)
@@ -772,4 +774,6 @@ if (args.length > 0) {
   // Default value if no argument is provided
 }
 
-new HOP(options)
+const liveHOPInstance = new HOP(options)
+
+export { liveHOPInstance }

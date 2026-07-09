@@ -1,3 +1,4 @@
+import { shallowRef, markRaw } from "vue";
 import { defineStore } from 'pinia'
 import { useSocketStore } from '@/stores/socket.js'
 import { aiInterfaceStore } from "@/stores/aiInterface.js"
@@ -16,6 +17,19 @@ export const useChatStore = defineStore('chat', {
     isChatOpen: false,
     isUnrolled: false,
     isInterplayActive: false,
+    chatList: [],
+    historyPair: {},
+    chatAttention: "",
+    askQuestion: { text: "", compute: "observation" },
+    historyList: false,
+    historyBar: false,
+    subscribers: [],
+    helpchatHistory: shallowRef([]),
+    helpchatAsk: markRaw({
+      text: "",
+      time: "",
+      active: true,
+    })
   }),
 
   getters: {
@@ -26,7 +40,7 @@ export const useChatStore = defineStore('chat', {
       return !state.isInterplayActive || state.isUnrolled
     },
     chatPairs: (state) => {
-      return state.storeAI.historyPair[state.storeAI.chatAttention]
+      return state.historyPair[state.chatAttention]
     },
     chatAsk: (state) => {
       return state.storeAI.helpchatAsk
@@ -39,6 +53,11 @@ export const useChatStore = defineStore('chat', {
     }
   },
   actions: {
+    setupChatHistory(chat) {
+      if (this.historyPair.hasOwnProperty(chat.chatid) === false) {
+        this.historyPair[chat.chatid] = [];
+      }
+    },
     subscribe(callback) {
       this.subscribers.push(callback)
     },
@@ -89,9 +108,16 @@ export const useChatStore = defineStore('chat', {
       }
 
       // 3. Fallback Hierarchy: Contract Key > Life-Strap ID > Current Attention > 'chat'
-      // This ensures the "Zero-Draft" always finds its way into the Sovereign Ledger
       if (!convId) {
         convId = message.contract_key || message.lifeStrapID || activeContractKey || activeStrapID || this.storeAI.chatAttention || 'chat'
+      }
+
+      // 3b. Normalize convId to hex string if it's a binary Buffer
+      if (convId && typeof convId === 'object' && (convId.type === 'Buffer' || Array.isArray(convId.data))) {
+        const binData = convId.data || [];
+        convId = binData.map(b => b.toString(16).padStart(2, "0")).join("") || convId;
+      } else if (typeof convId !== 'string') {
+        convId = String(convId);
       }
 
       // 4. Inject Metadata for Hyperbee Indexing & Peer Education
@@ -114,7 +140,9 @@ export const useChatStore = defineStore('chat', {
 
       // 6. Ensure the Ledger Bucket exists and Push the Message
       if (!this.chatHistory[convId]) {
-        this.chatHistory[convId] = []
+        this.chatHistory[convId] = [];
+        // Force reactivity for new keys
+        this.chatHistory = { ...this.chatHistory };
       }
       
       // Natural Language First: Ensure we aren't pushing duplicates
@@ -132,17 +160,54 @@ export const useChatStore = defineStore('chat', {
         contract: activeContractKey // Pass contract context to subscribers
       }, this.$state)
     },
-    addUploadMessag(uploadInfo) {
+    addLifestrapStory(chatID, peerInput) {
+      // beebee provides commentary on new story. lifestrap id become chat id.  cues will be id for other beebee dialogues
+      if (!this.historyPair[chatID]) this.historyPair[chatID] = [];
+      if (!this.chatHistory[chatID]) this.chatHistory[chatID] = [];
+
+      this.addMessage({
+        role: "peer",
+        type: "peer",
+        content: peerInput || "Story lensing initiated...",
+        context: "lensing",
+        conversationId: chatID,
+        contract_key: chatID,
+        lifeStrapID: chatID,
+      });
+
+      this.addMessage({
+        role: "beebee",
+        type: "agent",
+        content: "beebee is digesting the story.",
+        context: "lensing",
+        conversationId: chatID,
+        contract_key: chatID,
+        lifeStrapID: chatID,
+        status: "complete",
+      });
+      // save to HOP
+      this.saveChatDialogue(chatID)
+    },
+    addUploadMessage(uploadInfo) {
       const peerMessage = {
         type: 'peer',
-        content: uploadInfo.content,
+        content: uploadInfo?.content || '',
         timestamp: new Date(),
-        bboxid: null, // Will be set by HOP
-        tools: tools,
+        bboxid: uploadInfo?.bboxid || null, // Will be set by HOP
+        tools: uploadInfo?.tools || [],
         context: this.storeAI.beebeeContext || 'chat'
       }
-      this.chatHistory.push(message)
-      // this.notifySubscribers({ type: 'newMessage', payload: message }, this.$state)
+      this.addMessage(peerMessage)
+    },
+    saveChatDialogue(chatID) {
+      let messageHOP = {}
+      messageHOP.type = 'library'
+      messageHOP.action = 'dialogue-chat'
+      messageHOP.reftype = 'new'
+      messageHOP.privacy = 'private'
+      messageHOP.task = 'PUT'
+      messageHOP.data = { chatid: chatID, dialogue: this.chatHistory[chatID] }
+      this.sendSocket.send_message(messageHOP)
     },
     startStreamingMessage() {
       this.currentStreamingMessage = {
@@ -169,6 +234,7 @@ export const useChatStore = defineStore('chat', {
     handleIncomingMessage(message) {
       // console.log('incoming message======chatStore')
       // console.log(message)
+      
       // Handle incoming messages and update the chat state
       // Check if this is a peer question
       if (message.type === 'peer-question') {
@@ -406,7 +472,7 @@ export const useChatStore = defineStore('chat', {
         this.addMessage(systemMessage)
       }
       // Notify subscribers of the incoming message
-      this.notifySubscribers({ type: 'incomingMessage', payload: message }, this.storeAI.$state)
+      this.notifySubscribers({ type: 'incomingMessage', payload: message }, this.$state)
     },
     // Add a method to handle user questions
     addPeerQuestion(text, tools = []) {
@@ -442,10 +508,19 @@ export const useChatStore = defineStore('chat', {
       for (const rec of records) {
         const saved = rec?.value || {}
         const chatMeta = saved.chat || {}
-        const convId = chatMeta.chatid
+        let convId = chatMeta.chatid
         if (!convId) continue
+
+        // Normalize ID
+        if (convId && typeof convId === 'object' && (convId.type === 'Buffer' || Array.isArray(convId.data))) {
+          const binData = convId.data || [];
+          convId = binData.map(b => b.toString(16).padStart(2, "0")).join("") || convId;
+        }
+
         const isSpace = chatMeta.context === 'chatspace'
-        const ctx = isSpace ? { type: 'chatspace', id: convId } : 'chat'
+        const isLifestrap = String(convId) === 'prime-life-strap' || String(convId).startsWith('ls_') || String(convId).startsWith('6c696665737472617021'); 
+        const ctx = isSpace ? { type: 'chatspace', id: convId } : (isLifestrap ? 'lifestrap' : 'chat')
+        
         const pairs = Array.isArray(saved.pair) ? saved.pair : []
         for (const pair of pairs) {
           const p = pair || {}
@@ -459,8 +534,10 @@ export const useChatStore = defineStore('chat', {
             timestamp: new Date(),
             bboxid: qBbid || null,
             tools: q?.tools || [],
-            context: ctx,
-            conversationId: convId
+            context: q?.context || ctx,
+            conversationId: convId,
+            contract_key: q?.contract_key || chatMeta.contract_key,
+            lifeStrapID: q?.lifeStrapID || chatMeta.lifeStrapID
           })
           const rData = r?.data || r
           const isBBox = rData && (rData.type === 'bentobox')
@@ -473,10 +550,21 @@ export const useChatStore = defineStore('chat', {
             status: 'complete',
             messageType: isBBox ? 'bentobox' : 'response',
             metadata: r?.metadata || {},
-            context: ctx,
-            conversationId: convId
+            context: r?.context || q?.context || ctx,
+            conversationId: convId,
+            contract_key: r?.contract_key || chatMeta.contract_key,
+            lifeStrapID: r?.lifeStrapID || chatMeta.lifeStrapID
           })
         }
+
+        // Hydrate Loom if texture data exists
+        if (saved.lifestrapTexture && this.storeAI.storeLoom) {
+          this.storeAI.storeLoom.lifestrapTexture = saved.lifestrapTexture;
+          this.storeAI.storeLoom.digestInput = saved.lifestrapTexture;
+          this.storeAI.storeLoom.updateActiveLensFromTexture(saved.lifestrapTexture);
+          this.storeAI.storeLoom.loomCache[convId] = { lens: saved.lifestrapTexture };
+        }
+
         if (pairs.length > 0) this.beginChat = true
       }
     },
@@ -508,93 +596,49 @@ export const useChatStore = defineStore('chat', {
             }
             this.chatList = setOneActive
             // hydrate chatStore.chatHistory from saved pairs per conversation
-            try {
-              const chatStore = this.storeAI.storeChat || null
-              if (chatStore && Array.isArray(message.data)) {
-                for (const rec of message.data) {
-                  const saved = rec?.value || {}
-                  const chatMeta = saved.chat || {}
-                  const convId = chatMeta.chatid
-                  if (!convId) continue
-                  const isSpace = chatMeta.context === 'chatspace'
-                  const ctx = isSpace ? { type: 'chatspace', id: convId } : 'chat'
-                  const pairs = Array.isArray(saved.pair) ? saved.pair : []
-                  for (const pair of pairs) {
-                    const p = pair || {}
-                    const q = p.question || p.input || p.currentQuestion || (Array.isArray(p.questions) ? p.questions[0] : {}) || {}
-                    const r = p.reply || p.output || q.reply || {}
-                    const qBbid = p?.bbid || p?.bboxid || q?.bbid || q?.bboxid
-                    const peerText = (q?.data && (q.data.text || q.data.content || q.data?.data?.text)) || q?.text || q?.content || ''
-                    // peer message
-                    chatStore.addMessage({
-                      type: 'peer',
-                      role: 'peer',
-                      content: peerText,
-                      timestamp: new Date(),
-                      bboxid: qBbid || null,
-                      tools: q?.tools || [],
-                      context: ctx,
-                      conversationId: convId,
-                      contract_key: q?.contract_key || chatMeta.contract_key,
-                      lifeStrapID: q?.lifeStrapID || chatMeta.lifeStrapID
-                    })
-                    // agent message
-                    const rData = r?.data || r
-                    const isBBox = rData && (rData.type === 'bentobox')
-                    const replyText = (rData && (rData.text || rData.content)) || r?.text || r?.content || ''
-                    chatStore.addMessage({
-                      type: 'agent',
-                      role: 'beebee',
-                      content: isBBox ? rData : replyText,
-                      timestamp: new Date(),
-                      bboxid: r?.bbid || r?.bboxid || qBbid || null,
-                      status: 'complete',
-                      messageType: isBBox ? 'bentobox' : 'response',
-                      metadata: r?.metadata || {},
-                      context: ctx,
-                      conversationId: convId,
-                      contract_key: r?.contract_key || chatMeta.contract_key,
-                      lifeStrapID: r?.lifeStrapID || chatMeta.lifeStrapID
-                    })
-                  }
-                  if (pairs.length > 0) chatStore.beginChat = true
-                }
-              }
-            } catch (e) {
-              console.error('Failed to hydrate chat history from saved data', e)
-            }
+            this.hydrateFromSaved(message.data)
             // what items was last uses ie time or could be favourite ie most frequent use
             this.storeAI.chatAttention = this.chatList[0].chatid
-          } else {
-            let firstChatmenu = this.storeAI.liveChatUtil.prepareChatMenu([])
-            this.chatList = firstChatmenu
-            // save latest first time only
-            let saveData = {}
-            saveData.pair = []
-            saveData.chat = this.chatList[0]
-            saveData.visData = []
-            saveData.hop = []
-            let saveBentoBoxsetting = {}
-            saveBentoBoxsetting.type = 'bentobox'
-            saveBentoBoxsetting.reftype = 'chat-history'
-            saveBentoBoxsetting.action = 'save'
-            saveBentoBoxsetting.task = 'save'
-            saveBentoBoxsetting.data = saveData
-            saveBentoBoxsetting.bbid = ''
-            this.storeAI.sendMessageHOP(saveBentoBoxsetting)
-            this.storeAI.chatAttention = this.chatList[0].chatid
+
+            // Returning Session Orchestration:
+            // If the first chat item is a lifestrap story, restore the active experience.
+            // Panels stay closed — data is hydrated silently so panels open correctly on first click.
+            if (this.storeAI.chatAttention && (this.storeAI.chatAttention === "prime-life-strap" || this.storeAI.chatAttention.startsWith("ls_") || this.storeAI.chatAttention.startsWith("6c696665737472617021"))) {
+              this.storeAI.initOrchestrator();
+              const lsKey = this.storeAI.chatAttention;
+              // Find the saved lifestrap record. Prefer lifestrapTexture (full pillars),
+              // fall back to the chat meta object which may have story/inquiry fields.
+              const matchingRec = Array.isArray(message.data) ? message.data.find(r => r.value?.chat?.chatid === lsKey) : null;
+              const strapData = matchingRec?.value?.lifestrapTexture || matchingRec?.value?.chat || { key: lsKey };
+
+              // 1. Activate all lifestrap state keys via orchestrator
+              this.storeAI.experienceOrchestrator.activateLifestrapState(lsKey);
+
+              // 2. Ensure isInitialState is cleared so the world stage shows correctly
+              this.storeAI.isInitialState = false;
+
+              // 3. Apply loom texture from saved data.
+              //    applyStrapTexture passes strapData into hydrateReturningPeer so story/inquiry
+              //    is available even before lifestrapStore.straps is populated.
+              if (this.storeAI.storeLoom && typeof this.storeAI.storeLoom.applyStrapTexture === "function") {
+                this.storeAI.storeLoom.applyStrapTexture(lsKey, strapData);
+              } else {
+                // Fallback: loom not ready — call hydrateReturningPeer directly with the data we have
+                this.storeAI.experienceOrchestrator.hydrateReturningPeer(lsKey, strapData);
+              }
+            }
             this.storeAI.setupChatHistory(this.chatList[0])
           }
           // set the chat list live
           this.storeAI.historyList = true
         }
-      } else if (message.reftype.trim() === 'chat-history-item') {
-        console.log('chat-history-item', message)
+      } else if (message.reftype.trim() === "chat-history-item") {
+        console.log("chat-history-item", message)
       }
     },
     prepareChatBentoBoxSave (message) {
       // Normalize and serialize history for the effective chat id
-      const effectiveId = message?.data?.chatid || this.storeAI.chatAttention || 'chat'
+      const effectiveId = message?.data?.chatid || this.storeAI.chatAttention || "chat"
       const uiChatId = message?.data?.uiChatId || null
 
       // Get messages from chatHistory instead of historyPair
@@ -608,39 +652,43 @@ export const useChatStore = defineStore('chat', {
       // Group messages into question-reply pairs
       let currentQuestion = null
       for (const msg of allMessages) {
-        if (msg.type === 'peer') {
+        if (msg.type === "peer") {
           // This is a question
           currentQuestion = {
-            id: msg.bboxid || msg.id || `q_${Date.now()}`,
-            text: msg.content || '',
+            id: msg.bboxid || msg.id || "q_" + Date.now(),
+            text: msg.content || "",
             tools: msg.tools || [],
             timestamp: msg.timestamp || null,
-            bbid: msg.bboxid || null
+            bbid: msg.bboxid || null,
+            context: msg.context || null
           }
-        } else if (msg.type === 'agent' && currentQuestion) {
+        } else if (msg.type === "agent" && currentQuestion) {
           // This is a reply to the current question
           let normR = null
-          const isBBox = msg.messageType === 'bentobox' || (msg.content && typeof msg.content === 'object' && msg.content.type === 'bentobox')
+          const isBBox = msg.messageType === "bentobox" || (msg.content && typeof msg.content === "object" && msg.content.type === "bentobox")
 
           if (isBBox) {
             normR = {
-              type: 'bentobox',
+              type: "bentobox",
               data: msg.content,
               bbid: msg.bboxid,
               timestamp: msg.timestamp || null,
-              status: 'complete'
+              status: "complete",
+              context: msg.context || null
             }
+
           } else {
             normR = {
               type: 'text',
               text: msg.content || '',
               bbid: msg.bboxid,
               timestamp: msg.timestamp || null,
-              status: 'complete'
+              status: 'complete',
+              context: msg.context || null
             }
           }
 
-          const key = currentQuestion.bbid || currentQuestion.id || `${currentQuestion.timestamp}`
+          const key = currentQuestion.bbid || currentQuestion.id || "" + currentQuestion.timestamp
           pairMap.set(key, { question: currentQuestion, reply: normR })
 
           if (normR && normR.bbid && !bbidPerChat.includes(normR.bbid)) {
@@ -674,11 +722,11 @@ export const useChatStore = defineStore('chat', {
         pair: normalizedPairs,
         chat: message.data,
         visData: visDataperChat,
-        hop: hopQuery
+        hop: hopQuery,
+        lifestrapTexture: this.storeAI.storeLoom?.lifestrapTexture || null
       }
       message.data = saveData
       this.storeAI.sendMessageHOP(message)
     }
   }
 })
-

@@ -31,8 +31,6 @@ class FileHandler {
     // chunck the file and pass on to appropriate parser for file type
 		let chCount = 0
       function callback (data) {
-				console.log('fist data check')
-				// console.log(data)
 				let dataHolder = {}
 				dataHolder.filesize = fileSize
 				dataHolder.offset = offset
@@ -97,7 +95,6 @@ class FileHandler {
 			let fileContent = reader.result
 			// if direct from beebee inform chat
 			if (storeAI.dataBoxStatus !== true) {
-				console.log('data box not open')
 				// TODO send to beebee via socket but for now create reply here
 				storeAI.qcount++
 				let question = {}
@@ -120,11 +117,9 @@ class FileHandler {
 				fileData.content = { text: 'summary of file data file is csv, heading are:', filedata: { type: 'csv', file: fileBundle, columns: 'one', grid: storeLibrary.linesLimit }, prompt: 'Select data to chart:', options: headerLocal[hashQuestion], }
 				fileData.bbid = hashQuestion
 				storeLibrary.uploadHolder.push({ uploadid: hashQuestion, data: fileData })
-				console.log(storeLibrary.uploadHolder)
 				// if csv  active viewer
 				// storeLibrary.csvpreviewLive = true
 			} else {
-				console.log('yes data box open')
 				// extract headers assume first line
 				const localHeaderExtract = (lineOne) => {
 					let headerInfo = lineOne.split(',')
@@ -139,8 +134,6 @@ class FileHandler {
 					scount++
 				}
 				// build for library upload
-				console.log('ATTACHE NAME TO DIRECT LIBRARY UPLOAD')
-				console.log(fileBundle)
 				storeLibrary.newPackagingForm.apicolumns = headerLocal
 				storeLibrary.newDatafile.columns = columnStructure
 				storeLibrary.newDatafile.path = 'csv'
@@ -150,8 +143,6 @@ class FileHandler {
 				parseInfo.cnumber = 0
 				storeLibrary.newDatafile.info = parseInfo
 				// route data to be dave via HOP
-				console.log('this active')
-				console.log(this)
 			  this.fileStorePath(storeLibrary, fileContent)
 
 			}
@@ -170,13 +161,10 @@ class FileHandler {
 	 *  @method fileStorePath
 	*/
 	fileStorePath (storeLibrary, fileContent) {
-		console.log('store path csv join or not???')
 		if (storeLibrary.joinNXP !== true) {
-			console.log('not join')
 		// prepare message structure
 		 // this.saveDataHop(storeLibrary, fileContent)	
 	} else {
-		console.log('yes part of JOIN process')
 		this.saveDataHop(storeLibrary, fileContent)
 		// close the upload
 		storeLibrary.uploadStatus = false
@@ -221,8 +209,6 @@ class FileHandler {
 		messageHOP.data = dataSend
 		// close the upload
 		storeLibrary.uploadStatus = false
-		console.log('save file csv')
-		console.log(messageHOP)
 		storeLibrary.sendMessage(messageHOP)
 	}
 

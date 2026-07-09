@@ -4,7 +4,7 @@ describe('Welcome toolbar', () => {
   it('visits the welcoming page', () => {
     cy.viewport(1024, 768)
     cy.visit('/')
-    cy.contains(".logo-words", 'BentoBox-DS')
+    cy.contains(".logo-words", 'BentoBoxDS')
   })
 
   it('visits the welcoming page', () => {

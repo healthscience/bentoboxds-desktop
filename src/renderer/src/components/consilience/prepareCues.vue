@@ -64,12 +64,12 @@
         <div id="saved-cues" v-if="cueConext === 'cueall' && cuesNetworkList.length > 0">
           <div id="no-filter" v-if="liveLetter === ''">
             <div class="network-cues" v-for="ncue of cuesNetworkList" :value="ncue">
-              <button class="cue-item" @click="viewCue(ncue.key, ncue)">{{ ncue.value.concept.name }}</button>
+              <button class="cue-item" draggable="true" @dragstart="startConductionDrag($event, ncue)" @click="viewCue(ncue.key, ncue)">{{ ncue.value.concept.name }}</button>
             </div>
           </div>
           <div v-else>
             <div class="network-cues" v-for="ncue of filteredCues" :value="ncue">
-              <button class="cue-item" @click="viewCue(ncue.key, ncue)">{{ ncue.value.concept.name }}</button>
+              <button class="cue-item" draggable="true" @dragstart="startConductionDrag($event, ncue)" @click="viewCue(ncue.key, ncue)">{{ ncue.value.concept.name }}</button>
             </div>
           </div>
         </div>
@@ -197,6 +197,12 @@ import { bentoboxStore } from '@/stores/bentoboxStore.js'
   const viewCueHistory = (cueKey, cueH) => {
     storeCues.activeDougnnutData = cueH.data
   }
+
+  const startConductionDrag = (event, cue) => {
+    event.dataTransfer.dropEffect = 'copy';
+    event.dataTransfer.effectAllowed = 'copy';
+    event.dataTransfer.setData('text/plain', cue.key);
+  };
 
   const minimiseCues = () => {
     if (minCues.value === true) {

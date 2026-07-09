@@ -234,8 +234,6 @@ import { teachingStore } from '@/stores/teachingStore.js'
       storeBentobox.liveDateTime[props.bboxid] = {}
     }
     storeBentobox.liveDateTime[props.bboxid] = { date: hopTime[0], rangedate: hopTime }
-    console.log('acitve time date per box active---------')
-    console.log(storeBentobox.liveDateTime)
     // any settings changes?
     moduleUpdate.compute = computeChanges
     // prepare HOPquery

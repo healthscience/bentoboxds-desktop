@@ -81,4 +81,21 @@ describe('aiInterfaceStore', () => {
     expect(Object.keys(store.historyPair).length).toBe(0)
     expect(reloadSpy).toHaveBeenCalled()
   })
+
+  it('computes isLaunchpadVisible correctly', () => {
+    const store = aiInterfaceStore()
+    expect(store.isLaunchpadVisible).toBe(true)
+    
+    store.isInitialState = false
+    expect(store.isLaunchpadVisible).toBe(false)
+    
+    store.currentMode = 'extracting'
+    expect(store.isLaunchpadVisible).toBe(true)
+    
+    store.currentMode = 'demo'
+    expect(store.isLaunchpadVisible).toBe(true)
+    
+    store.currentMode = 'active'
+    expect(store.isLaunchpadVisible).toBe(false)
+  })
 })

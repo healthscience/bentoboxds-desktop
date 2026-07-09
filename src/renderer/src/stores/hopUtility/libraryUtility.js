@@ -51,6 +51,33 @@ class LibraryUtility {
   };
 
   /**
+   *
+   * @method convertKeytoHex
+  */
+  convertKeytoHex = function (key) {
+    let hexKey = "";
+    if (
+      key &&
+      key.type === "Buffer" &&
+      Array.isArray(key.data)
+    ) {
+      hexKey = key.data
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+    } else if (typeof key === "string") {
+      hexKey = key;
+    } else if (key && typeof key.toString === "function") {
+      try {
+        hexKey = key.toString("hex");
+      } catch (e) {
+        console.error("Error converting key to hex", e);
+      }
+    }
+    
+    return hexKey;
+  };
+
+  /**
    * Prepare table for public experiment list available
    * @method preparePublicNXPlist
    *

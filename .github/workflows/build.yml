@@ -7,10 +7,14 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
 
     permissions:
       contents: write
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-2022]
 
     env:
       NODE_OPTIONS: "--max-old-space-size=4096"
@@ -70,8 +74,12 @@ jobs:
         working-directory: ./models-hop
         run: npm ci
 
-      - name: Build for Windows
-        run: npm run build:win
+      - name: Build for Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 libsqlite3-dev
+          npm run build:linux
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -80,7 +88,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            dist/*.exe
-            dist/*.zip
+            dist/*.AppImage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

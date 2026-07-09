@@ -1,6 +1,11 @@
 <template>
   <div class="teach-view">
-    <h2>@teach session history</h2>
+    <Teleport to="#data-box-section-header" v-if="isMounted">
+      <div class="compact-section-header">
+        <h2 class="section-title-compact">@teach</h2>
+        <span class="section-subtitle-compact">Session history</span>
+      </div>
+    </Teleport>
     <div class="teach-history-sessions" v-if="teachHistory.length > 0">
       <h3>Saved Teaching Sessions</h3>
       <div class="sessions-list">
@@ -27,12 +32,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { teachingStore } from '@/stores/teachingStore'
 
 const storeTeach = teachingStore()
 
 let actionDetailStatus = ref(false)
+const isMounted = ref(false)
+
+onMounted(() => {
+  isMounted.value = true
+})
 
 /* computed */
 const teachHistory = computed(() => {
@@ -198,4 +208,23 @@ const deleteSession = (sessionID) => {
 
   }
 
+.compact-section-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.section-title-compact {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--sov-accent, #3b82f6);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.section-subtitle-compact {
+  font-size: 0.8rem;
+  color: var(--sov-text-muted, #64748b);
+  margin: 0;
+}
 </style>

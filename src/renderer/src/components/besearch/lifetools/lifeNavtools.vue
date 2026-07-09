@@ -135,7 +135,6 @@ let selectedMode = ref('cues')
 
   const intervene = () => {
     // Implement intervention logic here
-    console.log('Peer intervention initiated')
     // You can add more specific intervention logic as needed
     emit('peer-intervention')
   }

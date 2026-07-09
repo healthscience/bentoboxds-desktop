@@ -163,7 +163,7 @@ export const accountStore = defineStore('account', {
         saveBentoBoxsetting.task = 'start'
         saveBentoBoxsetting.data = ''
         saveBentoBoxsetting.bbid = ''
-        // this.storeAI.sendMessageHOP(saveBentoBoxsetting) 
+        this.storeAI.sendMessageHOP(saveBentoBoxsetting) 
       } else if (received.action === 'crypto-wasm-binary') {
         // 1. Decode Base64 to a binary string
         const binaryString = window.atob(received.data);
@@ -184,7 +184,6 @@ export const accountStore = defineStore('account', {
             console.error('❌ WASM Initialization failed:', err);
         }
       } else if (received.action === 'sign-verify-complete') {
-        console.log('sign in verify complete HOP received')
       } else if (received.action === 'hyperbee-pubkeys') {
         this.publicKeysList = received.data
       } else if (received.action === 'drive-pubkey') {
@@ -212,7 +211,6 @@ export const accountStore = defineStore('account', {
       }
     },
     persistSovereign () {
-      console.log('Anchoring Sovereign Identity...');
       // Generate the pair from the initialized WASM
       const pair = new SovereignKeypair();
       const pubKey = pair.get_public_key(); 
@@ -315,8 +313,9 @@ export const accountStore = defineStore('account', {
     },
     updatePeerlive (update) {
       let updateNameList = []
+      const hexContract = this.storeLibrary.utilLibrary.convertBinaryToHex(update.data.peercontract);
       for (let wpeer of this.warmPeers) {
-        if (wpeer.key === update.data.publickey) {
+        if (wpeer.key === hexContract.key) {
           let peerOrg = wpeer
           peerOrg.value.concept.matchted = true
           peerOrg.value.concept.live = true
@@ -329,11 +328,12 @@ export const accountStore = defineStore('account', {
     },
     updatePeerDisconnect (update) {
       let updateNameList = []
+      const hexContract = this.storeLibrary.utilLibrary.convertBinaryToHex(update.peercontract);
       for (let wpeer of this.warmPeers) {
-        if (wpeer.key === update.publickey) {
+        if (wpeer.key === hexContract.key) {
           let peerOrg = wpeer
-          peerOrg.value.matchted = true
-          peerOrg.value.live = false
+          peerOrg.value.concept.matchted = true
+          peerOrg.value.concept.live = false
           updateNameList.push(peerOrg)
         } else {
           updateNameList.push(wpeer)
@@ -379,8 +379,9 @@ export const accountStore = defineStore('account', {
       // update warm peer set status to live connection
       let livePeerList = []
       for (let wpeer of this.warmPeers) {
-        if (wpeer.key === peerIn.publickey) {
-          wpeer.value.live = true
+        if (wpeer.key === peerIn.peercontract
+        ) {
+          wpeer.value.concept.live = true
           livePeerList.push(wpeer)
         } else {
           livePeerList.push(wpeer)

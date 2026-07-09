@@ -15,7 +15,6 @@ import LibraryManager from 'library-hop'
 class LibraryRoute extends EventEmitter {
 
   constructor(wiringIn) {
-    console.log('lib route')
     super()
     this.wiring = wiringIn
     this.live = true
@@ -66,13 +65,13 @@ class LibraryRoute extends EventEmitter {
         this.wiring.bbai.liveBBAI.bringToBe('woken', data.data[0])
       }
       // keep beebee in bentoboxds
-      console.log('lifestrap-awaken  prep ssend')
       this.wsocket.send(JSON.stringify(data))
     })
 
     this.libManager.on('libmessage', (data) => {
       this.bothSockets(data)
     })
+    
     // keep track of warm peer live
     this.libManager.on('set-warmpeer', (data) => {
       this.holepunchLive.setWarmPeers(data.data)
@@ -94,6 +93,13 @@ class LibraryRoute extends EventEmitter {
       peerTopic.data = data
       this.wsocket.send(JSON.stringify(peerTopic))
     })
+
+    this.libManager.on('complete-peer-contract', (data) => {
+      // update topic now name match is complete
+      this.holepunchLive.topicSaveReturn(data)
+    })
+
+
     // name match success inform bee
     this.libManager.on('complete-name-updatesave', (data) => {
       // inform beebee and peer name
@@ -102,8 +108,6 @@ class LibraryRoute extends EventEmitter {
       peerNotify.action = 'network-peer-name'
       peerNotify.data = data
       this.wsocket.send(JSON.stringify(peerNotify))
-      // write back to other peer
-      // holepunchLive.topicSaveReturn(data)
     })
     // message for SafeFlow
     this.libManager.on('libsafeflow', (data) => {

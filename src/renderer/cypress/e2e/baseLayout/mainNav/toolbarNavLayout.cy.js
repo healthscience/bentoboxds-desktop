@@ -11,8 +11,8 @@ describe('base layout browser', () => {
     cy.viewport(1024, 768)
     cy.visit('/')
     cy.get('.bentobox-main-nav').find('.bentobox-browser')
-    cy.get('.bentobox-browser').find('.bentobox-top').should('have.length', 9)
-    cy.contains(".logo-words", 'BentoBox-DS')
+    cy.get('.bentobox-browser').find('.bentobox-top').should('have.length', 10)
+    cy.contains(".logo-words", 'BentoBoxDS')
   })
 
 })

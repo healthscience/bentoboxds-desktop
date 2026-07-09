@@ -3,7 +3,6 @@ importScripts("https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js");
 let pyodideReadyPromise;
 
 async function initPyodide() {
-  console.log("[PyodideWorker] Initializing Pyodide...");
   self.pyodide = await loadPyodide();
   await self.pyodide.loadPackage("micropip");
   
@@ -26,15 +25,12 @@ async function initPyodide() {
         }
         return json.dumps(result)
   `);
-  
-  console.log("[PyodideWorker] Pyodide initialized.");
-}
+  }
 
 pyodideReadyPromise = initPyodide();
 
 self.onmessage = async (e) => {
   const { type, data } = e.data;
-  console.log(`[PyodideWorker] Received message: ${type}`, data);
   
   if (type === 'PROCESS_DATA') {
     await pyodideReadyPromise;

@@ -126,33 +126,38 @@ const chatHistory = computed(() => {
 
   // If we have a context filter, apply it
   if (props.contextFilter) {
-    // If we are in extraction mode, we want to see extraction messages
-    if (storeAI.beebeeContext === "extraction") {
-      const filtered = history.filter((m) => m.context === "extraction");
-      if (filtered.length > 0) return filtered;
-    }
-
-    if (typeof props.contextFilter === "string") {
-      return history.filter((m) => m.context === props.contextFilter);
+    let filtered = [];
+    if (storeAI.beebeeContext === "lensing") {
+      filtered = history.filter((m) => m.context === "lensing");
+    } else if (storeAI.beebeeContext === "lifestrap") {
+      // For lifestrap, show lensing, lifestrap, emulation, and generic chat messages
+      filtered = history.filter((m) =>
+        m.context === "lensing" ||
+        m.context === "lifestrap" ||
+        m.context === "emulation" ||
+        m.context === "chat" ||
+        !m.context
+      );
+    } else if (typeof props.contextFilter === "string") {
+      filtered = history.filter((m) => m.context === props.contextFilter);
     } else if (typeof props.contextFilter === "object") {
       const { type, id } = props.contextFilter;
-
-      // If id is undefined, it might be a global filter for that type
-      const filtered = history.filter((m) => {
+      filtered = history.filter((m) => {
         const mCtx = m.context;
         if (typeof mCtx === "string") {
-          // If message context is a string (like 'extraction'), match it against the filter type
           return mCtx === type;
         }
         if (typeof mCtx === "object") {
-          // If the filter has an ID, it must match.
-          // If the filter ID is undefined (like in the logs), we match by type.
           return mCtx.type === type && (!id || mCtx.id === id);
         }
         return false;
       });
-      if (filtered.length > 0) return filtered;
     }
+    
+    // If we have filtered results, return them. 
+    // Otherwise, if we are in a special context but have NO filtered results, 
+    // maybe show everything as a fallback to avoid an empty screen?
+    if (filtered.length > 0) return filtered;
   }
 
   // If no filter or filter returned nothing, return the full history for this activeId
@@ -168,7 +173,9 @@ const aiResponse = computed(() => {
 });
 
 const beginChat = computed(() => {
-  return chatStore.beginChat;
+  if (chatStore.beginChat) return true;
+  // If we have any messages in the current history, consider chat as begun
+  return chatHistory.value.length > 0;
 });
 
 const bottom = ref(null);
@@ -193,7 +200,14 @@ watch(
 /** subscribed to events */
 // Add a subscribe method to the actions
 const handleUpdate = (mutation, state) => {
-  chatStore.handleIncomingMessage(mutation, state);
+  // Safe handler that avoids circular/infinite recursion by not feeding mutations back to the store.
+  // The watcher on chatHistory handles scrolling, but we can also trigger a scroll on update.
+  nextTick(() => {
+    const conversation = document.getElementById("conversation");
+    if (conversation) {
+      conversation.scrollTop = conversation.scrollHeight;
+    }
+  });
 };
 
 // No need to prune arrays now; chatHistory is keyed. We keep watcher as no-op to maintain any side-effects if needed.

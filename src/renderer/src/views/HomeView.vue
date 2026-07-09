@@ -23,7 +23,7 @@ import ConnectionStatus from '@/components/welcome/connectionStatus.vue'
 import { useSocketStore } from '@/stores/socket.js'
 import { accountStore } from '../stores/accountStore'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
-import PrimeInterface from '../components/orbit/PrimeInterface.vue'
+import PrimeInterface from '../components/orrery/PrimeInterface.vue'
 
 const sendSocket = useSocketStore()
 const storeAccount = accountStore()

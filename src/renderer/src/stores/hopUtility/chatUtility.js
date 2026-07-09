@@ -284,8 +284,6 @@ class ChatUtility {
 
   // Prepare a question for sending to HOP
   prepareQuestionForHOP(question) {
-    console.log('quceston for HOP===')
-    console.log(question)
     return {
       type: 'question',
       data: {

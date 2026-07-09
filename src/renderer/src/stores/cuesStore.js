@@ -411,6 +411,19 @@ export const cuesStore = defineStore('cues', {
           this.getMostLastusedItems(this.cuesList)
         }
       }
+    },
+    integrateReferenceContracts(refContracts) {
+      if (!refContracts) return;
+      if (!this.pathRefContracts) {
+        this.pathRefContracts = {};
+      }
+      Object.keys(refContracts).forEach((category) => {
+        if (!this.pathRefContracts[category]) {
+          this.pathRefContracts[category] = {};
+        }
+        Object.assign(this.pathRefContracts[category], refContracts[category]);
+      });
+      this.refreshExpandedCues();
     }
   }
 })

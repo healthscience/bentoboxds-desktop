@@ -26,7 +26,7 @@
         <textarea
           id="askinput"
           ref="askInputRef"
-          v-model="storeAI.askQuestion.text"
+          v-model="storeChat.askQuestion.text"
           :placeholder="livePlaceHolder"
           @keyup.enter.exact.prevent="storeAI.beebeeDigest()"
           @input="adjustHeight"
@@ -118,6 +118,7 @@ import BbNexusToolbar from "@/components/nexus/bbNexusToolbar.vue";
 import { libraryStore } from "@/stores/libraryStore.js";
 import { besearchStore } from "@/stores/besearchStore.js";
 import { aiInterfaceStore } from "@/stores/aiInterface.js";
+import { useChatStore } from "@/stores/chatStore.js";
 import { teachingStore } from "@/stores/teachingStore.js";
 import { accountStore } from "@/stores/accountStore.js";
 import { useOrbitStore } from "@/stores/orbitStore.js";
@@ -126,6 +127,7 @@ import { ref, computed, watch, onMounted, nextTick } from "vue";
 const storeAccount = accountStore();
 const storeLibrary = libraryStore();
 const storeAI = aiInterfaceStore();
+const storeChat = useChatStore();
 const storeTeaching = teachingStore();
 const storeBesearch = besearchStore();
 const storeOrbit = useOrbitStore();
@@ -147,7 +149,7 @@ const adjustHeight = () => {
 };
 
 watch(
-  () => storeAI.askQuestion.text,
+  () => storeChat.askQuestion.text,
   () => {
     nextTick(adjustHeight);
   }
@@ -165,7 +167,7 @@ const isDenseMode = computed(() => {
   return storeAI.beebeeContext === "chatspace";
 });
 const beebeeAIStatus = computed(() => {
-  return storeAI.helpchatAsk;
+  return storeChat.helpchatAsk;
 });
 
 const livePlaceHolder = computed(() => {
@@ -189,7 +191,7 @@ const filesUploaded = computed(() => {
 });
 
 const agentProgressUpdate = computed(() => {
-  if (storeAI.agentProgress && storeAI.chatAttention && storeAI.agentProgress[storeAI.chatAttention] !== undefined) {
+  if (storeAI.agentProgress && storeChat.chatAttention && storeAI.agentProgress[storeChat.chatAttention] !== undefined) {
     let chatFeedback = storeAI.agentProgress[storeAI.chatAttention];
     if (!chatFeedback) return [];
     let feedbackKeys = Object.keys(chatFeedback);
@@ -247,9 +249,9 @@ const toolAgent = (tool) => {
     storeLibrary.libraryStatus = false;
 
     // Toggle teaching mode
-    if (!storeTeaching.isTeachingMode && storeAI.askQuestion.text) {
+    if (!storeTeaching.isTeachingMode && storeChat.askQuestion.text) {
       // Start teaching session with current query
-      storeTeaching.startTeachingSession(storeAI.askQuestion.text);
+      storeTeaching.startTeachingSession(storeChat.askQuestion.text);
     } else if (storeTeaching.isTeachingMode) {
       // Complete or cancel teaching session
       if (storeTeaching.sessionActionCount > 0) {

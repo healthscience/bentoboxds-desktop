@@ -2,57 +2,6 @@
   <!-- Two-column grid layout -->
   <div id="library-cues-container">
     <!-- Left Column - Chart and Controls -->
-    <div id="chart-column">
-      <!--<div id="cue-bentobox" v-if="cueKnowledge === 'concept'">
-        produce cue wheel based on active cue 
-        <div id="cue-wheel">
-          <div id="cues-doughnut">
-            <pie-chartcues v-if="Object.keys(liveDoughData).length > 0" :chartData="liveDoughData" :options="{}" @segmentClick="cueSegSelect" ></pie-chartcues>
-          </div>
-          <div id="beebee-feedback">
-            {{ beebeeFeedback }}
-          </div>
-          <div id="cue-history">
-            <div id="cue-history-title">
-              History
-            </div>
-            <div class="cue-history-item" v-for="cueH of glueHistoryList">
-              <div class="cue-relationship-history" v-if="cueH.type !== undefined">
-                <button class="cue-history-button" @click="glueType(cueH.type)">{{ cueH.type }}</button>
-              </div>
-              <div v-else>
-                <button class="cue-history-button" @click="viewCueHistory(cueH.key, cueH)">{{ cueH.data.labels[0] }}</button>
-              </div>
-            </div>
-          </div>
-          <div id="remove-cue">
-            <button id="view-cue-button" @click="bentoSpaceOpen()">Open Space</button>
-          </div>
-        </div>-->
-        <!-- cognative glue options 
-        <div id="relationship-glue" v-if="cueSelectrel === false">
-          <div id="beebee-rel">
-            <div id="connection-glue">
-              <button class="glue-btn" :class="{ active: activeGlueType === 'down' }" @click="glueType('down')">Down</button>
-              <button class="glue-btn" :class="{ active: activeGlueType === 'up' }" @click="glueType('up')">Up</button>
-              <button class="glue-btn" :class="{ active: activeGlueType === 'equal' }" @click="glueType('equal')">Equal</button>
-              <button class="glue-btn" :class="{ active: activeGlueType === 'measure' }" @click="glueType('measure')">Measure</button>
-              <button class="glue-btn" :class="{ active: activeGlueType === 'unknown' }" @click="glueType('unknown')">Unknown</button>
-              <button class="glue-btn" :class="{ active: activeGlueType === 'compute' }" @click="glueType('compute')">Compute</button>
-            </div>
-          </div>
-        </div>
-        markers for this cue? 
-        <div id="cue-markers" v-if="markerContext.length > 0 && cueConext !== 'space'">
-          <div class="marker-button-item" v-for="mark in markerContext">
-            <button class="marker-button" @click="viewMarker(mark)">{{ mark[0].value.concept.name }}</button>
-          </div> 
-        </div>
-      </div>
-      <div id="no-cue-selected" v-else>
-        <p>Select a cue from the list to explore its relationships.</p>
-      </div>-->
-    </div>
     
     <!-- Knowledge cues - Filter and List -->
     <div id="cues-column">
@@ -73,12 +22,12 @@
         <div id="saved-cues" v-if="cueConext === 'cueall' && cuesNetworkList.length > 0">
           <div id="no-filter" v-if="liveLetter === ''">
             <div class="network-cues" v-for="ncue of cuesNetworkList" :key="ncue.key">
-              <button class="cue-item" @click="viewCue(ncue.key, ncue)">{{ ncue.value.concept.datatype.concept.name }}</button>
+              <button class="cue-item" draggable="true" @dragstart="startConductionDrag($event, ncue)" @click="viewCue(ncue.key, ncue)">{{ ncue.contract.value.concept.datatype.concept.name }}</button>
             </div>
           </div>
           <div v-else>
             <div class="network-cues" v-for="ncue of filteredCues" :key="ncue.key">
-              <button class="cue-item" @click="viewCue(ncue.key, ncue)">{{ ncue.value.concept.datatype.concept.name }}</button>
+              <button class="cue-item" draggable="true" @dragstart="startConductionDrag($event, ncue)" @click="viewCue(ncue.key, ncue)">{{ ncue.contract.value.concept.datatype.concept.name }}</button>
             </div>
           </div>
         </div>
@@ -95,8 +44,8 @@
         <!-- display cue contract -->
         <div v-if="selectedCue" id="cue-contract-details">
           <div class="contract-header">
-            <h4>Cue: {{ selectedCue.value.concept.name }}</h4>
-            <span class="cue-key-id">{{ selectedCue.key }}</span>
+            <h4>Cue: {{ selectedCue.contract.value.concept.name }}</h4>
+            <span class="cue-key-id">{{ selectedCue.contract.key }}</span>
           </div>
 
           <div class="contract-sections">
@@ -105,52 +54,52 @@
               <h5>Concept</h5>
               <div class="section-content">
                 <div class="content-row">
-                  <span class="label">Name:</span> <span>{{ selectedCue.value.concept.name }}</span>
+                  <span class="label">Name:</span> <span>{{ selectedCue.contract.value.concept.datatype.concept.name }}</span>
                 </div>
-                <div v-if="selectedCue.value.concept.description" class="content-row">
-                  <span class="label">Description:</span> <span>{{ selectedCue.value.concept.description }}</span>
+                <div v-if="selectedCue.contract.value.concept.description" class="content-row">
+                  <span class="label">Description:</span> <span>{{ selectedCue.contract.value.concept.description }}</span>
                 </div>
-                <div class="content-links" v-if="selectedCue.value.concept.wiki || selectedCue.value.concept.rdf">
-                  <a v-if="selectedCue.value.concept.wiki" :href="selectedCue.value.concept.wiki" target="_blank" class="cue-link">Wikipedia</a>
-                  <a v-if="selectedCue.value.concept.rdf" :href="selectedCue.value.concept.rdf" target="_blank" class="cue-link">DBPedia</a>
+                <div class="content-links" v-if="selectedCue.contract.value.concept.wiki || selectedCue.contract.value.concept.rdf">
+                  <a v-if="selectedCue.contract.value.concept.wiki" :href="selectedCue.contract.value.concept.wiki" target="_blank" class="cue-link">Wikipedia</a>
+                  <a v-if="selectedCue.contract.value.concept.rdf" :href="selectedCue.contract.value.concept.rdf" target="_blank" class="cue-link">DBPedia</a>
                 </div>
               </div>
             </div>
 
             <!-- Datatype Section (Structured) -->
-            <div v-if="selectedCue.value.concept.datatype" class="contract-section nested">
+            <div v-if="selectedCue.contract.value.concept.datatype" class="contract-section nested">
               <h5>Datatype Context</h5>
               <div class="section-content">
-                <div v-if="selectedCue.value.concept.datatype.concept" class="datatype-sub-section">
+                <div v-if="selectedCue.contract.value.concept.datatype.concept" class="datatype-sub-section">
                   <div class="content-row">
-                    <span class="label">Primary:</span> <span class="badge">{{ selectedCue.value.concept.datatype.concept.primary }}</span>
+                    <span class="label">Primary:</span> <span class="badge">{{ selectedCue.contract.value.concept.datatype.concept.primary }}</span>
                   </div>
                   <div class="content-row">
-                    <span class="label">Name:</span> <span>{{ selectedCue.value.concept.datatype.concept.name }}</span>
+                    <span class="label">Name:</span> <span>{{ selectedCue.contract.value.concept.datatype.concept.name }}</span>
                   </div>
-                  <div v-if="selectedCue.value.concept.datatype.concept.description" class="content-row">
-                    <span class="label">Description:</span> <span>{{ selectedCue.value.concept.datatype.concept.description }}</span>
+                  <div v-if="selectedCue.contract.value.concept.datatype.concept.description" class="content-row">
+                    <span class="label">Description:</span> <span>{{ selectedCue.contract.value.concept.datatype.concept.description }}</span>
                   </div>
-                  <div class="content-links" v-if="selectedCue.value.concept.datatype.concept.wiki || selectedCue.value.concept.datatype.concept.rdf">
-                    <a v-if="selectedCue.value.concept.datatype.concept.wiki" :href="selectedCue.value.concept.datatype.concept.wiki" target="_blank" class="cue-link">Wiki Context</a>
-                    <a v-if="selectedCue.value.concept.datatype.concept.rdf" :href="selectedCue.value.concept.datatype.concept.rdf" target="_blank" class="cue-link">RDF Context</a>
+                  <div class="content-links" v-if="selectedCue.contract.value.concept.datatype.concept.wiki || selectedCue.contract.value.concept.datatype.concept.rdf">
+                    <a v-if="selectedCue.contract.value.concept.datatype.concept.wiki" :href="selectedCue.contract.value.concept.datatype.concept.wiki" target="_blank" class="cue-link">Wiki Context</a>
+                    <a v-if="selectedCue.contract.value.concept.datatype.concept.rdf" :href="selectedCue.contract.value.concept.datatype.concept.rdf" target="_blank" class="cue-link">RDF Context</a>
                   </div>
                 </div>
                 
-                <div v-if="selectedCue.value.concept.datatype.computational" class="datatype-sub-section mt-2">
+                <div v-if="selectedCue.contract.value.concept.datatype.computational" class="datatype-sub-section mt-2">
                   <div class="section-grid">
                     <div class="grid-item">
-                      <span class="label">Measurement:</span> <span>{{ selectedCue.value.concept.datatype.computational.measurement }}</span>
+                      <span class="label">Measurement:</span> <span>{{ selectedCue.contract.value.concept.datatype.computational.measurement }}</span>
                     </div>
                     <div class="grid-item">
-                      <span class="label">Type:</span> <span>{{ selectedCue.value.concept.datatype.computational.datatypeType }}</span>
+                      <span class="label">Type:</span> <span>{{ selectedCue.contract.value.concept.datatype.computational.datatypeType }}</span>
                     </div>
                   </div>
                 </div>
 
-                <div v-if="selectedCue.value.concept.datatype.space" class="datatype-sub-section mt-2">
+                <div v-if="selectedCue.contract.value.concept.datatype.space" class="datatype-sub-section mt-2">
                    <div class="content-row">
-                    <span class="label">Space:</span> <span class="badge">{{ selectedCue.value.concept.datatype.space.concept }}</span>
+                    <span class="label">Space:</span> <span class="badge">{{ selectedCue.contract.value.concept.datatype.space.concept }}</span>
                   </div>
                 </div>
 
@@ -158,56 +107,56 @@
                   <button class="toggle-raw-btn" @click="showRawDatatype = !showRawDatatype">
                     {{ showRawDatatype ? 'Hide' : 'Show' }} Raw Datatype
                   </button>
-                  <pre v-if="showRawDatatype" class="json-block mt-1">{{ JSON.stringify(selectedCue.value.concept.datatype, null, 2) }}</pre>
+                  <pre v-if="showRawDatatype" class="json-block mt-1">{{ JSON.stringify(selectedCue.contract.value.concept.datatype, null, 2) }}</pre>
                 </div>
               </div>
             </div>
 
             <!-- Space Section -->
-            <div v-if="selectedCue.value.space" class="contract-section">
+            <div v-if="selectedCue.contract.value.space" class="contract-section">
               <h5>Space</h5>
               <div class="section-content">
                 <div class="content-row">
-                  <span class="label">Context:</span> <span class="badge">{{ selectedCue.value.space.concept }}</span>
+                  <span class="label">Context:</span> <span class="badge">{{ selectedCue.contract.value.space.concept }}</span>
                 </div>
               </div>
             </div>
 
             <!-- Computational Section -->
-            <div v-if="selectedCue.value.computational" class="contract-section">
+            <div v-if="selectedCue.contract.value.computational" class="contract-section">
               <h5>Computational</h5>
               <div class="section-grid">
                 <div class="grid-item">
-                  <span class="label">Frequency:</span> <span>{{ selectedCue.value.computational.frequency }}</span>
+                  <span class="label">Frequency:</span> <span>{{ selectedCue.contract.value.computational.frequency }}</span>
                 </div>
                 <div class="grid-item">
-                  <span class="label">Confidence:</span> <span>{{ selectedCue.value.computational.confidence }}</span>
+                  <span class="label">Confidence:</span> <span>{{ selectedCue.contract.value.computational.confidence }}</span>
                 </div>
-                <div class="grid-item" v-if="selectedCue.value.computational.color">
+                <div class="grid-item" v-if="selectedCue.contract.value.computational.color">
                   <span class="label">Color:</span> 
-                  <span class="color-swatch" :style="{ backgroundColor: selectedCue.value.computational.color }"></span>
-                  <span>{{ selectedCue.value.computational.color }}</span>
+                  <span class="color-swatch" :style="{ backgroundColor: selectedCue.contract.value.computational.color }"></span>
+                  <span>{{ selectedCue.contract.value.computational.color }}</span>
                 </div>
               </div>
             </div>
 
             <!-- Time Section -->
-            <div v-if="selectedCue.value.time" class="contract-section">
+            <div v-if="selectedCue.contract.value.time" class="contract-section">
               <h5>Time</h5>
               <div class="section-grid">
                 <div class="grid-item">
-                  <span class="label">Frequency Count:</span> <span>{{ selectedCue.value.time.frequencyCount }}</span>
+                  <span class="label">Frequency Count:</span> <span>{{ selectedCue.contract.value.time.frequencyCount }}</span>
                 </div>
                 <div class="grid-item">
-                  <span class="label">Decay Rate:</span> <span>{{ selectedCue.value.time.decayRate }}</span>
+                  <span class="label">Decay Rate:</span> <span>{{ selectedCue.contract.value.time.decayRate }}</span>
                 </div>
               </div>
               <div class="timestamp-list">
                 <div class="timestamp-item">
-                  <span class="label">Created:</span> <span>{{ selectedCue.value.time.createTimestamp }}</span>
+                  <span class="label">Created:</span> <span>{{ selectedCue.contract.value.time.createTimestamp }}</span>
                 </div>
                 <div class="timestamp-item">
-                  <span class="label">Last Used:</span> <span>{{ selectedCue.value.time.lastTimestamp }}</span>
+                  <span class="label">Last Used:</span> <span>{{ selectedCue.contract.value.time.lastTimestamp }}</span>
                 </div>
               </div>
             </div>
@@ -264,8 +213,8 @@ const beebeeFeedback = computed(() => {
 const cuesNetworkList = computed(() => {
   const contracts = storeCues.cuesList
   return [...contracts].sort((a, b) => {
-    const nameA = a?.value?.concept?.datatype?.value?.concept?.name || ''
-    const nameB = b?.value?.concept?.datatype?.value?.concept?.name || ''
+    const nameA = a.contract.value.concept.datatype.concept.name
+    const nameB = b.contract.value.concept.datatype.concept.name
     return nameA.localeCompare(nameB)
   })
 })
@@ -293,7 +242,7 @@ watch(liveLetter, (newLetter) => {
     return
   }
   storeCues.cuesListFilter = cuesNetworkList.value.filter(cue => {
-    const name = cue?.value?.concept?.datatype?.concept?.name
+    const name = cue?.contract?.value?.concept?.datatype?.concept?.name
     return name && typeof name === 'string' && name.toLowerCase().charAt(0) === newLetter.toLowerCase()
   })
 })
@@ -301,6 +250,12 @@ watch(liveLetter, (newLetter) => {
 const viewCue = (cueKey, cueR) => {
   selectedCue.value = cueR
 }
+
+const startConductionDrag = (event, cue) => {
+  event.dataTransfer.dropEffect = 'copy';
+  event.dataTransfer.effectAllowed = 'copy';
+  event.dataTransfer.setData('text/plain', cue.key);
+};
 
 const viewCueHistory = (cueKey, cueH) => {
   storeCues.activeDougnnutData = cueH.data

@@ -40,17 +40,10 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
       currentMode: "zen",
       activeWorld: "orbit",
       newLifestrap: false,
-      chatAttention: "",
-      historyPair: {},
       isInitialState: true,
       activeLifeStrapID: "",
       activeContractKey: "",
       activeLifestrapKey: "",
-      askQuestion: { text: "", compute: "observation" },
-      historyList: false,
-      historyBar: false,
-      subscribers: [],
-      helpchatHistory: shallowRef([]),
       beebeeContext: "chat",
       qcount: 0,
       inputTools: [],
@@ -74,11 +67,6 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
       showLifestapLens: false,
       agentStatus: false,
       modelLoading: false,
-      helpchatAsk: markRaw({
-        text: "",
-        time: "",
-        active: true,
-      }),
       boxSettings: { opendatatools: { active: false }, boxtoolshow: { active: false }, vistoolsstatus: { active: false }, scalezoom: 1, location: {}, chartstyle: "line", legends: true },
       bboxFeedback: {},
       interactionMode: "lens",
@@ -111,6 +99,17 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
       performanceVelocity: 0,
     };
   },
+  getters: {
+    isLaunchpadVisible: (state) => {
+      return state.isInitialState || state.currentMode === 'extracting' || state.currentMode === 'demo';
+    },
+    isBesearchFuseVisible: (state) => {
+      return !state.isInitialState && state.currentMode === 'besearch';
+    },
+    isNewLifestrap: (state) => (lsKey) => {
+      return state.newLifestrap || lsKey === 'prime-life-strap' || lsKey === 'new-ls';
+    }
+  },
   actions: {
     setEmulationHorizon(delta) {
       this.emulationHorizon = delta;
@@ -130,7 +129,6 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
         });
       }
     },
-
     ensureSpaceChatInMenu(cueId, name) {
       if (!cueId) return;
       const now = Date.now();
@@ -172,15 +170,13 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
       this.chatAttention = cueId;
       this.historyList = true;
     },
-
     initializeSovereignSession(lsKey) {
       this.initOrchestrator();
       this.experienceOrchestrator.onLifestrapArrived({ key: lsKey });
     },
-
     beebeeDigest() {
       const storeLifestrap = lifestrapStore();
-      const storyText = this.askQuestion.text;
+      const storyText = this.storeChat.askQuestion.text;
       this.initOrchestrator();
       this.newLifestrap = true;
       const lsData = {
@@ -190,13 +186,13 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
       const placeholderKey = lsData.name === "prime-life-strap" ? "prime-life-strap" : "new-ls";
       this.experienceOrchestrator.activateLifestrapState(placeholderKey);
       this.storeLibrary.createLifeStrap(lsData);
-      this.askQuestion.text = "";
+      this.storeChat.askQuestion.text = "";
     },
 
     setActiveLifeStrap(strap, contractKey = null) {
       if (!strap) return;
-      const lsKey = typeof strap === 'string' ? strap : (strap.key || strap.id);
-      const cKey = contractKey || (typeof strap === 'object' ? (strap.contract_key || lsKey) : lsKey);
+      const lsKey = strap.key
+      const cKey = contractKey
       
       this.activeLifestrapKey = lsKey;
       this.activeLifeStrapID = lsKey;
@@ -204,26 +200,112 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
       this.chatAttention = lsKey;
       this.isInitialState = false;
     },
-
     processReply(received) {
-      if (received.action === "ls-pattern" || received.action === "ls-whole" || received.action === "ls-whole-loom" || received.action === "npl-reply" || received.action === "bringtobe-start") {
-        this.storeLoom.processReply(received);
-      } else if (received.action === "lifestrap-genesis") {
-        this.storeLifestrap.processReply(received);
-      } else if (received.action === "seed-library") {
-        // pass on to library store
-        this.storeOrrery.processReply(received)
-      } else if (received.action === 'warm-peers-begin') {
-        // convert key to hex
-        for (let wpeer of received.data) {
-          const hexContract = this.storeLibrary.utilLibrary.convertBinaryToHex(wpeer);
-          this.storeAcc.warmPeers.push(hexContract)
-        }
-        // this.storeAcc.warmPeers = received.data
+      this.initOrchestrator();
+      // Orderly dispatch to specialized stores
+      switch (received.action) {
+        case "ls-whole":
+          // convert keys to hex
+          let hexkeyLifestap = this.keyIndexConvert(received.data.lifestrap)
+          // Inform lifestrap store and loom store
+          this.storeLifestrap.processWholeLifestrap(hexkeyLifestap);
+          // convert keys in loom contract
+          let contractTypes = Object.keys(received.data.whole);
+          let loomHexList = {}
+          for (let cType of contractTypes) {
+            let loomContractHex = []
+            if (cType !== 'lsKeytrack') { 
+              for (let contract of received.data.whole[cType]) {
+                loomContractHex.push(this.storeLibrary.utilLibrary.convertBinaryToHex(contract));
+              }
+              // loomHexList[cType] = {}
+              loomHexList[cType] = loomContractHex
+            }
+          }
+          // set the active story based on lens data returned
+          const fullKey = this.storeLibrary.utilLibrary.convertKeytoHex(received.data.whole.lsKeytrack.ls)
+          this.activeLifestrapKey = fullKey
+          const loomKey = 
+          this.storeLibrary.utilLibrary.convertKeytoHex(received.data.whole.lsKeytrack.lens)
+          this.activeLoomLens = loomKey
+          // populate the loom
+          for (let cType of contractTypes) {
+            if (cType === 'lens') {
+              this.storeLoom.processBeginLoom(loomHexList[cType][0]);
+            }
+          }
+          // set the world
+          this.currentMode = "orbit"
+          // set beebee dialogue from memory and if cue sub dialogues have data ready to appear
+          // this.storeChat.
+          break;
+
+        case "lifestrap-genesis":
+          let hexkeyLifestapG = this.keyIndexConvert([received.data])
+          this.storeLifestrap.processGenesisLifestrap(hexkeyLifestapG[0]);
+          // form beebee dialogue
+          this.storeChat.addLifestrapStory(hexkeyLifestapG[0].key)
+          break;
+
+        case "ls-pattern":
+          let hexkeyLoom = this.keyIndexConvert([received.data.contract])
+          this.storeLoom.processBeginLoom(hexkeyLoom[0]);
+          break;
+
+        case "ls-whole-loom":
+          const loomBundleKey = 
+          this.storeLibrary.utilLibrary.convertKeytoHex(received.data.whole.lsKeytrack.lens)
+          this.activeLoomLens = loomBundleKey
+          // convert keys in loom contract
+          let contractLoomTypes = Object.keys(received.data.whole);
+          let loomSHexList = {}
+          for (let cType of contractLoomTypes) {
+            let loomContractHex = []
+            if (cType !== 'lsKeytrack') { 
+              for (let contract of received.data.whole[cType]) {
+                loomContractHex.push(this.storeLibrary.utilLibrary.convertBinaryToHex(contract));
+              }
+              // loomHexList[cType] = {}
+              loomSHexList[cType] = loomContractHex
+            }
+          }
+          // populate the loom
+          for (let cType of contractLoomTypes) {
+            if (cType === 'lens') {
+              this.storeLoom.processBeginLoom(loomSHexList[cType][0]);
+            }
+          }
+          // set the world
+          this.currentMode = "orbit"
+          break;
+
+        case "seed-library":
+          this.storeOrrery.processReply(received);
+          this.storeLibrary.datatypeContracts = received.data.datatypeContracts
+          break;
+
+        case "warm-peers-begin":
+          this.handleWarmPeers(received.data);
+          break;
       }
 
       if (received.bbid) {
         this.chatBottom++;
+      }
+    },
+    keyIndexConvert (lifestrapList) {
+      let hexkeyLifestap = []
+      for(let strap of lifestrapList) {
+        let hexContract = this.storeLibrary.utilLibrary.convertBinaryToHex(strap)
+        hexkeyLifestap.push(hexContract)
+      }
+      return hexkeyLifestap
+    },
+    handleWarmPeers(peers) {
+      if (!Array.isArray(peers)) return;
+      for (let wpeer of peers) {
+        const hexContract = this.storeLibrary.utilLibrary.convertBinaryToHex(wpeer);
+        this.storeAcc.warmPeers.push(hexContract);
       }
     },
     processNotification(received) {
@@ -281,18 +363,43 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
       this.sendSocket.send_message(message);
     },
     subscribe(callback) {
-      this.subscribers.push(callback);
+      this.storeChat.subscribers.push(callback);
     },
     unsubscribe(callback) {
-      this.subscribers = this.subscribers.filter(
+      this.storeChat.subscribers = this.storeChat.subscribers.filter(
         (subscriber) => subscriber !== callback,
       );
     },
     notifySubscribers(mutation, state) {
-      this.subscribers.forEach((subscriber) => subscriber(mutation, state));
+      this.storeChat.subscribers.forEach((subscriber) => subscriber(mutation, state));
     },
     clearData() {
       this.historyPair = {};
+      this.activeLifeStrapID = "";
+      this.activeContractKey = "";
+      this.activeLifestrapKey = "";
+      this.isInitialState = true;
+      this.currentMode = "zen";
+      this.beebeeContext = "chat";
+      
+      // Clear associated stores
+      if (this.storeChat) {
+        this.storeChat.chatHistory = {};
+        this.storeChat.isChatOpen = false;
+      }
+      if (this.storeBesearch) {
+        this.storeBesearch.showBottomPanel = false;
+        this.storeBesearch.besearchCycles = [];
+      }
+      if (this.storeLoom) {
+        this.storeLoom.digestInput = null;
+        this.storeLoom.lifestrapTexture = {
+          pillars: { capacity: [], context: [], attunement: [], heli: [], coherence: { isStable: false, resonance: 0 } },
+          residue: [],
+          key: ""
+        };
+      }
+
       location.reload();
     },
     actionBBAI() {
@@ -312,11 +419,6 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
         this.submitAsk();
       }
     },
-    setupChatHistory(chat) {
-      if (this.historyPair.hasOwnProperty(chat.chatid) === false) {
-        this.historyPair[chat.chatid] = [];
-      }
-    },
     async submitAsk(dataInfo, primeLifeStrap) {
       try {
         const baseContext = this.beebeeContext || "chat";
@@ -324,7 +426,7 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
         const keyContext = baseContext === "chatspace" && cueId ? cueId : this.chatAttention || "chat";
         
         let toolsUsed = [];
-        const validationResult = this.liveChatUtil.validateQuestion(this.askQuestion.text, toolsUsed);
+        const validationResult = this.liveChatUtil.validateQuestion(this.storeChat.askQuestion.text, toolsUsed);
         if (!validationResult.isValid) {
           const feedbackMessage = this.liveChatUtil.createFeedbackMessage(validationResult.message);
           this.storeChat.addMessage(feedbackMessage);
@@ -334,11 +436,11 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
         let question = {
           role: "peer",
           type: "peer",
-          content: this.askQuestion.text,
+          content: this.storeChat.askQuestion.text,
           conversationId: keyContext,
           contract_key: this.activeContractKey || "",
           lifeStrapID: this.activeLifeStrapID || "",
-          context: baseContext === "chatspace" ? "space" : baseContext === "extraction" ? "extraction" : "emulation",
+          context: baseContext === "chatspace" ? "space" : baseContext === "lensing" ? "lensing" : "emulation",
           tools: toolsUsed,
           timestamp: new Date(),
         };
@@ -364,8 +466,8 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
           bbid: hashObject(question)
         });
 
-        this.askQuestion.text = "";
-        this.askQuestion.compute = false;
+        this.storeChat.askQuestion.text = "";
+        this.storeChat.askQuestion.compute = false;
         this.qcount++;
       } catch (error) {
         console.error("Error submitting question:", error);

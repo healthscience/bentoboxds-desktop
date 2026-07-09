@@ -1,7 +1,12 @@
 <template>
   <div class="new-ref-contract">
     <lib-card>
-      <template #header>New Reference Contract</template>
+      <template #header>
+        <div class="new-ref-header">
+          <span>New Reference Contract</span>
+          <span class="scope-badge" :class="props.scope">{{ props.scope.toUpperCase() }} LIBRARY</span>
+        </div>
+      </template>
       
       <lib-form-item label="Select type of Reference Contract" id="api-add-type">
         <select v-model="contractformType" class="lib-select">
@@ -54,6 +59,13 @@ import NewResearch from '@/components/library/contracts/contribute/forms/newRese
 import NewMarker from '@/components/library/contracts/contribute/forms/newMarker.vue'
 import NewProduct from '@/components/library/contracts/contribute/forms/newProduct.vue'
 
+const props = defineProps({
+  scope: {
+    type: String,
+    default: 'public'
+  }
+})
+
 const storeLibrary = libraryStore()
 const isSaving = ref(false)
 
@@ -81,7 +93,7 @@ const saveRefContract = async () => {
       action: 'contracts',
       reftype: contractformType.value.type,
       task: 'PUT',
-      privacy: 'public'
+      privacy: props.scope
     }
 
     const typeMap = {
@@ -110,7 +122,8 @@ const saveRefContract = async () => {
     // or we emit/call the existing logic. 
     // For now, keeping the logic consistent with original but cleaner.
     console.log('Saving Ref Contract:', refContract)
-    // await storeLibrary.saveRefContract(refContract) 
+    storeLibrary.sendMessage(refContract)
+    storeLibrary.saveSuccessnxp = true
     
   } finally {
     isSaving.value = false
@@ -123,6 +136,32 @@ const saveRefContract = async () => {
   padding: 1rem;
   max-width: 900px;
   margin: 0 auto;
+}
+
+.new-ref-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.scope-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.scope-badge.public {
+  background: rgba(59, 130, 246, 0.1);
+  color: rgb(59, 130, 246);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.scope-badge.private {
+  background: rgba(139, 92, 246, 0.1);
+  color: rgb(139, 92, 246);
+  border: 1px solid rgba(139, 92, 246, 0.2);
 }
 
 .lib-select {

@@ -56,33 +56,12 @@ class LifestrapUtility {
    * @param {object} lensData 
    */
   lensTobe = function (keyIn, lensData) {
-    if (!lensData || !lensData.value || !lensData.value.concept) {
-      console.error('lensTobe: invalid lensData', lensData)
-      let emptyKey = ''
-      if (typeof keyIn === 'string' && keyIn !== '') {
-        emptyKey = keyIn
-      } else if (keyIn && typeof keyIn === 'object') {
-        emptyKey = this.convertBinaryToHex(keyIn).key
-      }
-      return this.prepareEmptyLens(emptyKey)
-    }
+    // data coming in is in hex key format
     let lsContract = lensData
-    let hexKeyLens = ''
-    if (typeof keyIn === 'string' && keyIn !== '') {
-      hexKeyLens = keyIn
-    } else {
-      // If keyIn is not a string, it might be the contract itself or null
-      // Use the lensData's key if available, otherwise try keyIn if it's a contract
-      let targetForHex = (lensData.key) ? lensData : keyIn
-      if (targetForHex && typeof targetForHex === 'object') {
-        hexKeyLens = this.convertBinaryToHex(targetForHex).key
-      }
-    }
-
     const slots = lsContract.value.concept.context?.slots || [];
 
     const unmappedFragments =
-      lensData.value.concept.context?.unmappedFragments || [];
+      lsContract.value.concept.context?.unmappedFragments || [];
 
     const newTexture = {
       pillars: {
@@ -135,7 +114,7 @@ class LifestrapUtility {
         },
       },
       residue: unmappedFragments,
-      key: hexKeyLens,
+      key: keyIn,
       story: lsContract.value.concept.story || "",
     };
 

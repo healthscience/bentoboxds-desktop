@@ -132,26 +132,6 @@ const precisionCycles = computed(() => {
 });
 
 /* methods */
-const handleClockClick = () => {
-  console.log('click');
-  clickCount++;
-  
-  if (clickCount === 1) {
-    clickTimer = setTimeout(() => {
-      if (clickCount === 1) {
-        // --- SINGLE CLICK ACTION ---
-        emit('select'); 
-      }
-      clickCount = 0;
-    }, 250); // The "window" for the second click
-  } else if (clickCount === 2) {
-    // --- DOUBLE CLICK ACTION ---
-    clearTimeout(clickTimer);
-    console.log('double click');
-    clickCount = 0;
-    emit('expand');
-  }
-};
 
 const updatePreview = () => {
   if (!birthDate.value) return;
@@ -165,7 +145,6 @@ const updatePreview = () => {
 };
 
 const lockSignature = () => {
-  console.log('locking signature');
   const ts = new Date(`${birthDate.value}T${birthTime.value}:00Z`).getTime();
   // We assume the preview updated tempSignature via a socket response or we calculate locally if simple
   // For now, let's assume we need to wait for HOP or use a simplified local calc if allowed.

@@ -49,7 +49,7 @@
                 <button @click="copyKey(peer.key)">copy</button>            
               </div>
             <!--if longterm show button to reconnect or (TODO remove)-->
-            <div class="peer-action" v-if="peer?.value?.longterm === true">
+            <div class="peer-action" v-if="peer?.value?.concept?.longterm === true">
               <button @click="directConnectPeer(peer)">recon</button>
             </div>
             <div class="peer-action">
@@ -82,7 +82,7 @@
                   class="form-input"
                 >
               </div>
-              <button 
+              <button
                 id="invite-generation-button" 
                 @click="generateInvite()"
                 class="btn btn-primary"
@@ -260,14 +260,6 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
       storeAccount.inviteListGenerated.push(inviteBundle)
       // HOP needs to keep track of codename
       storeAccount.shareCodename(inviteBundle)
-      // let unencodedName = atob(base64String)
-      // Convert the binary string back to a byte buffer
-      // const newByteBuffer = binaryStringToByteBuffer(binaryString)
-      // console.log('New Byte Buffer:', newByteBuffer)
-      // const originalNameCC = bytesToName(newByteBuffer); // Convert back to name
-      // console.log('Original Name:', originalNameCC)
-      // const originalName = bytesToName(byteBuffer) // Convert back to name
-      // console.log('Original Name:', originalName)
     }
   }
 

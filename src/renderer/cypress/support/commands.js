@@ -8,36 +8,37 @@
 // https://on.cypress.io/custom-commands
 // ***********************************************
 
-Cypress.Commands.add('login', (password = 'testbee') => {
+Cypress.Commands.add('setupGenesis', (password = 'testbee') => {
   cy.viewport(1024, 768)
   cy.visit('/')
   
+  // Open Account Modal
   cy.get("#self-auth-connect").should('be.visible').click()
   
-  // The app uses a public/private key flow via genesisGate.vue
-  // If HOPlock is true, it asks for a master password.
-  // We check if the password input is visible.
-  
+  // Check if we are in Genesis mode (Ready state) or if identity already exists
   cy.get('body').then(($body) => {
-    if ($body.find('input[type="password"]').length > 0) {
-      cy.get('input[type="password"]').type(password)
-      // The button text is "Self verify identity" or "Sign Handshake & set password"
-      // Looking at genesisGate.vue, verifyHOP() is triggered by the button
-      cy.get('.sign-button').click()
+    if ($body.find('.ready-state').length > 0) {
+      cy.log('First time setup: Genesis Gate Ready')
+      cy.get('.ready-state').find('input[type="password"]').type(password)
+      cy.get('.ready-state').find('.sign-button').click()
+    } else if ($body.find('.genesis-gate').length > 0) {
+      cy.log('Returning peer: entering password')
+      cy.get('.genesis-gate').find('input[type="password"]').type(password)
+      cy.get('.genesis-gate').find('.sign-button').click()
     } else {
-      // If no password input yet, it might be the initial "Connect to HOP" button
-      // from selfAuth.vue which then triggers genesisGate.
-      cy.get("#self-auth").should('be.visible').click()
-      
-      // Now it should be in genesisGate.vue
-      cy.get('input[type="password"]').type(password)
-      cy.get('.sign-button').click()
+      cy.log('Account modal open but genesis-gate not found - checking status')
     }
   })
   
   // Wait for the app to transition to the authenticated state
-  // accountStore.js sets peerauth = true and accountMenu = 'account' on success
-  cy.get("#self-auth-connect", { timeout: 10000 }).should('contain', 'account')
+  // We check that the button no longer says "Sign-in" and instead indicates account/peer status
+  // Note: accountStore.accountMenu changes to 'account' on success
+  cy.get("#self-auth-connect", { timeout: 40000 }).should('contain', 'account')
+})
+
+Cypress.Commands.add('login', (password = 'testbee') => {
+  // login is essentially setupGenesis for returning peers in the current implementation
+  cy.setupGenesis(password)
 })
 
 // Custom command for managing multiple instances

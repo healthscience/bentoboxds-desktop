@@ -1,14 +1,18 @@
 <template>
   <div id="cue-relationships" class="pie">
     <div id="rel-tools">
-      tools
+      Relationships
+    </div>
+    <div id="save-relationship-btnone">
+      <button id="glue-button-one" @click="mapGlue">Glue relationship</button>
     </div>
     <div id="rel-columns">
       <div id="rel-one">
         <div id="select-cue-a">
           Select a Cue
-          <div class="cues-list" v-for="whCue in cuesList">
-            <button  v-bind:class="{ active: cueSelect[whCue.key]?.active === true}" @click="selectCue(whCue)">{{ whCue.value.concept.name }}</button>
+          <AlphabetFilter v-model="filterLetterA" :showReset="true" />
+          <div class="cues-list" v-for="whCue in filteredCuesListA">
+            <button  v-bind:class="{ active: whCue.contract.key === cueSelect }" @click="selectCue(whCue.contract.key)">{{ whCue.contract.value.concept.datatype.concept.name }}</button>
           </div>
         </div>
         <div id="doughnut-size-add" v-if="columnA === 'cueA'">
@@ -18,12 +22,16 @@
       <div id="relationship-glue">
         Relationship
         <div id="connection-glue">
-          <button class="glue-type" v-bind:class="{ active: glueMatch === 'down'}" @click="glueType('down')">Down</button>
-          <button class="glue-type" v-bind:class="{ active: glueMatch === 'up'}" @click="glueType('up')">Up</button>
-          <button class="glue-type" v-bind:class="{ active: glueMatch === 'equal' }" @click="glueType('equal')">Equal</button>
-          <button class="glue-type" v-bind:class="{ active: glueMatch === 'measure' }" @click="glueType('measure')">Measure</button>
-          <button class="glue-type" v-bind:class="{ active: glueMatch === 'unknown' }" @click="glueType('unknown')">Unknown</button>
-          <button class="glue-type" v-bind:class="{ active: glueMatch === 'compute' }" @click="glueType('compute')">Compute</button>
+          <button class="glue-type" :class="{ active: glueMatch === 'upstream' }" @click="glueType('upstream')">Upstream</button>
+          <button class="glue-type" :class="{ active: glueMatch === 'downstream' }" @click="glueType('downstream')">Downstream</button>
+          
+          <button class="glue-type" :class="{ active: glueMatch === 'resonance' }" @click="glueType('resonance')">Resonance</button>
+          
+          <button class="glue-type" :class="{ active: glueMatch === 'gauge' }" @click="glueType('gauge')">Gauge</button>
+          <button class="glue-type" :class="{ active: glueMatch === 'afferent' }" @click="glueType('afferent')">Afferent</button>
+          
+          <button class="glue-type" :class="{ active: glueMatch === 'metabolize' }" @click="glueType('metabolize')">Metabolize</button>
+          <button class="glue-type" :class="{ active: glueMatch === 'flux' }" @click="glueType('flux')">Flux</button>
         </div>
       </div>
       <div id="rel-two">
@@ -35,10 +43,11 @@
           <div class="match-source" @click="matchStyle('product')">Product</div>
         </div>
         <div id="select-cue-a" v-if="matchType === 'cue'">
-          Select a cue please
+          Select a relationship cue
+          <AlphabetFilter v-model="filterLetterRel" :showReset="true" />
           <!-- existing cues -->
-          <div class="cues-list" v-for="whCue in cuesList">
-            <button  v-bind:class="{ active: cueSelectRel[whCue.key]?.active === true}" @click="selectCueRel(whCue.key)">{{ whCue.value.concept.name }}</button>
+          <div class="cues-list" v-for="whCue in filteredCuesListRel">
+            <button  v-bind:class="{ active: isActiveRel(whCue.contract.key) }" @click="selectCueRel(whCue.contract.key)">{{ whCue.contract.value.concept.datatype.concept.name }}</button>
           </div>
         </div>
         <div id="select-cue-a" v-if="matchType === 'marker'">
@@ -71,11 +80,13 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import AlphabetFilter from '@/components/shared/AlphabetFilter.vue'
 import PieChartcues from '@/components/visualisation/charts/doughnutChart.vue'
 import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { cuesStore } from '@/stores/cuesStore.js'
+import { CullFaceBack } from 'three/src/constants.js'
 
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
@@ -86,12 +97,14 @@ import { cuesStore } from '@/stores/cuesStore.js'
   let columnB = ref(false)
   let matchType = ref('cue')
   let glueMatch = ref('')
-  let cueSelect = ref({})
-  let cueSelectRel = ref({})
+  let cueSelect = ref('')
+  let cueSelectRel = ref([])
   let markerSelectList = ref([])
   let primeCue = ref('')
   let feedbackCount = ref(0)
   let existingRelGlue = ref([])
+  let filterLetterA = ref('')
+  let filterLetterRel = ref('')
 
   /*  computed  */
   const feedbackBeeBee = computed(() => {
@@ -111,8 +124,8 @@ import { cuesStore } from '@/stores/cuesStore.js'
     const contracts = storeCues.cuesList
     // Sort the contracts by name in ascending order
     const sortedContracts = contracts.sort((a, b) => {
-      if (a.value.concept.name < b.value.concept.name) return -1
-      if (a.value.concept.name > b.value.concept.name) return 1
+      if (a.contract.value.concept.name < b.contract.value.concept.name) return -1
+      if (a.contract.value.concept.name > b.contract.value.concept.name) return 1
       return 0
     })
     return sortedContracts
@@ -130,6 +143,26 @@ import { cuesStore } from '@/stores/cuesStore.js'
     return sortedContracts
   })
 
+  const filteredCuesListA = computed(() => {
+    const list = cuesList.value
+    if (!filterLetterA.value) return list
+    const letter = filterLetterA.value.toLowerCase()
+    return list.filter(whCue => {
+      const name = whCue.contract.value?.concept?.datatype?.concept?.name || ''
+      return name.toLowerCase().startsWith(letter)
+    })
+  })
+
+  const filteredCuesListRel = computed(() => {
+    const list = cuesList.value
+    if (!filterLetterRel.value) return list
+    const letter = filterLetterRel.value.toLowerCase()
+    return list.filter(whCue => {
+      const name = whCue.contract.value?.concept?.datatype?.concept?.name || ''
+      return name.toLowerCase().startsWith(letter)
+    })
+  })
+
   /* methods */
   const cueSelectAdd = (type, seg) => {
     let labelA = seg.chart.$context.chart.tooltip.dataPoints[0].label
@@ -140,64 +173,54 @@ import { cuesStore } from '@/stores/cuesStore.js'
   }
 
   const selectCue = (cueKey) => {
-    if (cueSelect.value[cueKey.key] === undefined) {
-      cueSelect.value[cueKey.key] = { active: false}
-    }
-    primeCue.value = cueKey
-    cueSelect.value[cueKey.key].active = !cueSelect.value[cueKey.key].active
-    if (cueSelect.value[cueKey.key].active === false) {
-      // clear the pie wheel
-      storeCues.cueColumnB = {}
-      // reset rel cues to false
-      let relCues = Object.keys(cueSelectRel.value)
-      for (let rc of relCues) {
-        cueSelectRel.value[rc].active = false
+    // make this cue active in column A
+    for(let cue of storeCues.cuesList) {
+      if (cue.contract.key === cueKey) {
+        cue.state.isActive = !cue.state.isActive
+        if (cue.state.isActive === true) { 
+          cueSelect.value = cueKey
+        } else {
+          cueSelect.value = ''
+        }
       }
-      // reset glue to empty
-      glueMatch.value = {}
-    } else {
-      // loook up for existing cue relationships and form cue wheel
-      // reset the wheel
-      storeCues.cueColumnB = {}
-      let cueRelDisplay = storeCues.cueDisplayBuilder(cueKey.key, cueKey, storeCues.cueColumnB)
-      storeCues.cueColumnB = cueRelDisplay
-      columnB.value = true
     }
+    // pass on info to prepare bentoWheel (categorize doughnut)
   }
 
-  const selectCueRel = (cueKey) => {
-    if (cueSelectRel.value[cueKey.key] === undefined) {
-      cueSelectRel.value[cueKey] = { active: false}
-    }
-    cueSelectRel.value[cueKey].active = !cueSelectRel.value[cueKey].active
-    // add to data for pie-chart
-    let cueContract = {}
-    for (let c of storeCues.cuesList) {
-      if (c.key === cueKey) {
-        cueContract = c
+const selectCueRel = (cueKey) => {
+  for (let c of storeCues.cuesList) {
+    if (c.contract.key === cueKey) {
+      c.state.isActive = !c.state.isActive
+      if (c.state.isActive === true) {
+        cueSelectRel.value.push(cueKey)
+      } else {
+        // Find exactly where this key lives inside cueSelectRel
+        const actualIndex = cueSelectRel.value.indexOf(cueKey)
+        
+        if (actualIndex !== -1) {
+          cueSelectRel.value.splice(actualIndex, 1)
+        }
       }
-    }
+      
+      // Once found, break out of the loop to save cycles
+      break 
+    } 
+  }
     // first time add or existing?
-    if (storeCues.cueColumnB.length > 0) {
+    /*if (storeCues.cueColumnB.length > 0) {
       let cueRelDisplay = storeCues.cueDisplayBuilder(primeCue.value.key, cueContract, storeCues.cueColumnB[0])
       storeCues.cueColumnB = cueRelDisplay
     } else {
       let cueRelDisplay = storeCues.cueDisplayBuilder(primeCue.value.key, cueContract, storeCues.cueColumnB)
       storeCues.cueColumnB = cueRelDisplay
     }
-    columnB.value = true
+    columnB.value = true*/
   }
+
+  const isActiveRel = (key) => cueSelectRel.value.includes(key);
 
   const glueType = (glue) => {
     glueMatch.value = glue
-    // does this relationship already have rel link in Cue Contract?
-    let cueRelExisting = primeCue?.value?.value?.computational?.relationships[glueMatch.value]
-    if (cueRelExisting !== undefined && cueRelExisting.length > 0) {
-      // keep track of existing and add new
-      existingRelGlue.value = cueRelExisting
-    } else {
-      existingRelGlue.value = []
-    }
   }
 
   const selectMarkerRel = (markID) => {
@@ -227,7 +250,7 @@ import { cuesStore } from '@/stores/cuesStore.js'
     feedbackCount.value = 0
     storeAI.cuesRelationshipFeedback = {}
     // check three parts exist
-    if (Object.keys(primeCue.value).length === 0) {
+    if (cueSelect.value.length === 0) {
       storeAI.cuesRelationshipFeedback.primecue = 'Please select a primary cue'
       feedbackCount.value++
     }
@@ -236,7 +259,7 @@ import { cuesStore } from '@/stores/cuesStore.js'
       feedbackCount.value++
     }
     if (matchType.value === 'cue') {
-      if (Object.keys(cueSelectRel.value).length === 0) {
+      if (cueSelectRel.value.length === 0) {
         storeAI.cuesRelationshipFeedback.cueRel = 'Please cues to map a relationship with'
         feedbackCount.value++
       }
@@ -246,39 +269,30 @@ import { cuesStore } from '@/stores/cuesStore.js'
         feedbackCount.value++
       }
     }
-
+    // all in place proceed
     if (feedbackCount.value === 0) {
       // prepare the relationship depending on glue type
       if (matchType.value === 'cue') {
         let relCueActive = []
-        let keyCues = Object.keys(cueSelectRel.value)
-        for (let mcue of keyCues) {
-          if (cueSelectRel.value[mcue].active === true) {
-            relCueActive.push(mcue)
-          }
-        }
+        let keyCues = cueSelectRel.value
         let relTriplet = {}
-        relTriplet.contract = primeCue.value
-        let glueRel = {}
-        // existing rels for this glue?
-        if (existingRelGlue.value.length > 0) {
-          relCueActive = [...relCueActive, ...existingRelGlue.value]
-        }
-        glueRel[glueMatch.value] = relCueActive
-        relTriplet.relationships = glueRel
+        relTriplet.source = cueSelect.value
+        relTriplet.cogglue = glueMatch.value
+        relTriplet.target = cueSelectRel.value
+
         const cueContract = {}
         cueContract.type = 'library'
         cueContract.action = 'cues'
-        cueContract.reftype = 'relationship'
-        cueContract.task = 'UPDATE'
+        cueContract.reftype = 'new'
+        cueContract.task = 'RELATIONSHIP'
         cueContract.privacy = 'public'
         cueContract.data = relTriplet
         storeLibrary.sendMessage(cueContract)
         // need to update rel cue contract with opposite relationship, e.g  down to up  
         // reset the form
-        primeCue.value = {}
+        cueSelect.value = ''
         glueMatch.value = ''
-        cueSelectRel.value = {}
+        cueSelectRel.value = []
       } else if (matchType.value === 'marker') {
         let relMarkerActive = markerSelectList.value
         if (markerSelectList.value.length > 0) {
@@ -287,7 +301,7 @@ import { cuesStore } from '@/stores/cuesStore.js'
           relTriplet.contract = primeCue.value
           let glueRel = {}
           glueRel[glueMatch.value] = relMarkerActive
-          relTriplet.relationships = glueRel // { glue: glueMatch.value, cues: relCueActive }
+          relTriplet.relationships = glueRel 
           const cueContract = {}
           cueContract.type = 'library'
           cueContract.action = 'cues'
