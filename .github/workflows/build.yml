@@ -36,8 +36,8 @@ jobs:
           node-version: '22.x'
           cache: 'npm'
 
-      - name: Configure npm allow-git
-        run: npm config set allow-git all
+      - name: Configure npm allow-git via .npmrc
+        run: echo "allow-git=true" >> .npmrc
 
       - name: Cache hop node_modules
         uses: actions/cache@v4
@@ -51,7 +51,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: src/renderer/node_modules
-          key: ${{ runner.os }}-renderer-${{ hashFiles('src/renderer/package-lock.json', 'src/renderer/package.json') }}
+          key: ${{ runner.os }}-renderer-${{ hashFiles('src/renderer/package-lock.json', 'src/renderer/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-renderer-
 
@@ -64,22 +64,22 @@ jobs:
             ${{ runner.os }}-models-
 
       - name: Install root dependencies
-        run: npm install --allow-git=all
+        run: npm install
 
       - name: Install and configure HOP dependencies
         run: |
           cd hop
-          npm install --allow-git=all
+          npm install
           npm install-scripts approve --all
           npm rebuild
 
       - name: Install renderer dependencies
         working-directory: ./src/renderer
-        run: npm install --allow-git=all
+        run: npm install
 
       - name: Install models-hop dependencies
         working-directory: ./models-hop
-        run: npm install --allow-git=all
+        run: npm install
 
       - name: Build for Linux
         if: matrix.os == 'ubuntu-latest'
