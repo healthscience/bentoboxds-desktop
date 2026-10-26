@@ -1,6 +1,6 @@
 appId: org.bentoboxds.app
 productName: BentoBox-DS-Desktop
-buildVersion: 0.7.43
+buildVersion: 0.7.80
 directories:
   buildResources: build
 files:
