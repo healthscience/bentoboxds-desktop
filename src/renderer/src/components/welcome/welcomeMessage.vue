@@ -1,6 +1,6 @@
 <template>
   <div class="beebee-welcome" v-if="storeAI.startChat === true">
-    <div id="message-question">Attune health with BentoBoxDS</div>
+    <div id="message-question">Attune health by practicing biopoiesis</div>
     <div id="bb-features">
       <div class="message-bb">
         <header>Story</header>

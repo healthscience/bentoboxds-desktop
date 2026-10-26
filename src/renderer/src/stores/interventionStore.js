@@ -186,7 +186,6 @@ export const interventionStore = defineStore('intervention', {
         data: intervention
       }
       
-      console.log('Saving intervention to HOP:', hopContract)
       // this.sendSocket.send_message(hopContract)
     },
     

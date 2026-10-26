@@ -633,7 +633,7 @@ export const useChatStore = defineStore('chat', {
           this.storeAI.historyList = true
         }
       } else if (message.reftype.trim() === "chat-history-item") {
-        console.log("chat-history-item", message)
+        
       }
     },
     prepareChatBentoBoxSave (message) {

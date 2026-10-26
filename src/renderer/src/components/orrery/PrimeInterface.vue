@@ -65,9 +65,11 @@
             </div>
 
             <WorldCanvas
+              ref="worldCanvasRef"
               class="world-canvas-layer"
               :activeWorld="activeWorld"
               :showTools="!storeAI.isInitialState"
+              @draw-complete="handleDrawComplete"
             />
 
             <div class="fuse-container">
@@ -113,9 +115,11 @@
             </div>
 
             <WorldCanvas
+              ref="worldCanvasRef"
               class="world-canvas-layer"
               :activeWorld="activeWorld"
               :showTools="!storeAI.isInitialState"
+              @draw-complete="handleDrawComplete"
             />
 
             <div class="fuse-container">
@@ -156,9 +160,11 @@
             </div>
 
             <WorldCanvas
+              ref="worldCanvasRef"
               class="world-canvas-layer"
               :activeWorld="activeWorld"
               :showTools="!storeAI.isInitialState"
+              @draw-complete="handleDrawComplete"
             />
 
             <div class="fuse-container">
@@ -252,7 +258,7 @@ import LeftPanel from "@/components/orrery/parts/LeftPanel.vue";
 import RightPanel from "@/components/orrery/parts/RightPanel.vue";
 import BottomPanel from "@/components/orrery/parts/BottomPanel.vue";
 import WorldCanvas from "@/components/orrery/parts/WorldCanvas.vue";
-import OrbitHUD from "@/components/orrery/parts/OrbitHUD.vue";
+import OrbitHUD from "@/components/orrery/parts/huud/OrbitHUD.vue";
 import LaunchpadStack from "@/components/orrery/parts/LaunchpadStack.vue";
 import BesearchFuse from "@/components/orrery/besearch/BesearchFuse.vue";
 import BesearchLayer from "@/components/orrery/besearch/besearchLayer.vue";
@@ -287,8 +293,16 @@ const draggingMode = ref(null);
 /* computed */
 const activeWorld = computed({
   get: () => storeAI.activeWorld,
-  set: (val) => (storeAI.activeWorld = val),
+  set: (val)=> {
+    storeAI.activeWorld = val
+    if (storeAI.activeWorld === 'body') {
+      storeBesearch.besearchMode = 'graft'
+    } else if (storeAI.activeWorld === 'orbit') {
+      storeBesearch.besearchMode = 'lens'
+    }
+  },
 });
+
 
 const isBottomOpen = computed(() => storeBesearch.showBottomPanel);
 
@@ -325,6 +339,11 @@ const handleStartDrawing = () => {
   if (worldCanvasRef.value) {
     worldCanvasRef.value.startDrawing();
   }
+};
+
+const handleDrawComplete = () => {
+  console.log("DRAW COMPLETE FIRED!");
+  storeAI.hasDrawing = true;
 };
 
 const handleStartTagging = () => {

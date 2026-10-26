@@ -117,7 +117,6 @@ const stopDragging = () => {
 };
 
 onMounted(() => {
-  console.log("BesearchCanvas mounted");
   hasBesearchIcon.value = true;
 });
 </script>

@@ -24,7 +24,8 @@
     <div class="llm-model-agent">
       <div id="llm-models" class="agent-header">Large Language Model</div>
       <div class="ai-agent-list">
-        <div class="agent-name" v-if="storeAI.agentModelDefault.length !== 0">
+        Agents & Companions to beebee
+        <!--<div class="agent-name" v-if="storeAI.agentModelDefault.length !== 0">
           {{ defaultLLM.value.concept.agent }} -- {{ defaultLLM.value.concept.name }}
           <button id="change-default-model" @click="updateDefaultModel()">Change</button>
         </div>
@@ -62,7 +63,7 @@
             Running a Large Language Model requires a relative new computer, with a GPU performace will be better.  Installing a model involves downloading a large file, which may take some time.
           </div>
             <button id="change-default-model" @click="setDefaultModel()">Set this model as default</button>
-        </div>
+        </div>-->
       </div>
     </div>
     <div class="select-agent-type">

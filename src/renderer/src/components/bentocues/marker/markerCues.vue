@@ -79,7 +79,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
         storeBentobox.markerMedia[storeAI.liveBspace.spaceid].push({ key: idMarker, tag: 'marker', id: idMarker })
       }
     } else {
-      console.log('empty marker')
+  
     }
     //  need to emit to close one component up
     // spacemarker.value = false

@@ -82,7 +82,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
         storeBentobox.videoMedia[storeAI.liveBspace.cueid].push({ key: idmedia, tag: 'media', id: idmedia })
       }
     } else {
-      console.log('empty media')
+
     }
     //  need to emit to close one component up
     // spacemedia.value = false

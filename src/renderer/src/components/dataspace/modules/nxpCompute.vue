@@ -65,7 +65,7 @@ import { libraryStore } from '@/stores/libraryStore.js'
 
   /* method */
   const refContractLookup = (contract) => {
-    console.log('look up contract')
+    
   }
 
 </script>

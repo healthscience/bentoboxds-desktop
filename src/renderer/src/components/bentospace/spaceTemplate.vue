@@ -245,7 +245,6 @@ import { mapminiStore } from '@/stores/mapStore.js'
   }
 
   const handleCreateBesearchCycle = async (formData) => {
-    console.log('Creating besearch intervention:', formData)
     const newIntervention = {
       id: `intervention-${Date.now()}`,
       name: formData.name,

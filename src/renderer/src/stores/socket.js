@@ -38,7 +38,7 @@ export const useSocketStore = defineStore({
     },
     init_chat () {
       //connect to Sockets Bay
-      const sockets_bay_url = `wss://127.0.0.1:9888` // `wss://165.227.244.213:9888` // `wss://127.0.0.1:9888`
+      const sockets_bay_url = `wss://127.0.0.1:9888`
       this.websocket = new WebSocket(sockets_bay_url)
       this.websocket.onopen = this.onSocketOpen
       this.websocket.onmessage = this.onSocketMessage
@@ -90,13 +90,18 @@ export const useSocketStore = defineStore({
         this.aiStore.processReply(received)
       } else if (received.type == 'network-notification') {
         this.aiStore.processNotification(received)
+      } else if (received.type === 'safeflow-ecs') {
+        // console.log('safeflow-ECS data arrived')
+        // console.log(received)
+        this.aiStore.processHOPdata(received)
+        /*
       } else if (received.type == 'sf-networkdata') {
         this.aiStore.processPeerData(received)
       } else if (received.type == 'sf-summary') {
         this.aiStore.processHOPsummary(received)
       } else if (received.type == 'sf-displayEntityRange') {
       } else if (received.type == 'sf-newEntityRange') {
-        this.aiStore.processHOPdata(received)
+        this.aiStore.processHOPdata(received) */
       } else if (received.type === 'besearch') {
         this.besearchStore.processReply(received)
       } else if (received.type === 'heliclock') {

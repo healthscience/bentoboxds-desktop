@@ -3,18 +3,13 @@ describe('Peer List and Invite Management', { testIsolation: false }, () => {
   before(() => {
     cy.task("startServer")
     cy.wait(3000)
-    cy.viewport(1024, 768)
-    cy.visit('/')
-    cy.get("#self-auth-connect").should('exist')
-    cy.get('#self-auth-connect').click()
-    cy.get("#connect-hop").should('exist')
-    cy.get("#self-auth").should('exist')
-    cy.get('#self-auth').click()
-    cy.wait(3000)
-  });
+  })
+
 
   it('should handle social network view', () => {
-    // need to click on the account main menu
+
+    cy.setupGenesis()
+    // Navigate to Sovereign Identity tab to verify session state
     cy.get('#self-auth-connect').click()
     cy.wait(1000)
 
@@ -79,7 +74,8 @@ describe('Peer List and Invite Management', { testIsolation: false }, () => {
     // TODO: Add tests for receiving invite functionality once implemented
   });
 
+  // Run the cleanup after all tests
   after(() => {
     cy.task("stopServer")
   })
-});
+})

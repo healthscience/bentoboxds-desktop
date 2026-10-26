@@ -70,18 +70,19 @@ import SpaceUpload from '@/components/dataspace/upload/uploadSpace.vue'
 import NewRefcontract from '@/components/library/contracts/contribute/newRefcontract.vue'
 import { libraryStore } from "@/stores/libraryStore.js";
 
-const storeLibrary = libraryStore();
-const currentView = ref('explorer');
-const libraryScope = ref('public');
+  const storeLibrary = libraryStore();
+  const currentView = ref('explorer');
+  const libraryScope = ref('public');
 
-const isMounted = ref(false);
-onMounted(() => {
-  isMounted.value = true;
-});
+  const isMounted = ref(false);
+  onMounted(() => {
+    isMounted.value = true;
+  });
 
-const syncPublicLibrary = () => {
-  storeLibrary.syncLibraryFirst();
-};
+  const syncPublicLibrary = () => {
+    storeLibrary.syncLibraryFirst();
+  };
+
 </script>
 
 <style scoped>

@@ -72,18 +72,27 @@ class LibraryRoute extends EventEmitter {
       this.bothSockets(data)
     })
     
+    this.libManager.on('beebee-sf', (data) => {
+      this.wiring.bbai.liveBBAI.processHOPstory(data)
+    })
+
     // keep track of warm peer live
     this.libManager.on('set-warmpeer', (data) => {
-      this.holepunchLive.setWarmPeers(data.data)
+      // notify beebee bentobox peer saved
+      let peerContract = {}
+      peerContract.type = 'account'
+      peerContract.action = 'peer-record-saved'
+      peerContract.data = data.data
+      this.wsocket.send(JSON.stringify(peerContract))
     })
 
     // initial connection with warm peer
     this.libManager.on('complete-warmpeer', async (pubkey) => {
       // get latest list and pass on to holepunch-hop
-      let updatePeersNetwork = await this.holepunchLive.BeeData.getPeersHistory('hopeer')
-      this.holepunchLive.Peers.latestPeerNetwork(updatePeersNetwork)
+      // let updatePeersNetwork = await this.holepunchLive.BeeData.getPeersHistory('hopeer')
+      // this.holepunchLive.Peers.latestPeerNetwork(updatePeersNetwork)
       // pass on publick key of peer
-      this.holepunchLive.warmPeerPrepare(pubkey, false)
+      // this.holepunchLive.warmPeerIdentityPrepare(pubkey, false)
     })
     // invite topic for future reconnect update
     this.libManager.on('complete-topic-save', (data) => {

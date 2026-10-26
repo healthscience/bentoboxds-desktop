@@ -39,7 +39,7 @@ export default {
   },
   methods: {
     savecontrol () {
-      console.log('save control')
+      
     }
   }
 }

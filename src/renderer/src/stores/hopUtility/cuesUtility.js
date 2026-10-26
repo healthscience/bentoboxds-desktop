@@ -27,7 +27,7 @@ class CuesUtility {
   cueMatch = function (cueIn, cueLive) {
     let cueContract = {}
     for (let cue of cueLive) {
-      if (cue.key === cueIn) {
+      if (cue.contract.key === cueIn) {
         cueContract = cue
       }
     }

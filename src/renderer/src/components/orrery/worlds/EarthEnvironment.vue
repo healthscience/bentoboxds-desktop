@@ -171,7 +171,6 @@ const handleLensClick = (e) => {
   savedTags.value.push(newTag);
   isTaggingActive.value = false;
   
-  console.log(`Location tagged at ${geoPoint.lat}, ${geoPoint.lon}`);
   // Here we would save to the Peer's local store
 };
 
@@ -188,8 +187,6 @@ const handleNewRiverStrap = (pixelPoints) => {
 
   savedRivers.value.push(newStrap);
   
-  // Acknowledge the Peer
-  console.log(`River strapped to Genesis at ${newStrap.coordinates[0].lat}`);
 };
 
 

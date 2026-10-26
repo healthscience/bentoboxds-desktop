@@ -314,7 +314,6 @@ import { useBesearchCanvas } from '@/composables/useBesearchCanvas.js'
 
 
   const handleNexusAction = (action) => {
-    console.log('bbNexus action:', action)
     if (action === 'world:body') {
       setMode('body')
       storeBesearch.setNexusWorld('body')

@@ -202,6 +202,8 @@ const onDragStart = (event, word) => {
   flex-wrap: wrap;
   gap: 8px;
   padding: 8px 16px;
+  max-height: 400px;
+  overflow-y: scroll;
 }
 
 .cue-chip {

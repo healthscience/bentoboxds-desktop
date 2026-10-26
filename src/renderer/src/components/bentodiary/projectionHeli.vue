@@ -325,7 +325,6 @@ const updatePreview = () => {
 };
 
 const lockSignature = () => {
-  console.log('locking signature2')
   const ts = new Date(`${birthDate.value}T${birthTime.value}:00Z`).getTime();
   storedSignature.value = tempSignature.value || 0;
   birthTimestamp.value = ts;

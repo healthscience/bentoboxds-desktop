@@ -30,7 +30,7 @@ class FileHandler {
 		let localthis = this
     // chunck the file and pass on to appropriate parser for file type
 		let chCount = 0
-      function callback (data) {
+      function callback (data, isLastChunk) {
 				let dataHolder = {}
 				dataHolder.filesize = fileSize
 				dataHolder.offset = offset
@@ -38,9 +38,10 @@ class FileHandler {
 				dataHolder.chunk = data
 				dataHolder.file = file
 				dataHolder.type = type
-				if (chCount === 0) {
-					localthis.saveStreamDataHop(storeLibrary, dataHolder)
-				}
+				dataHolder.lastchunk = isLastChunk
+				
+				localthis.saveStreamDataHop(storeLibrary, dataHolder)
+				chCount++
       }
       var fileSize   = file.size
 			let firstChunk = false
@@ -49,15 +50,16 @@ class FileHandler {
       var self       = this // we need a reference to the current object
       var chunkReaderBlock = null
   
-      var readEventHandler = function(evt) {
+      var readEventHandler = function(evt, blobSize) {
           if (evt.target.error == null) {
 						if (offset === 0) {
 							firstChunk = true
 						} else {
 							firstChunk = false
 						}
-            offset += evt.target.result.length
-            callback(evt.target.result) // callback for handling read chunk
+            offset += blobSize
+						let isLastChunk = offset >= fileSize
+            callback(evt.target.result, isLastChunk) // callback for handling read chunk
           } else {
 						console.log("Read error: " + evt.target.error)
 						return
@@ -73,8 +75,8 @@ class FileHandler {
       chunkReaderBlock = function(_offset, length, _file) {
           var r = new FileReader()
           var blob = _file.slice(_offset, length + _offset)
-          r.onload = readEventHandler
-          r.readAsText(blob)
+          r.onload = function(e) { readEventHandler(e, blob.size) }
+          r.readAsDataURL(blob)
       }
   
       // now let's start the read with the first block
@@ -162,14 +164,14 @@ class FileHandler {
 	*/
 	fileStorePath (storeLibrary, fileContent) {
 		if (storeLibrary.joinNXP !== true) {
-		// prepare message structure
-		 // this.saveDataHop(storeLibrary, fileContent)	
-	} else {
-		this.saveDataHop(storeLibrary, fileContent)
-		// close the upload
-		storeLibrary.uploadStatus = false
-		//storeLibrary.joinNXPprocess(messageHOP)  // just route to send message so deleete now
-	}
+			// prepare message structure
+			this.saveDataHop(storeLibrary, fileContent)	
+		} else {
+			this.saveDataHop(storeLibrary, fileContent)
+			// close the upload
+			storeLibrary.uploadStatus = false
+			//storeLibrary.joinNXPprocess(messageHOP)  // just route to send message so deleete now
+		}
 	} 
 
 	/**

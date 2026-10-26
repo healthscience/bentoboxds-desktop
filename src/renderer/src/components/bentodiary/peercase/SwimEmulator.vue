@@ -184,7 +184,6 @@ const handleMockTick = (dataPoint) => {
   };
 
   const toggleSim = () => {
-    console.log("Orbit Triggered: Handshake Initiated."); // If this doesn't show, it's definitely a CSS blockage.
     running.value = !running.value;
     if (running.value) {
       timer = setInterval(() => {

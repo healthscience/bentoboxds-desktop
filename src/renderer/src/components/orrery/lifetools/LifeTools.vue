@@ -15,13 +15,6 @@
         >
           {{ world.icon }}
         </div>
-        <!--<div
-          class="world-icon sculpting-trigger"
-          @click="storeBesearch.openSculptingLayer()"
-          title="Sculpting Lab"
-        >
-          🛠️
-        </div>-->
       </div>
       <div id="world-tools">
         <div class="orbit-tools" v-if="activeWorld === 'orbit'">
@@ -61,25 +54,25 @@
 
             <div
               class="cue-selection"
-              v-if="hasDrawing && activeWorld === 'body'"
+              v-if="isDrawingActive && activeWorld === 'body'"
             >
               <label for="cue-select">Select Cue:</label>
               <select id="cue-select" v-model="selectedCueId">
                 <option value="" disabled>-- Choose a Cue --</option>
                 <option
                   v-for="cue in storeCues.cuesList"
-                  :key="cue.key"
-                  :value="cue.key"
+                  :key="cue.contract.key"
+                  :value="cue.contract.key"
                 >
-                  {{ cue.value.concept.name }}
+                  {{ cue.contract.value.concept.datatype.concept.name }}
                 </option>
               </select>
             </div>
 
             <button
               v-if="activeWorld === 'body'"
-              @click="saveCueLocation"
-              :disabled="!hasDrawing || !selectedCueId"
+              @click="saveCueBodyMapLocation"
+              :disabled="!storeAI.hasDrawing || !selectedCueId"
             >
               Save Location
             </button>
@@ -212,34 +205,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Time Section -->
-    <!--<div class="accordion-section">
-      <button
-        class="accordion-header"
-        @click="toggleSection('time')"
-        :class="{ active: expandedSection === 'time' }"
-      >
-        <span>Time</span>
-        <span class="toggle-icon">{{
-          expandedSection === "time" ? "▼" : "▶"
-        }}</span>
-      </button>
-      <div
-        v-if="expandedSection === 'time'"
-        class="accordion-content"
-        id="time-cycles"
-      >
-        <button id="besearch-cycles-time" @click="besearchTime()">time</button>
-        <div id="cycle-periods" v-if="btoolsTime === true">
-          <div class="cycle-period">1 cycles</div>
-          <div class="cycle-period">10 cycles</div>
-          <div class="cycle-period">20 cycles</div>
-          <div class="cycle-period">30 cycles</div>
-          <div class="cycle-period">1 orbit year</div>
-        </div>
-      </div>
-    </div> -->
   </div>
 </template>
 
@@ -419,11 +384,12 @@ const intervene = () => {
   emit("peer-intervention");
 };
 
-const hasDrawing = ref(false);
 const selectedCueId = ref("");
+const isDrawingActive = ref(false);
 
 const startDrawing = () => {
-  hasDrawing.value = true; // Mocking completion for now
+  isDrawingActive.value = true;
+  storeAI.hasDrawing = false;
   emit("start-drawing");
 };
 
@@ -431,9 +397,10 @@ const startTagging = () => {
   emit("start-tagging");
 };
 
-const saveCueLocation = () => {
-  emit("save-cue", selectedCueId.value);
-  hasDrawing.value = false;
+const saveCueBodyMapLocation = () => {
+  this.storeCues.saveBodyMap({ cueKey: selectedCueId })
+  storeAI.hasDrawing = false;
+  isDrawingActive.value = false;
   selectedCueId.value = "";
 };
 </script>

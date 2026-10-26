@@ -1,38 +1,45 @@
 import { defineStore } from "pinia";
+import LibraryUtility from '@/stores/hopUtility/libraryUtility.js'
 
 export const useGelleStore = defineStore("gellestore", {
   state: () => ({
-    availableTextures: [
-      {
-        id: "platonic_solid",
-        name: "Platonic Gelle",
-        icon: "polyhedron",
-        description: "Adaptive geometric texture for structural repair.",
-        strategy: "Prevention",
-      },
-    ],
+    libUtil: new LibraryUtility(),
+    gelleMorphogens: [],
+    availableTextures: [],
     activeGelles: [],
   }),
   actions: {
     graftGelle(textureId, initialState = {}) {
-      const texture = this.availableTextures.find((t) => t.id === textureId);
+      const texture = this.gelleMorphogens.find((t) => t.contract.key === textureId);
       if (texture) {
         const instance = {
           ...texture,
-          instanceId: `${textureId}-${Date.now()}`,
-          grafts: initialState.grafts || [],
-          strategy: initialState.strategy || texture.strategy,
+          instanceId: `${textureId}`,
+          params: texture.contract.value.computational
         };
         this.activeGelles.push(instance);
         return instance;
       }
       return null;
     },
-    addGraft(instanceId, word) {
-      const gelle = this.activeGelles.find((g) => g.instanceId === instanceId);
-      if (gelle && !gelle.grafts.includes(word)) {
-        gelle.grafts.push(word);
+    processReply(gelleList) {
+      for (let gelleCont of gelleList) {
+        let hexOrgoContract = this.libUtil.convertBinaryToHex(gelleCont);
+        this.saveGelleContract(hexOrgoContract)
       }
+    },
+    saveGelleContract(gelleContract) {
+      this.gelleMorphogens.push(
+        {
+          contract: gelleContract,
+          state: {
+            isActive: false,
+            buttonColor: '#4a5568',
+            isExpanded: false
+          }
+        }
+      )
+      this.saveConfirm = true
     },
     updateStrategy(instanceId, strategy) {
       const gelle = this.activeGelles.find((g) => g.instanceId === instanceId);
@@ -40,5 +47,11 @@ export const useGelleStore = defineStore("gellestore", {
         gelle.strategy = strategy;
       }
     },
+    removeOrgo(gelleKey) {
+      const index = this.activeOrgos.findIndex((o) => o.key === gelleKey);
+      if (index !== -1) {
+          this.activeGelles.splice(index, 1);
+      }
+    }
   },
 });

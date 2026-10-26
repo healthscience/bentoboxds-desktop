@@ -175,7 +175,7 @@ import ResonancePulse from "@/components/orrery/resonance/ResonancePulse.vue";
 import ResonancePulseghost from "@/components/orrery/resonance/ResonancePulseghost.vue";
 import CubeStructure from "@/components/orrery/cueCude/cubeStructure.vue";
 import FilterContext from "@/components/orrery/filter/contextFilter.vue";
-import OrbitHUD from "@/components/orrery/parts/OrbitHUD.vue";
+import OrbitHUD from "@/components/orrery/parts/huud/OrbitHUD.vue";
 import TinyDevice from "@/components/orrery/devices/tinyDevice.vue";
 import ExpandDevice from "@/components/orrery/devices/expandDevice.vue";
 import NewRelationships from "@/components/bentocues/relationships/newRelationships.vue";

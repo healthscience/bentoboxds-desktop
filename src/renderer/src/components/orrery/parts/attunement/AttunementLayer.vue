@@ -128,7 +128,6 @@ const addAttunementSlot = () => {
 };
 
 const handleSlotClick = (index) => {
-  console.log("Attunement slot clicked:", index);
   storeAI.attunementActiveIndex = index;
   storeAI.beebeeSidebarPrompt = "Please write about an attunement goals, targets or outcomes etc";
   storeAI.beebeeSidebarOpen = true;

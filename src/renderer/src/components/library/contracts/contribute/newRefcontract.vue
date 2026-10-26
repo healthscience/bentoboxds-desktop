@@ -42,6 +42,7 @@
 <script setup>
 import { ref, computed, markRaw } from 'vue'
 import { libraryStore } from '@/stores/libraryStore.js'
+import { useOverlayStore } from '@/stores/overlayStore.js'
 
 // Shared Components
 import LibCard from '@/components/library/shared/LibCard.vue'
@@ -52,6 +53,7 @@ import LibButton from '@/components/library/shared/LibButton.vue'
 import NewQuestiontype from '@/components/library/contracts/contribute/forms/newQuestiontype.vue'
 import NewDatatype from '@/components/library/contracts/contribute/forms/newDatatype.vue'
 import NewCompute from '@/components/library/contracts/contribute/forms/newCompute.vue'
+import NewOverlayData from '@/components/library/contracts/contribute/forms/overlayData.vue'
 import NewPackaging from '@/components/library/contracts/contribute/forms/newPackage.vue'
 import NewVisualise from '@/components/library/contracts/contribute/forms/newVisualise.vue'
 import NewMedia from '@/components/library/contracts/contribute/forms/newMedia.vue'
@@ -67,9 +69,15 @@ const props = defineProps({
 })
 
 const storeLibrary = libraryStore()
+const storeOverlay = useOverlayStore()
 const isSaving = ref(false)
 
 const formContribute = [
+  // intent: 'intentForm', //  all new modules  TODO
+  // contextualData: 'contextData'
+  // topologyGraph: 'toplogogyForm',
+  // ledgerViewpoint: 'toplogyForm',
+  { type: 'overlay', form: markRaw(NewOverlayData) },
   { type: 'question', form: markRaw(NewQuestiontype) },
   { type: 'datatype', form: markRaw(NewDatatype) },
   { type: 'compute', form: markRaw(NewCompute) },
@@ -86,11 +94,12 @@ const contractformType = ref(formContribute[1]) // Default to datatype
 const savenxpSuccess = computed(() => storeLibrary.saveSuccessnxp)
 
 const saveRefContract = async () => {
+
   isSaving.value = true
   try {
-    const refContract = {
+    let refContract = {
       type: 'library',
-      action: 'contracts',
+      action: 'contract',
       reftype: contractformType.value.type,
       task: 'PUT',
       privacy: props.scope
@@ -100,6 +109,7 @@ const saveRefContract = async () => {
       question: 'questionForm',
       datatype: 'datatypeForm',
       compute: 'newComputeForm',
+      overlay: 'newConductionForm',
       packaging: 'newPackagingForm',
       visualise: 'newVisualiseForm',
       media: 'newMediaForm',
@@ -109,21 +119,28 @@ const saveRefContract = async () => {
     }
 
     const storeKey = typeMap[contractformType.value.type]
+ 
     if (storeKey) {
-      refContract.data = storeLibrary[storeKey]
+      // get form rules and expand out data
+      let formRules = storeLibrary[storeKey]
+      // expand out parts needed
+      formRules.conduction = storeOverlay.newOverlayContractLive.fullStructure.conduction
+      formRules.scaleAnchor = storeOverlay.newOverlayContractLive.fullStructure.scaleAnchor
+
+      refContract.data = formRules
     }
 
     // Special cases for action
-    if (['media', 'research', 'marker'].includes(contractformType.value.type)) {
+    if (['overlay', 'media', 'research', 'marker'].includes(contractformType.value.type)) {
       refContract.action = contractformType.value.type
     }
 
     // Assuming storeLibrary has a method to handle the actual save, 
     // or we emit/call the existing logic. 
     // For now, keeping the logic consistent with original but cleaner.
-    console.log('Saving Ref Contract:', refContract)
     storeLibrary.sendMessage(refContract)
-    storeLibrary.saveSuccessnxp = true
+    // need to wait for reply back from HOP save success
+    // storeLibrary.saveSuccessnxp = true
     
   } finally {
     isSaving.value = false
@@ -134,7 +151,7 @@ const saveRefContract = async () => {
 <style scoped>
 .new-ref-contract {
   padding: 1rem;
-  max-width: 900px;
+  max-width: 90vw;
   margin: 0 auto;
 }
 

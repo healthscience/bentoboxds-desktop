@@ -49,7 +49,7 @@ class BBRoute extends EventEmitter {
       // The Synapse feeds the Cell directly
       this.wiring.resonagents.syncLedger(data); 
     });
-    console.log("[Synapse] Trinity ignited and short-circuited to safeFLOW.");
+
   }
 
   /**
@@ -96,6 +96,8 @@ class BBRoute extends EventEmitter {
         this.liveBBAI.bringToBe('loom', message.data)
       } else if (message.action === 'library') {
         await this.liveBBAI.beebeeFlow(message)
+      } else if (message.action === 'hopstory') {
+        this.liveBBAI.expandHOPstory(message)
       } else if (message.action === 'learn-agent-start') {
         await this.liveBBAI.agentsCMP.beginAgents(message.data)
       } else if (message.action === 'learn-agent-stop') {
@@ -144,6 +146,15 @@ class BBRoute extends EventEmitter {
       this.wsocket.send(JSON.stringify(bbReply))
     })
 
+    this.liveBBAI.on('graft-library', (graftLib) => {
+      let bbReply = {}
+      bbReply.type = 'bbai-reply'
+      bbReply.action = 'graft-library'
+      bbReply.data = graftLib
+      bbReply.bbid = ''
+      this.wsocket.send(JSON.stringify(bbReply))
+    })
+
     this.liveBBAI.on('ls-whole', (lifestrap, whole) => {
       let bbReply = {}
       bbReply.type = 'bbai-reply'
@@ -161,6 +172,16 @@ class BBRoute extends EventEmitter {
       bbReply.bbid = ''
       this.wsocket.send(JSON.stringify(bbReply))
     })
+
+    this.liveBBAI.on('drive-index', (driveIndex) => {
+      let bbReply = {}
+      bbReply.type = 'bbai-reply'
+      bbReply.action = 'drive-index'
+      bbReply.data = { private: driveIndex, pubilc: {} }
+      bbReply.bbid = ''
+      this.wsocket.send(JSON.stringify(bbReply))
+    })
+
 
     this.liveBBAI.on('warm-peers-begin', (seedLib) => {
       let bbReply = {}
@@ -238,6 +259,10 @@ class BBRoute extends EventEmitter {
         bbReply.bbid = replyData.bbid
         this.bothSockets(JSON.stringify(bbReply))
       }
+    })
+
+    this.liveBBAI.on('beebee-safeflow', (replyData) => {
+      this.bothSockets(JSON.stringify(replyData))
     })
   }
 

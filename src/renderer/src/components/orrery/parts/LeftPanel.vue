@@ -16,7 +16,7 @@
           @start-drawing="$emit('start-drawing')"
           @start-tagging="$emit('start-tagging')"
           @save-cue="$emit('save-cue', $event)"
-        />
+        />emulation world -- {{ modelValue }}
       </div>
 
       <button

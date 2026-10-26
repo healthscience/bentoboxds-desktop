@@ -72,7 +72,7 @@ const viewMap = () => {
 }
 
 const setTimeFormat = () => {
-  console.log('set time format')
+
 }
 
 const labelsSelect = () => {
@@ -126,7 +126,7 @@ const tidySelect = () => {
 }
 
 const chartSelect = () => {
-  console.log('char ttype')
+
 }
 
 /*  computed */

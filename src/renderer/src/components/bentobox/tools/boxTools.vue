@@ -184,7 +184,7 @@ const selectedTimeFormat = ref('timeseries')
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    console.log('New besearch cycle fae BB:', newCycle)
+
     // storeBesearch.saveToHOP(newCycle)
   }
 

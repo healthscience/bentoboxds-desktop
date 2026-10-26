@@ -89,7 +89,7 @@ import { cuesStore } from '@/stores/cuesStore.js'
         storeBentobox.researchMedia[storeAI.liveBspace.cueid].push({ key: paper, tag: 'paper', id: paper })
       }
     } else {
-      console.log('empty URL')
+
     }
     //  need to emit to close one component up
     // spaceResearch.value = false

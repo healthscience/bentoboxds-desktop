@@ -37,18 +37,19 @@ import { Cue, ConsilienceWeave } from 'cues-hop';
 class HOP extends EventEmitter {
 
   constructor(options) {
-    console.log('hop be')
+    console.log('hop  be')
     console.log(options)
     super()
     this.wiring = {}
     this.hoptoken = ''
     this.options = options
+    this.DataNetwork = {}
+    this.osmosis = {}
     this.heliLocation = new HeliLocation()
     this.HeliClock = {}
     this.anchorDawn = new AnchorDawn(this.options.storename)
     this.MessagesFlow = new MessageFlow()
-    this.hopCrypto = {}
-    this.DataNetwork = {}
+    this.hopCrypto = new Encryption()
     this.resonAgents = null
     this.spine = {}
     this.wsocket = {}
@@ -56,6 +57,7 @@ class HOP extends EventEmitter {
     this.wiring.bbai = {}
     this.wiring.safeflow = {}
     this.wiring.library = {}
+    this.wiring.osmosis = {}
     this.DmlRoute = {}
     this.HeliRoute = {}
     this.origin
@@ -93,7 +95,6 @@ class HOP extends EventEmitter {
     if (result.isValid) {
       // The Hyperbee gets populated as valid cycles complete
       await this.spine.put(`cue!${newCue.hash}`, newCue);
-      console.log(`Knowledge Committed: ${newCue.hash}`);
     } else {
       console.warn("Incoherent Signal Pruned.");
     }
@@ -148,8 +149,6 @@ class HOP extends EventEmitter {
    *
   */
   contextWiring = async function () {
-    // this.wiring.crypto.verify_coherence = wasm.verify_coherence
-
     // Build the Context Object (The Nervous System)
     this.wiring = {
       heliclock: this.HeliClock,
@@ -162,20 +161,30 @@ class HOP extends EventEmitter {
       // The 'Sensory' and 'Memory' routes
       safeflow: null,                // The Bio-Synapse
       besearch: null,                // The Discovery-Synapse
-      library: null                  // The Cultural-Synapse
+      library: null,                // The Cultural-Synapse
+      osmosis: null
     }
 
     // Phase 2: Wiring (Synapses)
     // Pass the WHOLE context. Routes pull what they need from it.
-    this.wiring.bbai = new BBRoute(this.wiring)
     this.wiring.safeflow = new SfRoute(this.wiring)
     this.wiring.library = new LibraryRoute(this.wiring)
+    // set library in SafeFlow
+    this.wiring.safeflow.SafeFlow.setWiring(this.wiring)
+    this.wiring.osmosis = this.DataNetwork.osmosis
+    // reset listeners
+    // Attach route listeners now that objects exist
+    await this.listenLibrarySF()
+    await this.listenLibrary()
+
+    this.wiring.bbai = new BBRoute(this.wiring)
     this.wiring.resonagents.wiring = this.wiring
     this.resonAgents = this.wiring.resonagents
     // if wiring access to websocket (will be removed in v2)
     this.wiring.bbai.setWebsocket(this.wsocket)
     this.wiring.safeflow.setWebsocket(this.wsocket)
     this.wiring.library.setWebsocket(this.wsocket)
+
     
     // need to re examine these
     this.DmlRoute = new DmlRoute(this.DataNetwork)
@@ -325,7 +334,6 @@ class HOP extends EventEmitter {
     }
 
     if (o.action === 'verify-crypto-wasm') {
-      console.log('password path')
       this.verifyAndConnect(o.data)
     }
 
@@ -394,8 +402,6 @@ class HOP extends EventEmitter {
   *
   */
   messageResponder = async (o) => {
-    // console.log('message responseer')
-    // console.log(o)
     let messageRoute = this.MessagesFlow.messageIn(o)
     if (messageRoute.type === 'bbai-reply') {
       await this.wiring.bbai.bbAIpath(messageRoute)
@@ -474,8 +480,8 @@ class HOP extends EventEmitter {
     }
   }
 
-   /**
-  * HOP  all systems go
+  /**
+  * HOP all systems go
   * @method HOPlife
   *
   */
@@ -483,8 +489,14 @@ class HOP extends EventEmitter {
     // bring to be
     this.DataNetwork = new HolepunchHOP(this.options.storename)
     this.DataNetwork.setWebsocket(this.wsocket)
-    this.DataNetwork.startStores()
+    // Attach Context to DataNetwork for ECS visibility
+    this.DataNetwork.setHOPCrypto(this.hopCrypto)
     this.listenHP()
+    // Wire network listeners immediately now that DataNetwork is initialized
+    await this.listenNetwork()
+
+    await this.DataNetwork.startStores()
+
     return true;
   }
 
@@ -509,43 +521,68 @@ class HOP extends EventEmitter {
     })
   }  
   
-  /**
-  * listener for HeliClock
+/**
+  * listener for HeliClock driving solar orbital phase alignment
   * @method listenHeliclock
   *
   */
   listenHeliclock = async function () {
-    this.HeliRoute.heliLocation.on('HELI_DEGREE_PULSE', (data) => {
-    let heliclockData = {}
-    heliclockData.type = 'heliclock'
-    heliclockData.action = 'peer-heli-wedge'
-    heliclockData.data = data
-    this.wsocket.send(JSON.stringify(heliclockData))
+    this.HeliRoute.heliLocation.on('HELI_DEGREE_PULSE', async (data) => {
+      // 1. Solar orbital angle step from Heli Clock
+      const currentAngle = data.degree || data
+
+      // 2. Membrane Ingestion (Story -> Interplay buffer via DataNetwork transport)
+      if (typeof this.DataNetwork?.drainApprovedBuffer === 'function') {
+        const ingestBatch = await this.DataNetwork.drainApprovedBuffer()
+        if (ingestBatch && ingestBatch.length > 0) {
+          // 3. Forward batch to safeflow-ecs via SfRoute
+          await this.wiring.safeflow.ingestSolarBatch(ingestBatch, currentAngle)
+        }
+      } else if (typeof this.DataNetwork?.osmosis?.drainApprovedBuffer === 'function') {
+        const ingestBatch = await this.DataNetwork.osmosis.drainApprovedBuffer()
+        if (ingestBatch && ingestBatch.length > 0) {
+          await this.wiring.safeflow.ingestSolarBatch(ingestBatch, currentAngle)
+        }
+      }
+
+      // 4. Broadcast degree pulse to OrbitHUD / WebSocket
+      let heliclockData = {
+        type: 'heliclock',
+        action: 'peer-heli-wedge',
+        data: data
+      }
+      this.sendSocketMessage(JSON.stringify(heliclockData))
     })
 
     this.HeliRoute.heliLocation.on('HELI_DEGREE_SIGNATURE', (data) => {
-    let heliclockData = {}
-    heliclockData.type = 'heliclock'
-    heliclockData.action = 'heli-birth-signature'
-    heliclockData.data = data
-    this.wsocket.send(JSON.stringify(heliclockData))
+      let heliclockData = {
+        type: 'heliclock',
+        action: 'heli-birth-signature',
+        data: data
+      }
+      this.sendSocketMessage(JSON.stringify(heliclockData))
     })
 
     this.HeliRoute.on('heli-clock-start', (data) => {
-      let heliclockData = {}
-      heliclockData.type = 'heliclock'
-      heliclockData.action = 'peer-heli-signature'
-      heliclockData.data = projectionArcs
-      this.wsocket.send(JSON.stringify(heliclockData))
+      let heliclockData = {
+        type: 'heliclock',
+        action: 'peer-heli-signature',
+        data: projectionArcs
+      }
+      this.sendSocketMessage(JSON.stringify(heliclockData))
     })
-  }  
+  }
+
 
   /**
   * listener from Library SF router
   * @method listenLibrarySF
-  *
   */
   listenLibrarySF = async function () {
+    if (!this.wiring?.library || typeof this.wiring.library.on !== 'function') {
+      return
+    }
+
     this.wiring.library.on('safeflow-query', async (data) => {
       await this.wiring.safeflow.newSafeflow(data)
     })
@@ -555,7 +592,7 @@ class HOP extends EventEmitter {
     this.wiring.library.on('safeflow-systems', async (data) => {
       await this.wiring.safeflow.setSafeflowSystems(data)
     })
-  } 
+  }
 
   /**
   * listener from Library router
@@ -622,14 +659,16 @@ class HOP extends EventEmitter {
   *
   */
   listenNetwork = async function () {
+
+    if (!this.DataNetwork || typeof this.DataNetwork.on !== 'function') {
+      return
+    }
+
     this.DataNetwork.on('peer-topeer', (data) => {
-      if (data.data.display === 'html') {
-        // route to beebee for text message back to peer & prep bentobox
+      if (data?.data?.display === 'html') {
         this.wiring.bbai.liveBBAI.networkPeerdirect(data)
-        // return vis data, like from SafeFlow
         this.wiring.safeflow.networkSFpeerdata(data.data) 
-      } else if (data.display === 'safeflow') {
-        // return vis data, like from SafeFlow
+      } else if (data?.display === 'safeflow') {
         this.wiring.safeflow.networkSFpeerdata(data) 
       }
     })
@@ -637,20 +676,7 @@ class HOP extends EventEmitter {
     this.DataNetwork.on('peer-cuespace', (data) => {
       this.wiring.bbai.liveBBAI.networkPeerSpace(data)
     })
-  
-    this.DataNetwork.on('peer-incoming-save', async (data) => {
-      // save direct to library account contract, when save that will inform beeebee in BentoboxDS
-      let libMessageout = {}
-      libMessageout.type = 'library'
-      libMessageout.action = 'account'
-      libMessageout.reftype = 'new-peer'
-      libMessageout.privacy = 'private'
-      libMessageout.task = 'PUT'
-      libMessageout.data = data
-      libMessageout.bbid = ''
-      await this.wiring.library.libManager.libraryManage(libMessageout)
-    })
-  
+
     this.DataNetwork.on('peer-reconnect-topic-notify', (data) => {
       let peerId = {}
       peerId.type = 'network-notification'
@@ -659,58 +685,24 @@ class HOP extends EventEmitter {
       this.sendSocketMessage(JSON.stringify(peerId))
     })
 
-    this.DataNetwork.on('peer-topic-save', async (data) => {
-      let libMessageout = {}
-      libMessageout.type = 'library'
-      libMessageout.action = 'account'
-      libMessageout.reftype = 'new-peer-topic'
-      libMessageout.privacy = 'private'
-      libMessageout.task = 'UPDATE'
-      libMessageout.data = data
-      libMessageout.bbid = ''
-      await this.wiring.library.libManager.libraryManage(libMessageout)
-    })
-
-    this.DataNetwork.on('peer-topic-update', async (data) => {
-      let libMessageout = {}
-      libMessageout.type = 'library'
-      libMessageout.action = 'account'
-      libMessageout.reftype = 'new-peer-topic'
-      libMessageout.privacy = 'private'
-      libMessageout.task = 'UPDATE'
-      libMessageout.data = data
-      libMessageout.bbid = ''
-      await this.wiring.library.libManager.libraryManage(libMessageout)
-    })
-
-    this.DataNetwork.on('peer-codename-update', async (data) => {
-      let libMessageout = {}
-      libMessageout.type = 'library'
-      libMessageout.action = 'account'
-      libMessageout.reftype = 'update-peer-name'
-      libMessageout.privacy = 'private'
-      libMessageout.task = 'UPDATE'
-      libMessageout.data = data
-      libMessageout.bbid = ''
-      await this.wiring.library.libManager.libraryManage(libMessageout)
-    })
-
     this.DataNetwork.on('beebee-publib-notification', (data) => {
+      // console.log('++++data from network replication or direct')
+      // console.log(data)
       let peerId = {}
       peerId.type = 'network-notification'
-      peerId.action = 'network-library-n1'
+      peerId.action = 'osmosis-replication'
       peerId.data = data
       this.sendSocketMessage(JSON.stringify(peerId))
     })
-
+    
     this.DataNetwork.on('replicate-publib-notification', (data) => {
       let peerId = {}
       peerId.type = 'network-notification'
       peerId.action = 'network-replicate-publiclibrary'
       peerId.data = data
       this.sendSocketMessage(JSON.stringify(peerId))
-    })
-
+    }) 
+  
     this.DataNetwork.on('peer-live-notify', (data) => {
       let peerNotify = {}
       peerNotify.type = 'account'
@@ -727,7 +719,7 @@ class HOP extends EventEmitter {
       this.sendSocketMessage(JSON.stringify(peerNotify))
     })
 
-    this.DataNetwork.on('invite-live-peer', (data) => {
+        this.DataNetwork.on('invite-live-peer', (data) => {
       let peerId = {}
       peerId.type = 'account'
       peerId.action = 'invite-live-accepted'
@@ -738,6 +730,7 @@ class HOP extends EventEmitter {
     this.DataNetwork.on('drive-save-large', (data) => {
       this.sendSocketMessage(JSON.stringify(data))
     })
+
   }  
 
   /**
@@ -755,11 +748,12 @@ class HOP extends EventEmitter {
   *
   */
   closeHOP = async function () {
-    // inform network peer has closed.
-    await this.DataNetwork.networkPath({ type: 'network', action: 'peer-closed' })
-    // process.exit(1)
+    if (typeof this.DataNetwork?.networkPath === 'function') {
+      await this.DataNetwork.networkPath({ type: 'network', action: 'peer-close' })
+    } else if (typeof this.DataNetwork?.close === 'function') {
+      await this.DataNetwork.close()
+    }
   }
-
 }
 
 export default HOP
@@ -770,6 +764,7 @@ options.port = 9888
 const args = process.argv.slice(2)
 if (args.length > 0) {
   options.storename = args[0]
+  options.port = args[1] || 9888
 } else {
   // Default value if no argument is provided
 }

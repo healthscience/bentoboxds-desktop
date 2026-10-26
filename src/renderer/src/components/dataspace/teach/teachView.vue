@@ -58,8 +58,6 @@ const viewSession = (session) => {
 }
 
 const deleteSession = (sessionID) => {
-  console.log('deleteSession')
-  console.log(sessionID)
   storeTeach.deleteTeachSession(sessionID)
 }
 

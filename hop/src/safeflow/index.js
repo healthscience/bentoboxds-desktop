@@ -17,16 +17,16 @@ import LibComposer from 'librarycomposer'
 
 class SfRoute extends EventEmitter {
 
-  constructor(context) {
+  constructor(wiring) {
     super()
-    this.context = context
+    this.wiring = wiring
     this.live = true
     this.wsocket = {}
     this.wlist = []
-    this.holepunchLive = context.network
-    this.heliclock = context.heliclock
-    this.liveLibrary = new LibComposer(context)
-    this.SafeFlow = new SafeFlowECS(this.holepunchLive)
+    this.holepunchLive = wiring.network
+    this.heliclock = wiring.heliclock
+    this.liveLibrary = new LibComposer(wiring)
+    this.SafeFlow = new SafeFlowECS(wiring)
     this.SafeFlow.entityGetter()
     this.sfListeners()
   }
@@ -141,6 +141,27 @@ class SfRoute extends EventEmitter {
   }
 
   /**
+  * Ingest approved osmosis batch into safeflow-ecs aligned to solar orbital angle
+  * @method ingestSolarBatch
+  * @param {Array} batch - Filtered cues from hop-osmosis membrane
+  * @param {number} angle - Current solar orbital angle from Heli Clock
+  */
+  ingestSolarBatch = async function (batch, angle) {
+    if (!batch || batch.length === 0) return
+
+    // Pass batch & solar angle into node-safeflow (Simulation phase)
+    if (typeof this.SafeFlow.ingestSolarBatch === 'function') {
+      await this.SafeFlow.ingestSolarBatch(batch, angle)
+    } else {
+      await this.SafeFlow.startFlow({
+        cues: batch,
+        solarAngle: angle,
+        phase: 'simulation'
+      })
+    }
+  }
+
+  /**
   * listen for outputs from SafeFlow
   * @method sfListeners
   *
@@ -166,8 +187,8 @@ class SfRoute extends EventEmitter {
       data.type = 'sf-updateEntity'
       this.bothSockets(JSON.stringify(data))
     })
-    this.SafeFlow.on('displayUpdateEntityRange', (data) => {
-      data.type = 'sf-updateEntityRange'
+    this.SafeFlow.on('sf-displayUpdateEntityRange', (data) => {
+      data.type = 'safeflow-ecs'
       this.bothSockets(JSON.stringify(data))
     })
     this.SafeFlow.on('displayEmpty', (data) => {
@@ -211,7 +232,6 @@ class SfRoute extends EventEmitter {
     // callbacks for datastores
     let resultMatch = {}
     if (data !== null) {
-      console.log('pass')
       if (Object.keys(data).length !== 0) {
         resultMatch.entity = entity
         resultMatch.data = data

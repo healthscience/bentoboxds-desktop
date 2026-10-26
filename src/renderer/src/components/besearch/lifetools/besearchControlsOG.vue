@@ -45,7 +45,6 @@ const handleCloseCreateForm = () => {
 }
 
   const handleCreateBesearchCycle = (formData) => {
-    console.log('Creating besearch cycle:', formData)
     const diagonalOffset = storeBesearch.besearchCyles.length * 40
     const newBesearch = {
       id: `besearch-${Date.now()}`,
@@ -64,12 +63,11 @@ const handleCloseCreateForm = () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-  console.log('New besearch:', newBesearch)
+
   storeBesearch.saveToHOP(newBesearch)
 }
 
 const handleStart = async () => {
-  console.log('Besearch start action')
   agentActive.value = 'besearch'
   storeAI.bentobesearchState = true
   /* const result = await storeBesearch.startBesearch()
@@ -81,10 +79,8 @@ const handleStart = async () => {
 }
 
 const handleStop = async () => {
-  console.log('Besearch stop action')
   const result = await storeBesearch.stopBesearch()
   if (result.success) {
-    console.log('Besearch stopped successfully:', result.message)
   } else {
     console.error('Failed to stop besearch:', result.message)
   }

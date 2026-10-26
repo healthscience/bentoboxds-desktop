@@ -17,13 +17,12 @@ const storeWebsocket = useSocketStore()
 
  /* methods */
  const reconnectHop = () => {
-  console.log('send a message to elelctron')
   // Send a message
   window.electron.send('message-from-vue', 'Hello from Vue!')
 
   // Listen for messages
   window.electron.receive('message-from-main', (arg) => {
-    console.log('Received message from main process:', arg)
+    
   })
  }
 

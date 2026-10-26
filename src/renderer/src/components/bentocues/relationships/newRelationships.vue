@@ -12,7 +12,7 @@
           Select a Cue
           <AlphabetFilter v-model="filterLetterA" :showReset="true" />
           <div class="cues-list" v-for="whCue in filteredCuesListA">
-            <button  v-bind:class="{ active: whCue.contract.key === cueSelect }" @click="selectCue(whCue.contract.key)">{{ whCue.contract.value.concept.datatype.concept.name }}</button>
+            <button  v-bind:class="{ active: whCue?.contract?.key === cueSelect?.key }" @click="selectCue(whCue.contract.key)">{{ whCue.contract.value.concept.datatype.concept.name }}</button>
           </div>
         </div>
         <div id="doughnut-size-add" v-if="columnA === 'cueA'">
@@ -22,6 +22,7 @@
       <div id="relationship-glue">
         Relationship
         <div id="connection-glue">
+          <button class="glue-type" :class="{ active: glueMatch === 'compound' }" @click="glueType('compound')">Compound</button>
           <button class="glue-type" :class="{ active: glueMatch === 'upstream' }" @click="glueType('upstream')">Upstream</button>
           <button class="glue-type" :class="{ active: glueMatch === 'downstream' }" @click="glueType('downstream')">Downstream</button>
           
@@ -86,7 +87,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 import { bentoboxStore } from '@/stores/bentoboxStore.js'
 import { libraryStore } from '@/stores/libraryStore.js'
 import { cuesStore } from '@/stores/cuesStore.js'
-import { CullFaceBack } from 'three/src/constants.js'
 
   const storeAI = aiInterfaceStore()
   const storeBentobox = bentoboxStore()
@@ -178,7 +178,7 @@ import { CullFaceBack } from 'three/src/constants.js'
       if (cue.contract.key === cueKey) {
         cue.state.isActive = !cue.state.isActive
         if (cue.state.isActive === true) { 
-          cueSelect.value = cueKey
+          cueSelect.value = cue.contract
         } else {
           cueSelect.value = ''
         }
@@ -192,10 +192,10 @@ const selectCueRel = (cueKey) => {
     if (c.contract.key === cueKey) {
       c.state.isActive = !c.state.isActive
       if (c.state.isActive === true) {
-        cueSelectRel.value.push(cueKey)
+        cueSelectRel.value.push(c.contract)
       } else {
         // Find exactly where this key lives inside cueSelectRel
-        const actualIndex = cueSelectRel.value.indexOf(cueKey)
+        const actualIndex = cueSelectRel.value.findIndex(item => item.key === cueKey)
         
         if (actualIndex !== -1) {
           cueSelectRel.value.splice(actualIndex, 1)
@@ -217,7 +217,14 @@ const selectCueRel = (cueKey) => {
     columnB.value = true*/
   }
 
-  const isActiveRel = (key) => cueSelectRel.value.includes(key);
+  const isActiveRel = (cueKey) => { 
+    let cueSelectLive = cueSelectRel.value.some(item => item.key === cueKey);
+    if (cueSelectLive === false) {
+      return false
+    } else {
+      return true
+    }
+  }
 
   const glueType = (glue) => {
     glueMatch.value = glue
@@ -269,6 +276,7 @@ const selectCueRel = (cueKey) => {
         feedbackCount.value++
       }
     }
+
     // all in place proceed
     if (feedbackCount.value === 0) {
       // prepare the relationship depending on glue type
@@ -276,17 +284,25 @@ const selectCueRel = (cueKey) => {
         let relCueActive = []
         let keyCues = cueSelectRel.value
         let relTriplet = {}
-        relTriplet.source = cueSelect.value
+        relTriplet.sourceContract = cueSelect.value
         relTriplet.cogglue = glueMatch.value
-        relTriplet.target = cueSelectRel.value
-
+        relTriplet.targetContract = cueSelectRel.value
+        // new or compound?
+        let refTypeAsk = ''
+        if (glueMatch.value !== 'compound') {
+          refTypeAsk = 'new'
+        } else {
+          refTypeAsk = 'compound'
+        }
+        // form message
         const cueContract = {}
         cueContract.type = 'library'
         cueContract.action = 'cues'
-        cueContract.reftype = 'new'
+        cueContract.reftype = refTypeAsk
         cueContract.task = 'RELATIONSHIP'
         cueContract.privacy = 'public'
         cueContract.data = relTriplet
+
         storeLibrary.sendMessage(cueContract)
         // need to update rel cue contract with opposite relationship, e.g  down to up  
         // reset the form
@@ -324,7 +340,7 @@ const selectCueRel = (cueKey) => {
       // clear those selected
       matchType.value = ''
     } else {
-      console.log('incomplete relationship')
+
     }
   }
 

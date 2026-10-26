@@ -4,13 +4,13 @@
       class="besearch-lens-grid full-lab-view"
       :class="{ 
         'has-selection': hasSelection,
-        'pane-expanded': isPortalExpanded,
-        'is-bar': storeBesearch.besearchMode === 'besearch' && !storeBesearch.isLensExpanded
+        'pane-expanded': storeBesearch.isPortalExpanded,
+        'is-bar': storeBesearch.besearchMode === 'default' && !storeBesearch.isLensExpanded
       }"
     >
 
       <!-- Left Pane: Cues Portal -->
-      <div class="sieve-pane narrative-pane" v-show="storeBesearch.isLensExpanded || storeBesearch.besearchMode !== 'besearch'">
+      <div class="sieve-pane narrative-pane" v-show="storeBesearch.isLensExpanded">
         <header class="pane-header">
           <div class="header-content">
             <span class="pulse-dot"></span>
@@ -18,11 +18,11 @@
           </div>
           <button 
             class="expand-toggle"
-            :class="{ active: isPortalExpanded }"
-            @click="isPortalExpanded = !isPortalExpanded"
+            :class="{ active: storeBesearch.isPortalExpanded }"
+            @click="storeBesearch.isPortalExpanded = !storeBesearch.isPortalExpanded"
             title="Expand View"
           >
-            <span v-if="!isPortalExpanded">⤢</span>
+            <span v-if="!storeBesearch.isPortalExpanded">⤢</span>
             <span v-else>⤡</span>
           </button>
         </header>
@@ -42,10 +42,10 @@
                 v-for="(word, index) in unmappedFragments"
                 :key="word + '-' + index"
                 class="fragment-bubble"
-                :class="{ selected: selectedWord === word }"
+                :class="{ selected: storeBesearch.selectedWord === word }"
                 draggable="true"
                 @dragstart="onDragStart($event, word)"
-                @click="selectedWord = word"
+                @click="storeBesearch.selectedWord = word"
               >
                 {{ word }}
               </button>
@@ -76,7 +76,7 @@
         <div class="columns-grid">
           <!-- Pillar 1: Capacity -->
           <capacity-lens
-            :active-zone="activeZone"
+            :active-zone="storeBesearch.activeZone"
             :capacity-items="capacityItems"
             :store-besearch="storeBesearch"
             @dragstart="onDragStart"
@@ -90,7 +90,7 @@
 
           <!-- Pillar 2: Context -->
           <context-lens
-            :active-zone="activeZone"
+            :active-zone="storeBesearch.activeZone"
             :body-peer-items="bodyPeerItems"
             :environment-items="environmentItems"
             :earth-items="earthItems"
@@ -157,10 +157,7 @@ const props = defineProps({
 });
 
 /* serious intent state */
-const selectedWord = ref(null);
-const hasSelection = computed(() => !!selectedWord.value);
-const activeZone = ref(null);
-const isPortalExpanded = ref(false);
+const hasSelection = computed(() => !!storeBesearch.selectedWord);
 
 /* computed */
 const wholeResStatus = computed(() => storeAI.bentoflakeState);
@@ -214,68 +211,17 @@ const selectAttunement = (val) => {
 };
 
 const selectCapacity = (val) => {
-  if (storeBesearch.strandMode) {
-    const items = storeLoom.lifestrapTexture?.pillars?.capacity || [];
-    const item = items.find(i => i.value === val);
-    if (item) {
-      item.activeStrand = !item.activeStrand;
-      
-      // Sync with active cycle
-      syncLensToCycle();
-    }
-    return;
-  }
-  storeBesearch.activeBesearchContext.capacity = val;
+  if (!storeAI.experienceOrchestrator) storeAI.initOrchestrator();
+  storeAI.experienceOrchestrator.selectLensCapacity(val);
 };
 
-const syncLensToCycle = () => {
-  if (!storeBesearch.activeCycle) return;
-  
-  const selectedCues = [];
-  const pillars = storeLoom.lifestrapTexture?.pillars || {};
-  Object.values(pillars).forEach(pillar => {
-    if (Array.isArray(pillar)) {
-      pillar.forEach(item => {
-        if (item.activeStrand) selectedCues.push(item.value);
-      });
-    }
-  });
-  
-  storeBesearch.syncActiveCycleState('lens', { selectedCues });
-};
-
-const handleReorder = ({ oldGroupId, newGroupId, oldIndex, newIndex, value }) => {
-  const getZone = (id) => {
-    if (['peer', 'environment', 'earth', 'context'].includes(id)) return 'context';
-    if (id === 'capacity') return 'capacity';
-    return null;
-  };
-
-  const oldZone = getZone(oldGroupId);
-  const newZone = getZone(newGroupId);
-
-  if (!oldZone || !newZone) return;
-
-  if (oldZone === newZone) {
-    // Internal reorder within the same pillar
-    storeLoom.reorderStrandCues(oldZone, oldIndex, newIndex);
-  } else {
-    // Cross-pillar move (e.g. Capacity to Context)
-    // 1. Remove from old pillar
-    const oldPillar = storeLoom.lifestrapTexture.pillars[oldZone];
-    const item = oldPillar.splice(oldIndex, 1)[0];
-    
-    // 2. Add to new pillar at new index
-    const newPillar = storeLoom.lifestrapTexture.pillars[newZone];
-    newPillar.splice(newIndex, 0, item);
-    
-    // 3. Sync
-    storeLoom.syncAttunement(item.value, newZone, item.label);
-  }
+const handleReorder = (payload) => {
+  if (!storeAI.experienceOrchestrator) storeAI.initOrchestrator();
+  storeAI.experienceOrchestrator.handleLensReorder(payload);
 };
 
 const handleTokenClick = (token) => {
-  selectedWord.value = token;
+  storeBesearch.selectedWord = token;
   // Visual feedback placeholder for floating
 };
 
@@ -288,56 +234,26 @@ const onPortalDragStart = ({ event, word }) => {
 };
 
 const onDragStart = (e, word) => {
-  selectedWord.value = word;
+  storeBesearch.selectedWord = word;
   e.dataTransfer.setData("text/plain", word);
   e.dataTransfer.effectAllowed = "move";
 };
 
 const onDragOver = (e, zone) => {
-  activeZone.value = zone;
+  storeBesearch.activeZone = zone;
   e.dataTransfer.dropEffect = "move";
 };
 
 const onDragLeave = () => {
-  activeZone.value = null;
+  storeBesearch.activeZone = null;
 };
 
 const onDrop = (e, zone) => {
   const word = e.dataTransfer.getData("text/plain");
-  if (!word) return;
-  
-  // Map sub-group IDs to main zones
-  let targetZone = zone;
-  let label = null;
-
-  if (['peer', 'environment', 'earth', 'context'].includes(zone)) {
-    targetZone = 'context';
-    if (zone === 'peer') label = 'Body/Peer';
-    else if (zone === 'environment') label = 'Building Environment';
-    else if (zone === 'earth') label = 'Earth Scales';
-    else label = 'Activity';
-  }
-
-  if (targetZone === "attunement") {
-    // Single Selection: Remove existing attunement first
-    const existing = storeLoom.lifestrapTexture?.pillars?.attunement || [];
-    existing.forEach(item => {
-      storeLoom.updateResonWeight(item.value, "residue");
-    });
-    label = "Attunement";
-  }
-
-  if (targetZone === "capacity") {
-    label = "Capacity";
-  }
-
-  commitAlignment(word, targetZone, label);
-  activeZone.value = null;
-  selectedWord.value = null;
-};
-
-const commitAlignment = (word, zone, label = null) => {
-  storeLoom.updateResonWeight(word, zone, label);
+  if (!storeAI.experienceOrchestrator) storeAI.initOrchestrator();
+  storeAI.experienceOrchestrator.handleFragmentDrop(word, zone);
+  storeBesearch.activeZone = null;
+  storeBesearch.selectedWord = null;
 };
 
 const unmapFragment = (word) => {
@@ -345,19 +261,8 @@ const unmapFragment = (word) => {
 };
 
 const handleCueSpace = (spaceID) => {
-  if (storeBesearch.strandMode) {
-    const context = storeLoom.lifestrapTexture?.pillars?.context || [];
-    const item = context.find(i => i.value === spaceID);
-    if (item) {
-      item.activeStrand = !item.activeStrand;
-      syncLensToCycle();
-    }
-    return;
-  }
-  storeCues.cueContext = "space";
-  storeAI.beebeeContext = "chatspace";
-  storeAI.bentospaceState = !storeAI.bentospaceState;
-  storeAI.liveBspace = spaceID;
+  if (!storeAI.experienceOrchestrator) storeAI.initOrchestrator();
+  storeAI.experienceOrchestrator.toggleCueSpace(spaceID);
 };
 
 onMounted(() => {

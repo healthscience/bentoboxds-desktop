@@ -56,7 +56,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   /* methods */
   const selectProdCat = () => {
-    console.log(productCategory.value)
+
   }
 
   const productAdd = () => {
@@ -96,7 +96,7 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
         storeBentobox.productMedia[storeAI.liveBspace.cueid].push({ key: productID, tag: 'product', id: productID })
       }
     } else {
-      console.log('empty product')
+      
     }
     //  need to emit to close one component up
     // spaceproduct.value = false

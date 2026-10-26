@@ -56,6 +56,9 @@
               <button @click="editPeer(peer.key)">edit</button>
             </div>
             <div class="peer-action">
+              <button @click="osmosisStart(peer)">osmosis</button>
+            </div>
+            <div class="peer-action">
               <button @click="removePeer(peer)">remove</button>
             </div>
           </div>
@@ -144,7 +147,8 @@
                   >
                 </div>
                 <button 
-                  type="button" 
+                  type="button"
+                  id="accept-invite-button"
                   class="btn btn-primary" 
                   @click="sendInviteWarmpeer()"
                   :disabled="!newPeername || !newPeerPubKey"
@@ -187,6 +191,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { accountStore } from '@/stores/accountStore.js'
+
+import { createInviteBundle } from '@/stores/hopUtility/inviteUtility.js'
 import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
 
   const storeAccount = accountStore()
@@ -239,57 +245,17 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
 
   const generateInvite = async () => {
     if (peerName.value.length > 0) {
-      // genInvite.value = !genInvite.value
-      const byteBuffer = nameTo32Bytes(peerName.value)
+      // 1. Let the utility do the heavy lifting  
+      const result = await createInviteBundle(peerName.value, storeAccount.networkInfo.publickey);  
+        
+      // 2. Update the UI state  
+      randomName.value = result.base64String;  
+      storeAccount.inviteListGenerated.push(result.bundle);  
+        
+      // 3. Send to HOP  
+      storeAccount.shareCodename(result.bundle);
 
-      // Convert byteBuffer to a binary string
-      let binaryString = ''
-      for (let i = 0; i < byteBuffer.length; i++) {
-          binaryString += String.fromCharCode(byteBuffer[i])
-      }
-      // Encode the binary string to Base64
-      const base64String = btoa(binaryString)
-      randomName.value = base64String
-      // turn into a 256hash
-      // Example usage
-      let inviteHash = ''
-       await sha256Make(base64String).then(hash => {
-        inviteHash = hash
-      })
-      let inviteBundle = { name: peerName.value, publickey: storeAccount.networkInfo.publickey, codename: inviteHash, matched: false }
-      storeAccount.inviteListGenerated.push(inviteBundle)
-      // HOP needs to keep track of codename
-      storeAccount.shareCodename(inviteBundle)
     }
-  }
-
-  const bytesToName =(byteBuffer) => {
-    let name = ''
-    for (let i = 0; i < byteBuffer.length; i++) {
-        name += String.fromCharCode(byteBuffer[i])
-    }
-    return name
-  }
-
-  const binaryStringToByteBuffer = (binaryString) => {
-    let byteBuffer = new Uint8Array(binaryString.length)
-    for (let i = 0; i < binaryString.length; i++) {
-        byteBuffer[i] = binaryString.charCodeAt(i)
-    }
-    return byteBuffer
-  }
-
-  const sha256Make = async (message) => {
-    // Encode the message as a Uint8Array
-    const msgBuffer = new TextEncoder().encode(message)
-    // Hash the message
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer)
-    
-    // Convert the hash to a byte array
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    // Convert bytes to hex string
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-    return hashHex
   }
 
   const copyGenInvite = (codename) => {
@@ -316,12 +282,6 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
       }
     }
     storeAccount.inviteListGenerated = updateInvite
-  }
-  const nameTo32Bytes = (name) => {
-    // just random no need to encode name (privacy leak issue)
-    const buffer = new Uint8Array(32) // Create a 32-byte buffer
-    window.crypto.getRandomValues(buffer); // Fill with random values
-    return buffer; // Return the 32-byte buffer
   }
 
   const sendInviteWarmpeer = () => {
@@ -353,12 +313,20 @@ import SocialGraph from '@/components/toolbars/account/graphs/socialGraph.vue'
 
   }
 
+  const osmosisStart = (peer) => {
+    // remove peer
+    let osmosisInfo = {}
+    osmosisInfo.targetPeerKey = peer.value.concept.publickey
+    osmosisInfo.stores = ['bentocues', 'publiclibrary-ref']
+    storeAccount.checkOsmosis(osmosisInfo)
+  }
+
   const copyKey = (key) => {
     navigator.clipboard.writeText(key)
   }
 
   const editPeer = (key) => {
-    console.log('edit peer')
+    
   }
 
 </script>

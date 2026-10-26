@@ -14,6 +14,26 @@
             Cues (Knowledge)
           </button>
           <button 
+            :class="{ active: currentCategory === 'exocues' }" 
+            @click="currentCategory = 'exocues'">
+             exoCue conduction
+          </button>
+          <button 
+            :class="{ active: currentCategory === 'orgo' }" 
+            @click="currentCategory = 'orgo'">
+             orgo logic math
+          </button>
+          <button 
+            :class="{ active: currentCategory === 'gelle' }" 
+            @click="currentCategory = 'gelle'">
+            gelle texture geometry
+          </button>
+          <button 
+            :class="{ active: currentCategory === 'overlay' }" 
+            @click="currentCategory = 'overlay'">
+            Overlay conduction data
+          </button>          
+          <button 
             :class="{ active: currentCategory === 'datatype' }" 
             @click="currentCategory = 'datatype'">
             Datatypes
@@ -44,6 +64,10 @@
       <!-- Main content area for the selected category -->
       <main class="explorer-content">
         <library-cues v-if="currentCategory === 'cues'"></library-cues>
+        <library-exocues v-else-if="currentCategory === 'exocues'"></library-exocues>
+        <library-orgo v-else-if="currentCategory === 'orgo'"></library-orgo>
+        <library-gelle v-else-if="currentCategory === 'gelle'"></library-gelle>
+        <library-overlay v-else-if="currentCategory === 'overlay'"></library-overlay>  
         <reference-contract-list 
           v-else-if="currentCategory === 'datatype'" 
           :contracts="storeLibrary.datatypeContracts" 
@@ -76,6 +100,10 @@
 
 <script setup>
 import LibraryCues from '@/components/library/explorer/libraryCues.vue'
+import LibraryExocues from '@/components/library/explorer/libraryExocues.vue'
+import LibraryOrgo from '@/components/library/explorer/libraryOrgo.vue'
+import LibraryGelle from '@/components/library/explorer/libraryGelle.vue'
+import LibraryOverlay from '@/components/library/explorer/libraryOverlay.vue'
 import ReferenceContractList from '@/components/library/contracts/list/ReferenceContractList.vue'
 import { ref } from 'vue'
 import { libraryStore } from '@/stores/libraryStore.js'

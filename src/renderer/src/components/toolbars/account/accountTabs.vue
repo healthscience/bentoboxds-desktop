@@ -22,14 +22,14 @@
           class="grid-component-tab" v-bind:class="{ active: activeTab === 'aiagents' }"
           @click="selectTab('aiagents')"
         >
-          AI Agents
+          Agents
         </div>
         <div
           id="sovereign-tab"
-          class="grid-component-tab" v-bind:class="{ active: activeTab === 'sovereign' }"
-          @click="selectTab('sovereign')"
+          class="grid-component-tab" v-bind:class="{ active: activeTab === 'current' }"
+          @click="selectTab('current')"
         >
-          Sovereign
+          Current
         </div>
         <div class="grid-component-tab">
           Disconnect
@@ -47,8 +47,8 @@
         </div>
         <datastore-list v-if="activeTab === 'datastores'"></datastore-list>
         <aiagents-list v-if="activeTab === 'aiagents'"></aiagents-list>
-        <sovereign-keys v-if="activeTab === 'sovereign'"></sovereign-keys>
-        <div class="list-space" id="wallet-list" v-if="activeTab === 'sovereign'">
+        <sovereign-keys v-if="activeTab === 'current'"></sovereign-keys>
+        <div class="list-space" id="wallet-list" v-if="activeTab === 'current'">
         </div>
       </div>
     </div>
@@ -78,8 +78,8 @@ let activeTab = ref('peers')
       activeTab.value = 'datastores'
     } else if (ls === 'aiagents') {
       activeTab.value = 'aiagents'
-    } else if (ls === 'sovereign') {
-      activeTab.value = 'sovereign'
+    } else if (ls === 'current') {
+      activeTab.value = 'current'
     }
   }
 

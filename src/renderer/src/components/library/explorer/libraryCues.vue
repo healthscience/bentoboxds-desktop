@@ -1,170 +1,170 @@
 <template>
-  <!-- Two-column grid layout -->
-  <div id="library-cues-container">
-    <!-- Left Column - Chart and Controls -->
-    
-    <!-- Knowledge cues - Filter and List -->
-    <div id="cues-column">
-      <div v-if="storeOrrery.isSeeding" class="seeding-status pulse">
-        seeding biology knowledge... {{ storeOrrery.seedingProgress }}%
-      </div>
-      
-      <div id="minimise-cues" v-if="minCues === true">
-        <!-- a to z and filter -->
-        <div id="filter-cues">
-          <AlphabetFilter v-model="liveLetter" size="md">
-            <template #extra>
-              <button id="refresh-cues-btn" @click="refreshCues()">refresh</button>
-            </template>
-          </AlphabetFilter>
-        </div>
-        
-        <div id="saved-cues" v-if="cueConext === 'cueall' && cuesNetworkList.length > 0">
-          <div id="no-filter" v-if="liveLetter === ''">
-            <div class="network-cues" v-for="ncue of cuesNetworkList" :key="ncue.key">
-              <button class="cue-item" draggable="true" @dragstart="startConductionDrag($event, ncue)" @click="viewCue(ncue.key, ncue)">{{ ncue.contract.value.concept.datatype.concept.name }}</button>
-            </div>
-          </div>
-          <div v-else>
-            <div class="network-cues" v-for="ncue of filteredCues" :key="ncue.key">
-              <button class="cue-item" draggable="true" @dragstart="startConductionDrag($event, ncue)" @click="viewCue(ncue.key, ncue)">{{ ncue.contract.value.concept.datatype.concept.name }}</button>
-            </div>
-          </div>
-        </div>
-        
-        <div v-else-if="cueConext === 'space'" id="cue-space">
-          <button class="cue-item" @click="viewCue(storeAI.liveBspace.spaceid, storeAI.liveBspace)">{{ storeAI.liveBspace.name }}</button>
-        </div>
-        
-        <div id="sync-cues" v-else-if="!storeOrrery.isSeeding">
-          <div id="sync-message">
-             Seeded biology cues will appear here. Click "Seed public library" above to start.
-          </div>
-        </div>
-        <!-- display cue contract -->
-        <div v-if="selectedCue" id="cue-contract-details">
-          <div class="contract-header">
-            <h4>Cue: {{ selectedCue.contract.value.concept.name }}</h4>
-            <span class="cue-key-id">{{ selectedCue.contract.key }}</span>
-          </div>
+<!-- Two-column grid layout -->
+<div id="library-cues-container">
+<!-- Left Column - Chart and Controls -->
 
-          <div class="contract-sections">
-            <!-- Concept Section -->
-            <div class="contract-section">
-              <h5>Concept</h5>
-              <div class="section-content">
-                <div class="content-row">
-                  <span class="label">Name:</span> <span>{{ selectedCue.contract.value.concept.datatype.concept.name }}</span>
-                </div>
-                <div v-if="selectedCue.contract.value.concept.description" class="content-row">
-                  <span class="label">Description:</span> <span>{{ selectedCue.contract.value.concept.description }}</span>
-                </div>
-                <div class="content-links" v-if="selectedCue.contract.value.concept.wiki || selectedCue.contract.value.concept.rdf">
-                  <a v-if="selectedCue.contract.value.concept.wiki" :href="selectedCue.contract.value.concept.wiki" target="_blank" class="cue-link">Wikipedia</a>
-                  <a v-if="selectedCue.contract.value.concept.rdf" :href="selectedCue.contract.value.concept.rdf" target="_blank" class="cue-link">DBPedia</a>
-                </div>
-              </div>
-            </div>
+<!-- Knowledge cues - Filter and List -->
+<div id="cues-column">
+<div v-if="storeOrrery.isSeeding" class="seeding-status pulse">
+seeding biology knowledge... {{ storeOrrery.seedingProgress }}%
+</div>
 
-            <!-- Datatype Section (Structured) -->
-            <div v-if="selectedCue.contract.value.concept.datatype" class="contract-section nested">
-              <h5>Datatype Context</h5>
-              <div class="section-content">
-                <div v-if="selectedCue.contract.value.concept.datatype.concept" class="datatype-sub-section">
-                  <div class="content-row">
-                    <span class="label">Primary:</span> <span class="badge">{{ selectedCue.contract.value.concept.datatype.concept.primary }}</span>
-                  </div>
-                  <div class="content-row">
-                    <span class="label">Name:</span> <span>{{ selectedCue.contract.value.concept.datatype.concept.name }}</span>
-                  </div>
-                  <div v-if="selectedCue.contract.value.concept.datatype.concept.description" class="content-row">
-                    <span class="label">Description:</span> <span>{{ selectedCue.contract.value.concept.datatype.concept.description }}</span>
-                  </div>
-                  <div class="content-links" v-if="selectedCue.contract.value.concept.datatype.concept.wiki || selectedCue.contract.value.concept.datatype.concept.rdf">
-                    <a v-if="selectedCue.contract.value.concept.datatype.concept.wiki" :href="selectedCue.contract.value.concept.datatype.concept.wiki" target="_blank" class="cue-link">Wiki Context</a>
-                    <a v-if="selectedCue.contract.value.concept.datatype.concept.rdf" :href="selectedCue.contract.value.concept.datatype.concept.rdf" target="_blank" class="cue-link">RDF Context</a>
-                  </div>
-                </div>
-                
-                <div v-if="selectedCue.contract.value.concept.datatype.computational" class="datatype-sub-section mt-2">
-                  <div class="section-grid">
-                    <div class="grid-item">
-                      <span class="label">Measurement:</span> <span>{{ selectedCue.contract.value.concept.datatype.computational.measurement }}</span>
-                    </div>
-                    <div class="grid-item">
-                      <span class="label">Type:</span> <span>{{ selectedCue.contract.value.concept.datatype.computational.datatypeType }}</span>
-                    </div>
-                  </div>
-                </div>
+<div id="minimise-cues" v-if="minCues === true">
+<!-- a to z and filter -->
+<div id="filter-cues">
+<AlphabetFilter v-model="liveLetter" size="md">
+<template #extra>
+<button id="refresh-cues-btn" @click="refreshCues()">refresh</button>
+</template>
+</AlphabetFilter>
+</div>
 
-                <div v-if="selectedCue.contract.value.concept.datatype.space" class="datatype-sub-section mt-2">
-                   <div class="content-row">
-                    <span class="label">Space:</span> <span class="badge">{{ selectedCue.contract.value.concept.datatype.space.concept }}</span>
-                  </div>
-                </div>
+<div id="saved-cues" v-if="cueConext === 'cueall' && cuesNetworkList.length > 0">
+<div id="no-filter" v-if="liveLetter === ''">
+<div class="network-cues" v-for="ncue of cuesNetworkList" :key="ncue.key">
+<button class="cue-item" draggable="true" @dragstart="startConductionDrag($event, ncue)" @click="viewCue(ncue.key, ncue)">{{ ncue.contract.value.concept.datatype.concept.name }}</button>
+</div>
+</div>
+<div v-else>
+<div class="network-cues" v-for="ncue of filteredCues" :key="ncue.key">
+<button class="cue-item" draggable="true" @dragstart="startConductionDrag($event, ncue)" @click="viewCue(ncue.key, ncue)">{{ ncue.contract.value.concept.datatype.concept.name }}</button>
+</div>
+</div>
+</div>
 
-                <div class="datatype-raw mt-2">
-                  <button class="toggle-raw-btn" @click="showRawDatatype = !showRawDatatype">
-                    {{ showRawDatatype ? 'Hide' : 'Show' }} Raw Datatype
-                  </button>
-                  <pre v-if="showRawDatatype" class="json-block mt-1">{{ JSON.stringify(selectedCue.contract.value.concept.datatype, null, 2) }}</pre>
-                </div>
-              </div>
-            </div>
+<div v-else-if="cueConext === 'space'" id="cue-space">
+<button class="cue-item" @click="viewCue(storeAI.liveBspace.spaceid, storeAI.liveBspace)">{{ storeAI.liveBspace.name }}</button>
+</div>
 
-            <!-- Space Section -->
-            <div v-if="selectedCue.contract.value.space" class="contract-section">
-              <h5>Space</h5>
-              <div class="section-content">
-                <div class="content-row">
-                  <span class="label">Context:</span> <span class="badge">{{ selectedCue.contract.value.space.concept }}</span>
-                </div>
-              </div>
-            </div>
+<div id="sync-cues" v-else-if="!storeOrrery.isSeeding">
+<div id="sync-message">
+Seeded biology cues will appear here. Click "Seed public library" above to start.
+</div>
+</div>
+<!-- display cue contract -->
+<div v-if="selectedCue" id="cue-contract-details">
+<div class="contract-header">
+<h4>Cue: {{ selectedCue.contract.value.concept.name }}</h4>
+<span class="cue-key-id">{{ selectedCue.contract.key }}</span>
+</div>
 
-            <!-- Computational Section -->
-            <div v-if="selectedCue.contract.value.computational" class="contract-section">
-              <h5>Computational</h5>
-              <div class="section-grid">
-                <div class="grid-item">
-                  <span class="label">Frequency:</span> <span>{{ selectedCue.contract.value.computational.frequency }}</span>
-                </div>
-                <div class="grid-item">
-                  <span class="label">Confidence:</span> <span>{{ selectedCue.contract.value.computational.confidence }}</span>
-                </div>
-                <div class="grid-item" v-if="selectedCue.contract.value.computational.color">
-                  <span class="label">Color:</span> 
-                  <span class="color-swatch" :style="{ backgroundColor: selectedCue.contract.value.computational.color }"></span>
-                  <span>{{ selectedCue.contract.value.computational.color }}</span>
-                </div>
-              </div>
-            </div>
+<div class="contract-sections">
+<!-- Concept Section -->
+<div class="contract-section">
+<h5>Concept</h5>
+<div class="section-content">
+<div class="content-row">
+<span class="label">Name:</span> <span>{{ selectedCue.contract.value.concept.datatype.concept.name }}</span>
+</div>
+<div v-if="selectedCue.contract.value.concept.description" class="content-row">
+<span class="label">Description:</span> <span>{{ selectedCue.contract.value.concept.description }}</span>
+</div>
+<div class="content-links" v-if="selectedCue.contract.value.concept.wiki || selectedCue.contract.value.concept.rdf">
+<a v-if="selectedCue.contract.value.concept.wiki" :href="selectedCue.contract.value.concept.wiki" target="_blank" class="cue-link">Wikipedia</a>
+<a v-if="selectedCue.contract.value.concept.rdf" :href="selectedCue.contract.value.concept.rdf" target="_blank" class="cue-link">DBPedia</a>
+</div>
+</div>
+</div>
 
-            <!-- Time Section -->
-            <div v-if="selectedCue.contract.value.time" class="contract-section">
-              <h5>Time</h5>
-              <div class="section-grid">
-                <div class="grid-item">
-                  <span class="label">Frequency Count:</span> <span>{{ selectedCue.contract.value.time.frequencyCount }}</span>
-                </div>
-                <div class="grid-item">
-                  <span class="label">Decay Rate:</span> <span>{{ selectedCue.contract.value.time.decayRate }}</span>
-                </div>
-              </div>
-              <div class="timestamp-list">
-                <div class="timestamp-item">
-                  <span class="label">Created:</span> <span>{{ selectedCue.contract.value.time.createTimestamp }}</span>
-                </div>
-                <div class="timestamp-item">
-                  <span class="label">Last Used:</span> <span>{{ selectedCue.contract.value.time.lastTimestamp }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- Datatype Section (Structured) -->
+<div v-if="selectedCue.contract.value.concept.datatype" class="contract-section nested">
+<h5>Datatype Context</h5>
+<div class="section-content">
+<div v-if="selectedCue.contract.value.concept.datatype.concept" class="datatype-sub-section">
+<div class="content-row">
+<span class="label">Primary:</span> <span class="badge">{{ selectedCue.contract.value.concept.datatype.concept.primary }}</span>
+</div>
+<div class="content-row">
+<span class="label">Name:</span> <span>{{ selectedCue.contract.value.concept.datatype.concept.name }}</span>
+</div>
+<div v-if="selectedCue.contract.value.concept.datatype.concept.description" class="content-row">
+<span class="label">Description:</span> <span>{{ selectedCue.contract.value.concept.datatype.concept.description }}</span>
+</div>
+<div class="content-links" v-if="selectedCue.contract.value.concept.datatype.concept.wiki || selectedCue.contract.value.concept.datatype.concept.rdf">
+<a v-if="selectedCue.contract.value.concept.datatype.concept.wiki" :href="selectedCue.contract.value.concept.datatype.concept.wiki" target="_blank" class="cue-link">Wiki Context</a>
+<a v-if="selectedCue.contract.value.concept.datatype.concept.rdf" :href="selectedCue.contract.value.concept.datatype.concept.rdf" target="_blank" class="cue-link">RDF Context</a>
+</div>
+</div>
+
+<div v-if="selectedCue.contract.value.concept.datatype.computational" class="datatype-sub-section mt-2">
+<div class="section-grid">
+<div class="grid-item">
+<span class="label">Measurement:</span> <span>{{ selectedCue.contract.value.concept.datatype.computational.measurement }}</span>
+</div>
+<div class="grid-item">
+<span class="label">Type:</span> <span>{{ selectedCue.contract.value.concept.datatype.computational.datatypeType }}</span>
+</div>
+</div>
+</div>
+
+<div v-if="selectedCue.contract.value.concept.datatype.space" class="datatype-sub-section mt-2">
+<div class="content-row">
+<span class="label">Space:</span> <span class="badge">{{ selectedCue.contract.value.concept.datatype.space.concept }}</span>
+</div>
+</div>
+
+<div class="datatype-raw mt-2">
+<button class="toggle-raw-btn" @click="showRawDatatype = !showRawDatatype">
+{{ showRawDatatype ? 'Hide' : 'Show' }} Raw Datatype
+</button>
+<pre v-if="showRawDatatype" class="json-block mt-1">{{ JSON.stringify(selectedCue.contract.value.concept.datatype, null, 2) }}</pre>
+</div>
+</div>
+</div>
+
+<!-- Space Section -->
+<div v-if="selectedCue.contract.value.space" class="contract-section">
+<h5>Space</h5>
+<div class="section-content">
+<div class="content-row">
+<span class="label">Context:</span> <span class="badge">{{ selectedCue.contract.value.space.concept }}</span>
+</div>
+</div>
+</div>
+
+<!-- Computational Section -->
+<div v-if="selectedCue.contract.value.computational" class="contract-section">
+<h5>Computational</h5>
+<div class="section-grid">
+<div class="grid-item">
+<span class="label">Frequency:</span> <span>{{ selectedCue.contract.value.computational.frequency }}</span>
+</div>
+<div class="grid-item">
+<span class="label">Confidence:</span> <span>{{ selectedCue.contract.value.computational.confidence }}</span>
+</div>
+<div class="grid-item" v-if="selectedCue.contract.value.computational.color">
+<span class="label">Color:</span> 
+<span class="color-swatch" :style="{ backgroundColor: selectedCue.contract.value.computational.color }"></span>
+<span>{{ selectedCue.contract.value.computational.color }}</span>
+</div>
+</div>
+</div>
+
+<!-- Time Section -->
+<div v-if="selectedCue.contract.value.time" class="contract-section">
+<h5>Time</h5>
+<div class="section-grid">
+<div class="grid-item">
+<span class="label">Frequency Count:</span> <span>{{ selectedCue.contract.value.time.frequencyCount }}</span>
+</div>
+<div class="grid-item">
+<span class="label">Decay Rate:</span> <span>{{ selectedCue.contract.value.time.decayRate }}</span>
+</div>
+</div>
+<div class="timestamp-list">
+<div class="timestamp-item">
+<span class="label">Created:</span> <span>{{ selectedCue.contract.value.time.createTimestamp }}</span>
+</div>
+<div class="timestamp-item">
+<span class="label">Last Used:</span> <span>{{ selectedCue.contract.value.time.lastTimestamp }}</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
 </template>
 
 <script setup>
@@ -211,10 +211,12 @@ const beebeeFeedback = computed(() => {
 })
 
 const cuesNetworkList = computed(() => {
+  console.log('cues list')
+  console.log(storeCues.cuesList)
   const contracts = storeCues.cuesList
   return [...contracts].sort((a, b) => {
-    const nameA = a.contract.value.concept.datatype.concept.name
-    const nameB = b.contract.value.concept.datatype.concept.name
+    const nameA = a.contract.value.concept?.datatype?.concept?.name
+    const nameB = b.contract.value.concept?.datatype?.concept?.name
     return nameA.localeCompare(nameB)
   })
 })

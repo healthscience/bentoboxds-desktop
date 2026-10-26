@@ -1,74 +1,89 @@
-describe('Check library with dataspace is open', () => {
-  // Run the setup before each test
-  beforeEach(() => {
-    cy.task("startServer")
-    cy.viewport(1024, 768)
-    cy.visit('/')
-    cy.get("#self-auth-connect").should('exist')
-    cy.get('#self-auth-connect').click()
-    cy.get("#connect-hop").should('exist')
-    cy.get("#self-auth").should('exist')
-    cy.get('#self-auth').click()
-  });
+describe('bbNexus in Besearch modal', { testIsolation: false }, () => {
+  before(() => {
+    cy.task("startServer");
+    // Ensure we have a session or perform genesis[cite: 3]
+    cy.setupGenesis()
+  })
+
+  it('opens bbNexus from the besearch modal toolbar and verifies all sections and buttons exist', () => {
+    // Right Panel (Chat)
+    // Initially closed/narrow (width 0 in RightPanel.vue handleToggle)[cite: 3]
+    cy.get('.right-panel-container').invoke('width').should('be.lte', 1)
+    
+    // Open chat via button (thought-bubble-button)[cite: 3]
+    cy.get('.thought-bubble-button').click()
+    cy.get('.right-panel-container').invoke('width').should('be.gt', 300)
+    
+    // Open bbnexus, using .first() to safely target the single element when multiple match[cite: 3]
+    cy.get('.bbnexus-anchor').first().click()
+    cy.get('.bbnexus-toolbar').should('be.visible')
+
+    // Verify Interplay buttons
+    cy.contains('.bbnexus-section', 'Interplay').within(() => {
+      cy.get('button.bbnexus-btn').contains('Cues').should('be.visible')
+      cy.get('button.bbnexus-btn').contains('Library').should('be.visible')
+      cy.get('button.bbnexus-btn').contains('Cue Space').should('be.visible')
+    })
+  })
+
+  it('select the library and check it opens', () => {
+    // Verify Interplay buttons
+    cy.contains('.bbnexus-section', 'Interplay').within(() => {
+      cy.get('button.bbnexus-btn').contains('Cues').should('be.visible')
+      cy.get('button.bbnexus-btn').contains('Library').should('be.visible')
+      cy.get('button.bbnexus-btn').contains('Cue Space').should('be.visible')
+    })
+
+    cy.get('button.bbnexus-btn').contains('Library').click()
+    cy.get('.library-container:visible').should('be.visible')
+  })
 
   it('should click on library', () => {
-      // Step 1: Verify the base layout
-      cy.get('#app').find('.bentobox-main-nav').should('be.visible');
-      cy.get('.bentobox-main-nav').find('.bentobox-browser').should('be.visible');
-      cy.contains(".logo-words", 'BentoBox-DS').should('exist');
+    // 1. Main container and header elements
+    cy.get('.library-container:visible').should('be.visible')
+    cy.get('.compact-library-header:visible').should('be.visible')
+    cy.get('.library-brand:visible').within(() => {
+      cy.get('.library-title').should('contain.text', 'Network Library').and('be.visible')
+      cy.get('.library-subtitle').should('contain.text', 'Explore & contribute reference contracts').and('be.visible')
+    })
 
-      // Step 2: Click on the Library menu button
-      cy.get('#library-button-menu').click() // Adjust the selector if necessary
+    // 2. Scope toggle buttons (Public / Private)
+    cy.get('.library-container:visible').find('.library-scope-toggle').within(() => {
+      cy.get('.scope-btn').contains('Public').should('be.visible')
+      cy.get('.scope-btn').contains('Private').should('be.visible')
+    })
 
-      // Step 3: Verify that the Cues modal is presented
-      cy.get('.modal-mask').should('be.visible'); // Adjust the selector based on your modal class
+    // 3. Default Public toolbar buttons
+    cy.get('.library-toolbar:visible').within(() => {
+      cy.get('.sov-toolbar-btn').contains('Explorer').should('be.visible')
+      cy.get('.sov-toolbar-btn').contains('Upload').should('be.visible')
+      cy.get('.sov-toolbar-btn').contains('+ Contract').should('be.visible')
+      cy.get('.sov-toolbar-btn.seed-btn').contains('Seed').should('be.visible')
+    })
 
-      // Step 4: Verify that the content div is presented
-      cy.get('.modal-container').should('be.visible'); // Adjust the selector based on your content div class
+    cy.get('.library-container:visible').find('.library-scope-toggle .scope-btn').contains('Public').click({ force: true })
+    cy.wait(2000)
+    // 4. Main view container and default active component (Explorer)
+    cy.get('.library-main').last().should('exist')
+    cy.get('#explorer-view-main').last().should('exist')
+  })
 
-      // Step 5: Verify data box header buttons
-      cy.get('#data-box-header').should('be.visible').and('contain', 'Data Box');
-      
-      // Verify Library button
-      cy.get('.button-lib-data').eq(0).should('be.visible')
-        .and('have.class', 'active') // Verify it's active by default
-        .and('contain', 'Library');
+  it('verifies private scope toolbar buttons when Private is clicked', () => {
+    // Target the Private scope button within the visible library container
+    cy.get('.library-container:visible').find('.library-scope-toggle .scope-btn').contains('Private').click({ force: true })
 
-      // Verify Upload button
-      cy.get('.button-lib-data').eq(1).should('be.visible')
-        .and('contain', 'Upload');
+    // Ensure the Seed button is unmounted from the visible container DOM
+    cy.get('.library-container:visible').find('.seed-btn').should('not.exist')
 
-      // Verify Experiments button
-      cy.get('.button-lib-data').eq(2).should('be.visible')
-        .and('contain', 'Experiments');
-
-      // Verify + new NXP button
-      cy.get('.button-lib-data').eq(3).should('be.visible')
-        .and('contain', '+ new NXP');
-
-      // Step 6: Verify button click functionality
-      cy.get('.button-lib-data').eq(1).click(); // Click Upload
-      cy.get('.button-lib-data').eq(1).should('have.class', 'active'); // Verify Upload is now active
-
-      cy.get('.button-lib-data').eq(0).click(); // Click Library
-      // get('.button-lib-data').eq(0).should('have.class', 'active'); // Verify Library is now active
-      cy.get('.button-lib-data').eq(0).should('not.have.class', 'active'); // Verify Library is not active
-
-      // Step 7: Verify close functionality
-      cy.get('#return-modal-close').should('be.visible');
-      cy.get('#return-modal-close').click();
-      cy.wait(2000)
-      cy.get('.modal-mask').should('not.exist')
-
-      // Step 8: Verify close button functionality
-      cy.get('#library-button-menu').click();
-      cy.get('.modal-mask').should('be.visible');
-      cy.get('button[aria-label="Close modal"]').should('be.visible');
-      cy.get('button[aria-label="Close modal"]').click();
-      cy.get('.modal-mask').should('not.exist');
-  });
+    // Verify private toolbar buttons using the visible container scope
+    cy.get('.library-toolbar:visible').within(() => {
+      cy.get('.sov-toolbar-btn').contains('Explorer').should('be.visible')
+      cy.get('.sov-toolbar-btn').contains('Upload').should('be.visible')
+      cy.get('.sov-toolbar-btn').contains('+ Contract').should('be.visible')
+    })
+  })
 
   after(() => {
-    cy.task("stopServer")
+    cy.task('stopServer')
   })
-});
+})

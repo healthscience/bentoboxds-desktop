@@ -160,7 +160,6 @@ export class HOPDataBridge {
    * Add besearch cycle to store
    */
   addBesearchCycle(cycle) {
-    console.log('Adding besearch cycle to store:', cycle);
     if (this.besearchStore) {
       // this.besearchStore.addBesearchCycle(cycle);
     }

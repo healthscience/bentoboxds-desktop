@@ -54,7 +54,6 @@ export class GeneticCurator {
      * Run a single generation of evolution
      */
     async evolveGeneration() {
-        console.log(`--- Starting Generation ${this.generation} ---`);
         
         for (let i = 0; i < this.neat.population.length; i++) {
             const genome = this.neat.population[i];
@@ -64,8 +63,6 @@ export class GeneticCurator {
         // Sort and evolve
         this.neat.sort();
         const topGenome = this.neat.population[0];
-        
-        console.log(`Gen ${this.generation} Best Fitness: ${topGenome.fitness}`);
 
         // Save top genome to BentoBoxDS every 5 generations or if it's a significant improvement
         if (this.generation % 5 === 0) {

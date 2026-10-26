@@ -47,7 +47,7 @@ export const teachingStore = defineStore('teaching', {
         startTime: new Date().toISOString(),
         peerId: this.getPeerId()
       }
-      console.log('Teaching session started:', this.currentSession)
+      
     },
     logAction(component, method, args, result = null) {
       if (!this.isTeachingMode) return

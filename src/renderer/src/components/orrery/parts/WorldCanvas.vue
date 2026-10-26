@@ -7,7 +7,7 @@
       </div>
       <!-- human body -->
       <div v-if="currentActiveWorld === 'body'" class="world-view body-grid">
-        <HumanWorld ref="humanWorldRef" />
+        <HumanWorld ref="humanWorldRef" @draw-complete="$emit('draw-complete')" />
       </div>
       <!-- earth nature & environment -->
       <div v-if="currentActiveWorld === 'earth'" class="world-view earth-grid">
@@ -43,6 +43,8 @@ const props = defineProps({
   activeWorld: String, // New Prop
 });
 
+const emit = defineEmits(['draw-complete']);
+
 /* computed */
 const currentActiveWorld = computed(() => {
   return props.activeWorld || storeAI.activeWorld;
@@ -61,6 +63,8 @@ const saveCue = (cueId) => {
 const startDrawing = () => {
   if (storeAI.activeWorld === "earth" && earthEnvironmentRef.value) {
     earthEnvironmentRef.value.startDrawing();
+  } else if (storeAI.activeWorld === "body" && humanWorldRef.value) {
+    humanWorldRef.value.startDrawing();
   }
 };
 

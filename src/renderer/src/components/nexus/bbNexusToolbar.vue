@@ -37,7 +37,7 @@
         </div>
       </div>
       <div class="bbnexus-section">
-        <div class="bbnexus-title">Worlds</div>
+        <div class="bbnexus-title">Emulation Worlds</div>
         <div class="bbnexus-buttons">
           <button
             class="bbnexus-btn"
@@ -66,7 +66,7 @@
         </div>
       </div>
       <div class="bbnexus-section">
-        <div class="bbnexus-title">Tools</div>
+        <div class="bbnexus-title">Interplay</div>
         <div class="bbnexus-buttons">
           <button class="bbnexus-btn" @click="emitAction('context:cues')">
             <span class="bbnexus-btn-icon">🧠</span>
@@ -83,7 +83,7 @@
         </div>
       </div>
       <div class="bbnexus-section">
-        <div class="bbnexus-title">Data</div>
+        <div class="bbnexus-title">Story</div>
         <div class="bbnexus-buttons">
           <button class="bbnexus-btn" @click="emitAction('data:devices')">
             <span class="bbnexus-btn-icon">📟</span>

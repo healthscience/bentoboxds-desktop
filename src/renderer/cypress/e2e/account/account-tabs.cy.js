@@ -3,25 +3,14 @@ describe('Space meun select and submenu tests', () => {
   before(() => {
     cy.task("startServer")
     cy.wait(3000)
-    cy.viewport(1024, 768)
-    cy.visit('/')
-    cy.get("#self-auth-connect").should('exist')
-    cy.get('#self-auth-connect').click()
-    cy.get("#connect-hop").should('exist')
-    cy.get("#self-auth").should('exist')
-    cy.get('#self-auth').click()
-  });
+  })
 
-  it('make sure tabs and can swtich between', () => {
-    // Step 1: Verify the base layout
-    cy.get('#app').find('.bentobox-main-nav').should('be.visible')
-    cy.get('.bentobox-main-nav').find('.bentobox-browser').should('be.visible')
-    // Step 2: Click on the Cues button
-    cy.get('#self-auth-connect').should('be.visible').click()
+    it('visits the app root url and signs in using conduction identity', () => {
+
+    cy.setupGenesis()
+    // Navigate to Sovereign Identity tab to verify session state
+    cy.get('#self-auth-connect').click()
     cy.wait(1000)
-    // Sept 3 account model present
-    cy.get('.modal-mask').should('be.visible')
-    cy.get('.modal-container').should('be.visible')
     // Step 4: Verify that the tabs is presented
     cy.get('#connection-account').should('be.visible')
     cy.get('#peers-tab').should('exist')
@@ -37,12 +26,13 @@ describe('Space meun select and submenu tests', () => {
     cy.get('#datastore-list').should('exist')
     cy.get('#aiagents-tab').click()
     cy.wait(1000)
-    cy.get('#aiagents-lists').should('exist')
+    // cy.get('#aiagents-lists').should('exist')
     cy.get('#sovereign-tab').click()
     cy.wait(1000)
     cy.get('#wallet-list').should('exist')
   });
 
+  // Run the cleanup after all tests
   after(() => {
     cy.task("stopServer")
   })

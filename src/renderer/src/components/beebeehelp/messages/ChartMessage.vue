@@ -48,7 +48,6 @@ const publibLibAdd = (board) => {
 
 const beebeeChartSpace = (data) => {
   // Implement the chart space functionality
-  console.log('Chart space data:', data)
 }
 </script>
 

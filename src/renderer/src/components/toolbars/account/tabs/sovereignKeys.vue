@@ -78,8 +78,6 @@ const resetKey = () => {
   confirmDelete.value = false;
   deleteVerifyText.value = '';
   
-  console.log("Sovereignty Reset: Identity Purged.");
-  
   // NOTE: Implement migration handshake here in the future
   // To bridge old_pubKey to new_pubKey
 };
@@ -94,8 +92,7 @@ const generateNewIdentity = async () => {
   // const { publicKey } = await triggerGenesisHandshake();
   // pubKey.value = publicKey;
   // keyExists.value = true;
-  
-  console.log("Generating New Identity...");
+
 };
 
 onMounted(loadKeyInfo);

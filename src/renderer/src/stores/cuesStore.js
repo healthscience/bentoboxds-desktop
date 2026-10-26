@@ -68,6 +68,42 @@ export const cuesStore = defineStore('cues', {
       let cueContract = this.cueUtil.prepareCuesContractPrime(cueInfo)
       this.sendSocket.send_message(cueContract)
     },
+    getFullCue (cueKey) {
+      if (!cueKey) return null
+      // 1. Try matching directly in currently loaded cuesList
+      const existing = this.cueUtil.cueMatch(cueKey, this.cuesList)
+      if (existing && existing.contract.value) {
+        return existing.contract
+      }
+      // 2. Check if it's already queued or waiting
+      const isWaiting = this.waitingCues.some(c => (c.key === cueKey || c.contract === cueKey))
+      
+      if (!isWaiting) {
+        // 3. Trigger library socket request for the missing cue contract
+        const cueContractReq = {
+          type: 'library',
+          action: 'cues',
+          reftype: 'cue-single',
+          task: 'GET',
+          privacy: 'public',
+          data: { cueKey }
+        }
+        
+        // Push key stub so we don't spam duplicate socket messages
+        this.waitingCues.push({ key: cueKey, contract: cueKey })
+        this.sendSocket.send_message(cueContractReq)
+      }
+
+      // 4. Return reactive stub so drag/drop component renders gracefully
+      return {
+        key: cueKey,
+        name: 'Resolving...',
+        label: cueKey.slice(0, 10) + '...',
+        datatype: 'Unknown',
+        units: '',
+        isLoaded: false
+      }
+    },
     refreshGetCues () {
       const cueContract = {}
       cueContract.type = 'library'
@@ -82,6 +118,19 @@ export const cuesStore = defineStore('cues', {
          this.waitingCues = message.data
          this.refreshExpandedCues()
       }
+    },
+    savedCuePrepare (cueC) {
+      const hexC = this.storeLibrary.utilLibrary.convertBinaryToHex(cueC);
+      let cueStatus = {}
+      cueStatus.contract = hexC
+      cueStatus.state = {
+        isActive: false,
+        buttonColor: '#4a5568',
+        isExpanded: false
+      }
+      this.cuesList.push(cueStatus)
+      // this.spaceListHistory.push(expandDTCue)
+
     },
     cueDisplayBuilder (cueKey, cueRel, liveWheel) {
       let cueDisplay = this.cueUtil.cueDisplayMake(cueKey, cueRel, liveWheel)
@@ -155,6 +204,19 @@ export const cuesStore = defineStore('cues', {
         }
       }
     },
+    saveBodyMap (cueKey) {
+      // take the cue and add draw location coord on body map
+      let cueCanvasSpace = {}
+      cueCanvasSpace.contract = cueKey
+      cueCanvasSpace.canvas = ''
+      const cueContract = {}
+      cueContract.type = 'library'
+      cueContract.action = 'cues'
+      cueContract.reftype = 'space'
+      cueContract.task = 'UPDATE'
+      cueContract.privacy = 'public'
+      cueContract.data = cueCanvasSpace
+    },
     matchCueContract (cueInfo) {
       this.cueUtil.cueMatch(this.activeCue, this.cuesList)
 
@@ -199,6 +261,7 @@ export const cuesStore = defineStore('cues', {
         }
       }
     },
+    // now done in HOP via heli
     updateCueTimestamp (cueid) {
       let cueContract = this.cueUtil.cueMatch(cueid, this.cuesList)
       let updateCueContract = this.cueUtil.updateTimestamp(cueContract)

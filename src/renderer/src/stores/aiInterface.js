@@ -17,6 +17,10 @@ import { besearchStore } from "@/stores/besearchStore.js";
 import { orreryStore } from "@/stores/orreryStore.js";
 import { lifestrapStore } from "@/stores/lifestrapStore.js";
 import { loomStore } from "@/stores/loomStore.js";
+import { useOrgoStore } from '@/stores/orgoStore.js'
+import { useGelleStore } from '@/stores/gelleStore.js'
+import { useExocueStore } from '@/stores/exocueStore.js'
+import { useOverlayStore } from '@/stores/overlayStore.js'
 
 export const aiInterfaceStore = defineStore("beebeeAIstore", {
   state: () => {
@@ -32,6 +36,10 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
       storeChat: useChatStore(),
       storeTeaching: teachingStore(),
       storeBesearch: besearchStore(),
+      storeOrgo: useOrgoStore(),
+      storeGelle: useGelleStore(),
+      storeExocue: useExocueStore(),
+      storeOverlay: useOverlayStore(),
       liveDataParse: new DataPraser(),
       liveLsUtil: new LifestrapUtilty(),
       liveChatUtil: new ChatUtilty(),
@@ -97,6 +105,7 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
       previousLLM: {},
       emulationHorizon: 0,
       performanceVelocity: 0,
+      hasDrawing: false,
     };
   },
   getters: {
@@ -284,14 +293,37 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
           this.storeLibrary.datatypeContracts = received.data.datatypeContracts
           break;
 
+        case "graft-library":
+          this.storeOrgo.processReply(received.data.orgo);
+          this.storeGelle.processReply(received.data.gelle)
+          this.storeExocue.processReply(received.data.exoCue)
+          this.storeOverlay.processReply(received.data.overlay)
+
+          break;
+
+        case "drive-index":
+          this.handleDriveIndex(received.data);
+          break;
+
+
         case "warm-peers-begin":
           this.handleWarmPeers(received.data);
+          break;
+
+        case "overlay-data":
+          this.storeOverlay.setNewContract(received.data)
+          // add to list for library viewer
+          // this.storeOverlay.saveOverlayContract(received.data)
           break;
       }
 
       if (received.bbid) {
         this.chatBottom++;
       }
+    },
+    processHOPdata(sfData) {
+      // console.log('safeflow returned world emulation update')
+      // console.log(sfData)
     },
     keyIndexConvert (lifestrapList) {
       let hexkeyLifestap = []
@@ -300,6 +332,9 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
         hexkeyLifestap.push(hexContract)
       }
       return hexkeyLifestap
+    },
+    handleDriveIndex(driveIndex) {
+      this.storeLibrary.privateFileIndex = driveIndex.private
     },
     handleWarmPeers(peers) {
       if (!Array.isArray(peers)) return;
@@ -334,6 +369,17 @@ export const aiInterfaceStore = defineStore("beebeeAIstore", {
       if (!this.historyPair[this.chatAttention]) this.historyPair[this.chatAttention] = [];
       this.historyPair[this.chatAttention].push(pairBB);
       this.chatBottom++;
+    },
+    prepareHOPstory (storyData) {
+      let aiMessageout = {}
+      aiMessageout.type = 'bbai'
+      aiMessageout.reftype = 'ignore'
+      aiMessageout.action = 'hopstory'
+      aiMessageout.task = 'expand-graft'
+      aiMessageout.privacy = 'private'
+      aiMessageout.data = storyData
+      aiMessageout.bbid = ''
+      this.sendSocket.send_message(aiMessageout)
     },
     prepareCuespace(notItem) {
       let matchPeername = this.storeAcc.warmPeers.find((p) => p.key === notItem.data.publickey);

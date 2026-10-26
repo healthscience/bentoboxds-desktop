@@ -11,7 +11,10 @@ import { cuesStore } from "@/stores/cuesStore.js"
 import { orreryStore } from '@/stores/orreryStore.js'
 import { lifestrapStore } from '@/stores/lifestrapStore.js'
 import { loomStore } from '@/stores/loomStore.js'
-import TileSource from 'ol/source/Tile'
+import { useOrgoStore } from '@/stores/orgoStore.js'
+import { useGelleStore } from '@/stores/gelleStore.js'
+import { useExocueStore } from '@/stores/exocueStore.js'
+import { useOverlayStore } from '@/stores/overlayStore.js'
 
 export const libraryStore = defineStore('librarystore', {
   state: () => ({
@@ -23,6 +26,10 @@ export const libraryStore = defineStore('librarystore', {
     joinFeedback: false,
     storeCues: cuesStore(),
     storeAI: aiInterfaceStore(),
+    storeOrgo: useOrgoStore(),
+    storeGelle: useGelleStore(),
+    storeExocue: useExocueStore(),
+    storeOverlay: useOverlayStore(),
     storeBentobox: bentoboxStore(),
     storeOrrery: orreryStore(),
     storeLifestrap: lifestrapStore(),
@@ -37,6 +44,8 @@ export const libraryStore = defineStore('librarystore', {
     libraryMessage: '',
     uploadStatus: false,
     describeSource: {},
+    fileSaveList: [],
+    privateFileIndex: [],
     restStatus: false,
     peerExperimentList: {
       columns: ['id', 'name', 'description', 'time', 'device', 'action'],
@@ -58,6 +67,13 @@ export const libraryStore = defineStore('librarystore', {
     peerResults: [],
     peerLedger: [],
     peerLibraryNXP: [],
+    newConductionForm: { type: '', map: {}, filePath: '' },
+    contractExocueSuccess: false,
+    sourceDataSelected: false,
+    conductionOverlay: {},
+    newFileIntent: '',
+    fileFeedback: {},
+    overlayDataForm: {},
     newRefcontractForm: {},
     genesisModules: [],
     liveBBox: '',
@@ -103,6 +119,21 @@ export const libraryStore = defineStore('librarystore', {
     newPackagingForm:
     {
       authrequired: false
+    },
+    joinOptions: {},
+    uploadFileStatus: false,
+    uploadHolder: [],
+    fileBund: {},
+    fileBundleList: [],
+    linesLimit: {},
+    csvpreviewLive: false,
+    imagepreviewLive: false,
+    lineBundle: {
+      cnumber: '',
+      dataline: '',
+      delimiter: '',
+      datetype: '',
+      location: ''
     }
   }),
   actions: {
@@ -229,6 +260,9 @@ export const libraryStore = defineStore('librarystore', {
             this.newDatafile.columns = message.data.columns
             this.newDatafile.path = 'sqlite'
             this.newDatafile.file = message.data.path
+          } else if (message.task === 'binary') {
+            // bin file saved.  Inform library
+            this.fileSaveList.push(message.data)
           } else {
             this.libraryMessage = message.data
             this.newPackagingForm.apicolumns = message.data.data.headerinfo.splitwords
@@ -238,7 +272,6 @@ export const libraryStore = defineStore('librarystore', {
           }
         } else {
           // package of join source and device data
-          console.log('join info package on queries')
           // this.joinOptions.yaxis = message.data.tables
           // this.joinOptions.yaxis = ['time']
         }
@@ -324,20 +357,11 @@ export const libraryStore = defineStore('librarystore', {
         }
       } else if (message.action === 'cue-contract') {
         if (message.task === 'save-complete') {
-          let expandDTCue = this.utilLibrary.expandCuesDTSingle(message.data, this.storeCues.pathRefContracts)
-          // add to cues list
-          let cueStatus = {}
-          cueStatus.contract = hexC
-          cueStatus.state = {
-            isActive: false,
-            buttonColor: '#4a5568',
-            isExpanded: false
-          }
-          this.storeCues.cuesList.push(cueStatus)
-          this.storeCues.spaceListHistory.push(expandDTCue)
+          // pass to cue store
+          this.storeCues.savedCuePrepare(message.data)
         } else if (message.task === 'update-complete') {
           // update contract in list
-          let updateCueList = []
+          /*let updateCueList = []
           for (let cue of this.storeCues.cuesList) {
             if (cue.key === message.data.key) {
               updateCueList.push(message.data)
@@ -346,6 +370,8 @@ export const libraryStore = defineStore('librarystore', {
             }
           }
           this.storeCues.cuesList = updateCueList
+
+          PASS TO CUE STORE TODO */
         }
       } else if (message.action === 'beebeelearn-contract' || message.action === 'teach-history') {
         // pass on to chat store
@@ -459,6 +485,31 @@ export const libraryStore = defineStore('librarystore', {
         }
       } else if (message.action === 'cues') {
          this.storeCues.processCuesReply(message)
+      } else if (message.action === 'orgo-contract') {
+        // convert key to hex
+        let hexOrgoContract = this.utilLibrary.convertBinaryToHex(message.data);
+        this.storeOrgo.saveOrogContract(hexOrgoContract)
+      } else if (message.action === 'gelle-contract') {
+        let hexOrgoContract = this.utilLibrary.convertBinaryToHex(message.data);
+        this.storeGelle.saveGelleContract(hexOrgoContract)      
+      } else if (message.action === 'exocue-contract') {
+        let hexOrgoContract = this.utilLibrary.convertBinaryToHex(message.data);
+        this.storeExocue.saveExocueContract(hexOrgoContract)
+        // inform form to empty and success message.
+        this.contractExocueSuccess = true
+        // clear form
+        this.storeGelle.activeGelles = []
+        this.storeOrgo.activeOrgos = []
+
+      } else if (message.action === 'overlay-contract') {
+        let hexOverlayContract = this.utilLibrary.convertBinaryToHex(message.data);
+        this.storeOverlay.saveOverlayContract(hexOverlayContract)
+        // inform form save success
+        this.storeOverlay.setNewContract(hexOverlayContract)
+        this.saveSuccessnxp = true
+        this.sourceDataSelected = false
+        // clear form
+        this.newConductionForm = { type: '', map: {}, filePath: '', emulation: '' }
       } else if (message.action === 'new-modules') {
         this.genesisModules = message.data.modules
       } else if (message.action === 'new-experiment') {
@@ -596,6 +647,58 @@ export const libraryStore = defineStore('librarystore', {
           // provide feedback to peer
         }
       }
+    },
+    prepareOrgoContracts (orgoData) {
+      let aiMessageout = {}
+      aiMessageout.type = 'library'
+      aiMessageout.reftype = 'orgo'
+      aiMessageout.action = 'orgo'
+      aiMessageout.task = 'PUT'
+      aiMessageout.privacy = 'public'
+      aiMessageout.data = orgoData
+      aiMessageout.bbid = ''
+      this.sendSocket.send_message(aiMessageout)
+    },
+    prepareGelleContracts (gelleData) {
+      let aiMessageout = {}
+      aiMessageout.type = 'library'
+      aiMessageout.reftype = 'gelle'
+      aiMessageout.action = 'gelle'
+      aiMessageout.task = 'PUT'
+      aiMessageout.privacy = 'public'
+      aiMessageout.data = gelleData
+      aiMessageout.bbid = ''
+      this.sendSocket.send_message(aiMessageout)
+    },
+    deleteSeedContract(contKey, contType) {
+      let aiMessageout = {}
+      aiMessageout.type = 'library'
+      aiMessageout.reftype = contType
+      aiMessageout.action = contType
+      aiMessageout.task = 'DEL'
+      aiMessageout.privacy = 'public'
+      aiMessageout.data = contKey
+      aiMessageout.bbid = ''
+      this.sendSocket.send_message(aiMessageout)
+      // remove from live list
+      if (contType === 'orgo') {
+        this.storeOrgo.removeOrgo(contKey)
+      } else if (contType === 'gelle') {
+        this.storeGelle.removeGelle(contKey)
+      } else if (contType === 'exocue') {
+        this.storeExocue.removeExocue(contKey)
+      }
+    },
+    prepareExocueContract (exocueInfo) {
+      let aiMessageout = {}
+      aiMessageout.type = 'library'
+      aiMessageout.reftype = 'exocue'
+      aiMessageout.action = 'exocue'
+      aiMessageout.task = 'PUT'
+      aiMessageout.privacy = 'public'
+      aiMessageout.data = exocueInfo
+      aiMessageout.bbid = ''
+      this.sendSocket.send_message(aiMessageout)
     },
     prepareGenesisModContracts (message) {
       let aiMessageout = {}

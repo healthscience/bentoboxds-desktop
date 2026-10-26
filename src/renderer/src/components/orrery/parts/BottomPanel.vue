@@ -2,7 +2,7 @@
   <div
     class="bottom-panel overlay-blur"
     :class="{ 'is-dragging': isDragging }"
-    :style="{ height: height + 'px' }"
+    :style="{ height: storeBesearch.bottomHeight + 'px' }"
   >
     <button
       @mousedown.stop="handleMouseDown"
@@ -14,7 +14,7 @@
 
     <div
       v-show="
-        height > 80 ||
+        storeBesearch.bottomHeight > 80 ||
         storeBesearch.isSieveExpanded === true ||
         storeBesearch.besearchMode !== 'default'
       "

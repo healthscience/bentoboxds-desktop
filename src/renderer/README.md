@@ -1,9 +1,9 @@
 # bentoboxds
 
-BentoBoxDS - sovereign intelligences shape health
-A graphical toolkit building collective intelligences ( https://bentoboxds.org/ ) includig charting & building network experiments & coordinating DML (decentralise machine learning) on the Health Oracle Protocol ( https://github.com/healthscience/hop )
+BentoBoxDS - Gaia Intelligences Shape Health
 
-BentoBoxDS run as desktop or web application in the browser and will require HOP to be installed locally.  Setup help available discord server (community link on  https://bentoboxds.org/).
+The peer experience on the fly to attune health by practicing biopoiesis. ( https://bentoboxds.org/ ) Lives on the peer to peer network HOP Health Oracle Protocol ( https://github.com/healthscience/hop )
+
 
 ## Customize configuration
 
@@ -12,7 +12,8 @@ See [Vite Configuration Reference](https://vitejs.dev/config/).
 ## Project Setup
 
 ```sh
-npm install
+npm install --allow-git=all
+
 ```
 
 ### Compile and Hot-Reload for Development
@@ -34,7 +35,8 @@ A HOP instance will be started but that hop folder needs to be at same level of 
 To start HOP manually with the test storage used in development:
 ```sh
 cd ../hop
-npm run start -- --test-hop-storage test-hop-storage
+npm run start -- test-hop-storage
+
 ```
 
 To run unit tests:

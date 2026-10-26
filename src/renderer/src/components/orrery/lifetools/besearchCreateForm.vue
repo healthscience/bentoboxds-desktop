@@ -212,8 +212,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
 
   /* methods */
   const applyInitialData = () => {
-    console.log('apply initial data')
-    console.log(props.initialData)
     if (props.initialData) {
       formData.value = { ...props.initialData }
       if (props.initialData.computeContractId) {
@@ -223,7 +221,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   }
 
   const saveBesearch = () => {
-    console.log('save besearch')
     emit('save', { ...formData.value })
     emit('close') // Close the overlay after successful submission
     resetForm()
@@ -256,8 +253,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
   }
 
   const getComputeContracts = () => {
-    console.log('click get update contracts+++++++++++++')
-    console.log(storeLibrary.publicLibrary.referenceContracts.compute)
     let computeRefList = []
     /* let computeInfo = storeLibrary.contractInfoGetAsk({ context: { type: 'network-experiment', contractid: formData.value.networkExperiment }, asked: { style: 'reference', type: 'compute' }})
     console.log('compute reference contracts ooooooooooooooo')
@@ -267,8 +262,6 @@ import { aiInterfaceStore } from '@/stores/aiInterface.js'
     console.log(computeRefList) */
     // get all compute reference contracts in library
     computeRefList = storeLibrary.publicLibrary.referenceContracts.compute
-    console.log('compute reference contracts')
-    console.log(computeRefList)
     computeOptions.value = computeRefList || []
   }
 

@@ -61,7 +61,6 @@ let cycleEditData = ref({
 
 /* computed */
 const selectedCycle = computed(() => {
-  console.log('selectedIntervention', storeBesearch.selectedIntervention)
   cycleEditData.value.name = storeBesearch.selectedIntervention?.name || ''
   cycleEditData.value.description = storeBesearch.selectedIntervention?.description || ''
   cycleEditData.value.active = storeBesearch.selectedIntervention?.active || true
@@ -90,7 +89,6 @@ const getStatusClass = (status) => {
 }
 
 const closeCycleToolbar = () => {
-  console.log('closeCycleToolbar')
   storeBesearch.selectedIntervention = null
   storeBesearch.showBesearchDetail = false
   storeBesearch.bottomHeight = 20

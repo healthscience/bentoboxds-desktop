@@ -6,11 +6,13 @@
         <!-- <option value="safeNetwork">SAFEnetwork</option> -->
         <!-- <option value="dat">HYERCORE</option> -->
         <!-- <option value="ipfs">IPFS</option> -->
-        <option value="rest">REST</option>
         <!-- <option value="grpc">gRPC</option> -->
-        <option value="csv">CSV</option>
         <option value="json">JSON</option>
+        <option value="csv">CSV</option>
         <option value="sqlite">SQLite</option>
+        <option value="duckdb">DuckDB</option>
+        <option value="hyperdrive">Hyperdrive</option>
+        <option value="hyperbee">Hyperbee</option>        
       </select>
     </div>
   </div>
