@@ -1,0 +1,37 @@
+graph TD
+    subgraph "BentoBoxDS Core"
+        OV[OrbitView.vue]
+        Nexus[[bbNexus Tool Icon]]
+        
+        subgraph "The World Switcher"
+            WS[WorldSwitcher.vue]
+            Stage{{Active Component Stage}}
+        end
+    end
+
+    subgraph "bbNexus Tool Library"
+        direction TB
+        T1[Cue Lab: Make Reference Contracts]
+        T2[Data Port: Upload & Stitch]
+        T3[Forge: Create Network/Genesis]
+        T4[Besearch: Emulation Controller]
+        T5[Vault: Sovereign Keys & Identity]
+    end
+
+    subgraph "HOP Node (P2P Persistence)"
+        HB[(Hyperbee: Cues)]
+        HD[(Hyperdrive: Raw Data)]
+        HS((Hyperswarm: Networks))
+    end
+
+    %% Interaction Flow
+    Nexus -- "Expands" --> T1 & T2 & T3 & T4 & T5
+    
+    %% Tool Operations
+    T1 -- "Define Geometry" --> HB
+    T2 -- "Stream Binary" --> HD
+    T3 -- "Publish Genesis" --> HS
+    T4 -- "Activate" --> WS
+    
+    %% Injection
+    WS -- "Hydrate Tool on" --> Stage
