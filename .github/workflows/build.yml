@@ -36,11 +36,8 @@ jobs:
           node-version: '24.x'
           cache: 'npm'
 
-      - name: Upgrade npm to latest
-        run: npm install -g npm@latest
-
       - name: Configure npm allow-git via .npmrc
-        run: echo "allow-git=true" >> .npmrc
+        run: echo "allow-git=all" >> .npmrc
 
       - name: Cache hop node_modules
         uses: actions/cache@v4
