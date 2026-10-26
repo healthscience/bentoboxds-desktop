@@ -134,8 +134,38 @@ Window
 
 YML  build file.
 
+git tag v0.7.80
+
+# Push the tag to remote to fire off the GitHub Actions build and release pipeline
+git push origin v0.7.80
+
+
 Linux will build appImage
 
 Mac will build to testFlight developer
 
 Windows will build a exe
+
+
+Linux Build detail
+
+Run defaul yml .github/worksflows/build.yml
+
+
+Windows build
+
+replace .github/worksflows/build.yml with github actions
+
+git commit v0.7.81
+
+git push origin v0.7.81  for example
+
+
+MAC build
+
+update .github/worksflows/build.yml
+
+commit and update as per windows
+
+
+NOTE  see previous build code for published code.
