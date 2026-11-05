@@ -29,7 +29,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24.x'
+          node-version: '22.x'
           cache: 'npm'
 
       - name: Configure npm allow-git via .npmrc
@@ -51,9 +51,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-renderer-
 
-      - name: Install Python setuptools (distutils shim)
-        run: python -m pip install setuptools
-
       - name: Install root dependencies
         run: npm install
 
@@ -65,7 +62,7 @@ jobs:
           npm rebuild
 
       - name: Verify Hop Dependencies Exist
-        run: node -e "require('./hop/node_modules/ws')"      
+        run: node -e "require('./hop/node_modules/ws')"
 
       - name: Install renderer dependencies
         working-directory: ./src/renderer
