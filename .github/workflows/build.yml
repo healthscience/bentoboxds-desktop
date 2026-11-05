@@ -51,17 +51,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-renderer-
 
-      - name: Cache hop node_modules
-        uses: actions/cache@v4
-        with:
-          path: hop/node_modules
-          key: ${{ runner.os }}-hop-${{ hashFiles('hop/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-hop-
-
-      - name: Verify Hop Dependencies Exist
-        run: node -e "require('./hop/node_modules/ws')"      
-
       - name: Install root dependencies
         run: npm install
 
@@ -71,6 +60,9 @@ jobs:
           npm install
           npm install-scripts approve --all
           npm rebuild
+
+      - name: Verify Hop Dependencies Exist
+        run: node -e "require('./hop/node_modules/ws')"      
 
       - name: Install renderer dependencies
         working-directory: ./src/renderer
