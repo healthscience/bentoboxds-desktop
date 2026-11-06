@@ -77,7 +77,7 @@ function createWindow() {
       nodeIntegration: true,
       webSecurity: false,
       allowRunningInsecureContent: true,
-      devTools: true,
+      devTools: false,
       additionalArguments: ['--ignore-certificate-errors', '--allow-insecure-localhost']
     }
   })
