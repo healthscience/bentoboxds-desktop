@@ -35,6 +35,14 @@ jobs:
           node-version: '24.x'
           cache: 'npm'
 
+      - name: Set up Python for native module compilation
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install setuptools for node-gyp distutils support
+        run: pip install setuptools
+
       - name: Configure npm allow-git via .npmrc
         run: echo "allow-git=all" >> .npmrc
 
