@@ -124,6 +124,9 @@ jobs:
           </plist>
           EOF
 
+      - name: Compile Application (Electron Vite)
+        run: npm run electron:build
+
       - name: Build for macOS (App Store Target)
         run: npx electron-builder --mac mas
         env:
