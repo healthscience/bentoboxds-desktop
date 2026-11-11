@@ -127,7 +127,11 @@ jobs:
       - name: Inject Provisioning Profile
         run: |
           mkdir -p build
-          echo "${{ secrets.PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > build/embedded.provisionprofile
+          echo "${{ secrets.PROVISIONING_PROFILE_BASE64 }}" | base64 -D > build/embedded.provisionprofile
+
+      - name: Verify Provisioning Profile
+        run: |
+          security cms -D -i build/embedded.provisionprofile > /dev/null && echo "Provisioning profile decoded and verified successfully."
 
       - name: Compile Application (Electron Vite)
         run: npm run electron:build
