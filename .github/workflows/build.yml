@@ -124,14 +124,25 @@ jobs:
           </plist>
           EOF
 
-      - name: Inject Provisioning Profile
+      - name: Inject and Verify Provisioning Profile
         run: |
           mkdir -p build
           echo "${{ secrets.PROVISIONING_PROFILE_BASE64 }}" | base64 -D > build/embedded.provisionprofile
+          
+          # Diagnostic inspection
+          echo "Checking decoded file size..."
+          ls -la build/embedded.provisionprofile
+          
+          echo "Checking file header..."
+          head -c 30 build/embedded.provisionprofile
+          echo ""
 
-      - name: Verify Provisioning Profile
-        run: |
-          security cms -D -i build/embedded.provisionprofile > /dev/null && echo "Provisioning profile decoded and verified successfully."
+          # Strict cryptographic validation
+          if ! security cms -D -i build/embedded.provisionprofile > /dev/null; then
+            echo "Error: Decoded file is not a valid Apple provisioning profile."
+            exit 1
+          fi
+          echo "Provisioning profile verified successfully."
 
       - name: Compile Application (Electron Vite)
         run: npm run electron:build
