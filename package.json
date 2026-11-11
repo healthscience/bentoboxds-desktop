@@ -1,7 +1,7 @@
 {
   "name": "bentoboxds",
   "description": "sovereign data that shapes health",
-  "version": "0.7.101",
+  "version": "0.7.102",
   "author": "aboynejames",
   "private": true,
   "main": "./out/main/index.js",
@@ -84,8 +84,20 @@
   "build": {
     "appId": "org.bentoboxds.app",
     "productName": "BentoBoxDS",
+    "copyright": "Copyright © 2026",
     "mac": {
-      "target": ["mas"]
+      "target": [
+        {
+          "target": "mas",
+          "arch": ["arm64"]
+        }
+      ],
+      "category": "public.app-category.utilities",
+      "minimumSystemVersion": "12.0.0",
+      "icon": "build/icon.icns",
+      "provisioningProfile": "build/embedded.provisionprofile",
+      "entitlements": "build/entitlements.mas.plist",
+      "entitlementsInherit": "build/entitlements.mas.inherit.plist"
     },
     "extraResources": [
       {

@@ -124,6 +124,11 @@ jobs:
           </plist>
           EOF
 
+      - name: Inject Provisioning Profile
+        run: |
+          mkdir -p build
+          echo "${{ secrets.PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > build/embedded.provisionprofile
+
       - name: Compile Application (Electron Vite)
         run: npm run electron:build
 
