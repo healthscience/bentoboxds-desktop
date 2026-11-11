@@ -125,7 +125,7 @@ jobs:
           EOF
 
       - name: Build for macOS (App Store Target)
-        run: npx electron-builder --mac --mas
+        run: npx electron-builder --mac mas
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # App signing pair
