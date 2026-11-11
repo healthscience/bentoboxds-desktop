@@ -92,7 +92,7 @@ jobs:
         run: |
           mkdir -p build
           
-          # Create main app sandbox entitlements (Clean of conflicting runtime identifiers)
+          # Create main app sandbox entitlements
           cat << 'EOF' > build/entitlements.mas.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -131,10 +131,8 @@ jobs:
         run: npx electron-builder --mac mas
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # App signing pair
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          # Installer package signing pair
           CSC_INSTALLER_LINK: ${{ secrets.CSC_INSTALLER_LINK }}
           CSC_INSTALLER_KEY_PASSWORD: ${{ secrets.CSC_INSTALLER_KEY_PASSWORD }}
 
